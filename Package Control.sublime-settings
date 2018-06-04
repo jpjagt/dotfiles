@@ -1,17 +1,15 @@
 {
-	"bootstrapped": true,
-	"installed_packages":
-	[
-		"AdvancedNewFile",
-		"All Autocomplete",
-		"ApplySyntax",
-		"BracketHighlighter",
-		"Emmet",
-		"Git",
-		"GitGutter",
-		"JSX",
-		"Package Control",
-		"SCSS",
-		"ERB Snippets"
-	]
+  "installed_packages":
+  [
+    "A File Icon",
+    "AdvancedNewFile",
+    "All Autocomplete",
+    "Babel",
+    "Emmet",
+    "ERB Snippets",
+    "Git",
+    "GitGutter",
+    "Package Control",
+    "SCSS"
+  ]
 }
