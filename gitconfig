@@ -49,5 +49,6 @@
 [user]
 	email = jeroenpjagt@gmail.com
 	name = jeroen
+	name = jeroen
 [credential]
 	helper = osxkeychain
