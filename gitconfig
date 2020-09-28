@@ -48,4 +48,6 @@
   mergeoptions = --no-edit
 [user]
 	email = jeroenpjagt@gmail.com
-	name = Jeroen Jagt
+	name = jeroen
+[credential]
+	helper = osxkeychain

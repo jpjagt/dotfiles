@@ -5,3 +5,14 @@ alias speedtest="wget -O /dev/null http://speedtest.wdc01.softlayer.com/download
 
 # Quickly serve the current directory as HTTP
 alias serve='ruby -run -e httpd . -p 8000'  # Or python -m SimpleHTTPServer :)
+
+# JJ aliases
+alias ga="git add "
+alias gcm="git commit -m "
+alias gpo="git push origin "
+alias gplo="git pull origin "
+alias gphm="git push heroku master"
+alias gco="git checkout "
+alias hours="ruby ~/code/jeroenpj/hours.rb"
+
+alias killrailspid="lsof -wni tcp:3000; echo 'kill -9 '"
