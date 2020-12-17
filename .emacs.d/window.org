@@ -1,0 +1,86 @@
+k#+BIND: org-export-use-babel nil
+#+TITLE: Window config
+#+AUTHOR: Paul Lodder
+#+EMAIL: <paul_lodder@live.nl>
+#+DATE: February 15, 2020
+#+PROPERTY: header-args :exports both :session insurer :cache :results value
+#+OPTIONS: ^:nil
+#+LATEX_COMPILER: pdflatexorg-mode restarted
+
+* Previous window
+Let's add a function that moves to previous window and bind it to =C-x p=. Can
+be useful when moving between many open windows
+#+BEGIN_SRC emacs-lisp
+(defun other-window-previous (count &optional all-frames)
+  "Select another window in cyclic ordering of windows.
+COUNT specifies the number of windows to skip, starting with the
+selected window, before making the selection.  If COUNT is
+positive, skip COUNT windows forwards.  If COUNT is negative,
+skip -COUNT windows backwards.  COUNT zero means do not skip any
+window, so select the selected window.  In an interactive call,
+COUNT is the numeric prefix argument.  Return nil.
+
+If the `other-window' parameter of the selected window is a
+function and `ignore-window-parameters' is nil, call that
+function with the arguments COUNT and ALL-FRAMES.
+
+This function does not select a window whose `no-other-window'
+window parameter is non-nil.
+
+This function uses `next-window' for finding the window to
+select.  The argument ALL-FRAMES has the same meaning as in
+`next-window', but the MINIBUF argument of `next-window' is
+always effectively nil."
+  (interactive "p")
+  (let* ((window (selected-window))
+   (function (and (not ignore-window-parameters)
+      (window-parameter window 'other-window)))
+   old-window old-count)
+    (if (functionp function)
+  (funcall function count all-frames)
+      ;; `next-window' and `previous-window' may return a window we are
+      ;; not allowed to select.  Hence we need an exit strategy in case
+      ;; all windows are non-selectable.
+      (catch 'exit
+  (while (> count 0)
+    (setq window (previous-window window nil all-frames))
+    (cond
+     ((eq window old-window)
+      (when (= count old-count)
+        ;; Keep out of infinite loops.  When COUNT has not changed
+        ;; since we last looked at `window' we're probably in one.
+        (throw 'exit nil)))
+     ((window-parameter window 'no-other-window)
+      (unless old-window
+        ;; The first non-selectable window `next-window' got us:
+        ;; Remember it and the current value of COUNT.
+        (setq old-window window)
+        (setq old-count count)))
+     (t
+      (setq count (1- count)))))
+  (while (< count 0)
+    (setq window (previous-window window nil all-frames))
+    (cond
+     ((eq window old-window)
+      (when (= count old-count)
+        ;; Keep out of infinite loops.  When COUNT has not changed
+        ;; since we last looked at `window' we're probably in one.
+        (throw 'exit nil)))
+     ((window-parameter window 'no-other-window)
+      (unless old-window
+        ;; The first non-selectable window `previous-window' got
+        ;; us: Remember it and the current value of COUNT.
+        (setq old-window window)
+        (setq old-count count)))
+     (t
+      (setq count (1+ count)))))
+
+  (select-window window)
+  ;; Always return nil.
+  nil))))
+
+(global-set-key (kbd "C-x p") `other-window-previous)
+#+END_SRC
+
+#+RESULTS:
+: other-window-previous

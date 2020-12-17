@@ -1,0 +1,416 @@
+#+TITLE: Emacs configuration
+#+OPTIONS: num:nil email:t
+#+HTML_HEAD: <link rel=stylesheet href="http://auc-computing.nl/css/aucc.css" type="text/css">
+
+- My ow prelude
+- Settle on structure loosely following https://github.com/psachin/.emacs.d
+
+#+RESULTS:
+: Loaded ~/.emacs.d/pauls_functions.el
+
+#+END_SRC
+* startup full screen
+and set up auto fill mode by default
+#+BEGIN_SRC emacs-lisp
+(setq mac-option-key-is-meta nil
+      mac-command-key-is-meta t
+      mac-command-modifier 'meta
+      mac-option-modifier 'none)
+(toggle-frame-fullscreen)
+(auto-fill-mode)
+(which-key-mode)
+#+END_SRC
+#+RESULTS:
+: t
+
+* Initial configuration
+#+RESULTS:
+: paul_lodder@live.nl
+***
+
+** Custom-set variables
+Put custom-set variables in =custom.el=, not =init.el=
+#+BEGIN_SRC emacs-lisp
+;; File for custom-set variables
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(when (file-exists-p custom-file)
+  (load custom-file))
+#+END_SRC
+
+#+RESULTS:
+: t
+
+** Suppress noise on start up.
+#+BEGIN_SRC emacs-lisp
+  (setq-default inhibit-startup-screen t
+                inhibit-splash-screen t
+                initial-scratch-message "")
+#+END_SRC
+
+#+RESULTS:
+
+** Load elisp from org files
+#+BEGIN_SRC emacs-lisp
+(defun load-org (f)
+
+  (org-babel-load-file (concat user-emacs-directory f)))
+
+
+(load-org "pauls_functions.org")
+
+#+END_SRC
+
+#+RESULTS:
+: Loaded ~/.emacs.d/pauls_functions.el
+
+* Own funcs
+
+#+END_SRC
+** [[./functions.org][Functions]] needed in further config
+#+BEGIN_SRC emacs-lisp
+(load-org "functions.org")
+#+END_SRC
+
+#+RESULTS:
+
+** [[./appearance.org][Appearance]]
+#+BEGIN_SRC emacs-lisp
+(load-org "appearance.org")
+#+END_SRC
+
+#+RESULTS:
+: Loaded ~/.emacs.d/appearance.el
+
+* General configuration
+** Frame title
+#+BEGIN_SRC emacs-lisp
+;; (setq frame-title-format
+;; '("emacs: " (:eval (if (buffer-file-name)
+;;            (abbreviate-file-name (buffer-file-name)) "%b"))))
+#+END_SRC
+
+#+RESULTS:
+
+** Matching parenthesis
+#+BEGIN_SRC emacs-lisp
+(show-paren-mode t)
+(setq-default show-paren-style 'parenthesis) ; highlight brackets only
+
+(defadvice show-paren-function
+    (after show-matching-paren-offscreen activate)
+  "If the matching paren is offscreen, show the matching line in
+the echo area. Has no effect if the character before point is not
+of the syntax class ')'."
+  (interactive)
+  (let* ((cb (char-before (point)))
+   (matching-text (and cb
+           (char-equal (char-syntax cb) ?\) )
+           (blink-matching-open))))
+    (when matching-text (message matching-text))))
+#+END_SRC
+
+#+RESULTS:
+: show-paren-function
+
+** Miscellaneous
+Miscellaneous configurations
+#+BEGIN_SRC emacs-lisp
+;; (savehist-mode 1)
+
+;; ;; Lazy prompting. Change "yes or no" to "y or n"
+;; ;; http://dl.dropboxusercontent.com/u/3968124/sacha-emacs.html
+(fset 'yes-or-no-p 'y-or-n-p)
+
+(setq-default
+fill-column 79
+standard-indent 2
+
+ ;;  ;; comment for now
+;;  ;; tab-always-indent 'complete
+;;  ;; indent-tabs-mode nil
+
+;;  sentence-end-double-space nil
+;;  indicate-empty-lines t
+
+;;  european-calendar-style t
+;;  calendar-date-style 'european
+;;  calendar-week-start-day 1
+;;  diary-file "~/.diary"
+
+;;  display-time-24hr-format t
+;;  display-time-day-and-date t
+;;  display-time-string-forms
+;;  '((if (and (not display-time-format) display-time-day-and-date)
+;;  (format-time-string "%a %b %e " now) "")
+;;    (format-time-string (or display-time-format
+;;          (if display-time-24hr-format "%H:%M" "%-I:%M%p"))
+;;      now))
+;;  calendar-time-display-form
+;;  '(24-hours ":" minutes
+;;       (if time-zone " (") time-zone (if time-zone ")"))
+
+
+;;  delete-old-versions t
+;;  vc-make-backup-files t
+;;  backup-directory-alist '((".*" . "~/.emacs.d/emacs-backups"))
+
+;;  mail-user-agent 'gnus-user-agent
+    visible-bell t
+;;  ps-paper-type 'a4
+
+;;  ediff-split-window-function 'split-window-horizontally
+;;  ediff-window-setup-function 'ediff-setup-windows-plain
+
+ enable-recursive-minibuffers t
+;;  debug-on-error nil
+
+;;  compile-command "remake install"
+
+;;  aurel-download-directory "~/code/src/aur"
+
+;;  async-shell-command-buffer 'new-buffer ; Don't ask.
+;;  display-buffer-alist '(("*Async Shell Command*" . (display-buffer-no-window)))
+;;  ibuffer-use-other-window nil
+;;  Man-width 80
+;;  Man-notify-method 'aggressive
+
+;;  eshell-prompt-function #'(lambda () "$ ")
+ )
+
+;; ;; (add-to-list 'ibuffer-never-show-predicates "^\*Async")
+
+;; (dolist (mode '(scroll-bar-mode))
+;;   (if (fboundp mode) (funcall mode -1)))
+
+;; ;; Edit from  chrome
+;; ;; (edit-server-start)
+
+;; ;; Save point position between sessions
+;; ;; (use-package saveplace
+;; ;;   :ensure t
+;; ;;   :config
+;; ;;   (setq-default save-place t)
+;; ;;   (setq save-place-file (expand-file-name ".places" user-emacs-directory)))
+#+END_SRC
+
+#+RESULTS:
+: t
+
+*** Modes
+#+BEGIN_SRC emacs-lisp
+  ;; (define-minor-mode atend-mode
+  ;;   "The sole purpose is to move to the end of the buffer as soon
+  ;; as the file is visited. This is useful for log files and such
+  ;; where we are immediately more interested in the bottom than the
+  ;; top."
+  ;;   ;; The initial value.
+  ;;   nil
+  ;;   ;; The indicator for the mode line.
+  ;;   ""
+  ;;   ;; The minor mode bindings.
+  ;;   '()
+  ;;   :group 'atend
+  ;;   (goto-char (point-max)))
+#+END_SRC
+
+#+RESULTS:
+
+** Keys
+#+BEGIN_SRC emacs-lisp
+;; (global-set-key (kbd "C-c 3") 'browse-url-at-point)
+(global-set-key (kbd "C-c b") 'bury-buffer)
+;; (global-set-key (kbd "C-c a") 'org-agenda)
+(global-set-key (kbd "C-+") 'text-scale-increase)
+(global-set-key (kbd "C--") 'text-scale-decrease)
+(global-set-key (kbd "C-c t") 'tramp-cleanup-this-connection)
+(global-set-key (kbd "C-x C-b") 'ibuffer)
+(global-set-key (kbd "C-x C-b") 'ibuffer)
+(global-set-key (kbd "C-c k") `keybase-open-chat)
+(add-hook 'emacs-lisp-mode-hook
+          (lambda ()
+            (local-set-key (kbd "C-c C-c") 'eval-buffer)))
+;; (use-package expand-region
+;;   :bind ("C-=" . er/expand-region))
+#+END_SRC
+
+#+RESULTS:
+
+* Files
+#+BEGIN_SRC emacs-lisp
+(load-org "files.org")
+(prefer-coding-system 'utf-8)
+(setq-default buffer-file-coding-system 'utf-8-auto-unix)
+
+;; ;; Full path of buffer in mode-line
+(setq uniquify-buffer-name-style 'forward)
+#+END_SRC
+
+#+RESULTS:
+: forward
+
+* Window
+#+BEGIN_SRC emacs-lisp
+(load-org "windows.org")
+#+END_SRC
+
+#+RESULTS:
+: Loaded ~/.emacs.d/windows.el
+
+* [[./packages.org][Packages]]
+#+BEGIN_SRC emacs-lisp
+;; (load-org "packages.org")
+(load-org "python.org")
+(load-org "js.org")
+(load-org "etc.org")
+(load-org "org.org")
+;; (load-org "email.org")
+(load-org "latex.org")
+(use-package magit
+  :ensure t
+  :bind ("C-x g" . magit-status)
+  :diminish magit-minor-mode)
+#+END_SRC
+
+#+RESULTS:
+: magit-status
+
+#+BEGIN_SRC emacs-lisp
+(load-org "pauls_functions.org")
+#+END_SRC
+
+#+RESULTS:
+: Loaded ~/.emacs.d/pauls_functions.el
+
+* [[./personal.org][Personal]]
+Personal settings not included in the public repo.
+#+BEGIN_SRC emacs-lisp
+;; (load-org "personal.org")
+#+END_SRC
+
+#+RESULTS:
+
+* Custom commands
+Load custom commands defined in [[file:custom_commands.org][custom_commands.org]].
+
+#+BEGIN_SRC emacs-lisp
+;; (load-org "custom_commands.org")
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC emacs-lisp
+;; (defun go-to-function (identifier)
+;;   "Go to function (re-generate file tags file everytime"
+;;   (interactive (list (xref--read-identifier "Find definitions of: ")))
+;;   (shell-command "find ~/projects/ -name '*py' | xargs etags -o ~/check_tags")
+;;   (setq tags-file-name "~/check_tags")
+;;   (xref-find-definitions identifier))
+;;   ;; ;; (interactive)
+;;   ;; (go-to-function identifier nil))
+
+;;   (global-set-key (kbd "M-.") `go-to-function)
+
+#+END_SRC
+
+#+RESULTS:
+
+* paul
+#+BEGIN_SRC emacs-lisp
+;; (load-org "pauls_functions.org")
+;; (load-org "personal.org")
+;;   ;;     (load-org "js.org")
+;;   (use-package tramp
+;;     :init (setq tramp-ssh-controlmaster-options
+;;     "-o ControlMaster=auto -o ControlPath='tramp.%%C' -o ControlPersist=no"))
+;;     ;; (defvar TeX-command-default "LaTeX"
+;;     ;;   "The default command for `TeX-command' in the current major mode.")
+;;     ;; ;; (setq TeX-command-default )
+
+;;     ;; (defun TeX-command-master (&optional override-confirm)
+;;     ;;       "Run command on the current document.
+
+;;     ;;     If a prefix argument OVERRIDE-CONFIRM is given, confirmation will
+;;     ;;     depend on it being positive instead of the entry in `TeX-command-list'."
+;;     ;;       (interactive "P")
+;;     ;;       ;; (save-buffer); edits won't automatically show otherwise
+;;     ;;       (TeX-command TeX-command-default              ;
+;;     ;;                    'TeX-master-file nil))
+;;     (load-org "general.org")
+#+END_SRC
+
+#+RESULTS:
+** Swapping alt and windows key
+https://unix.stackexchange.com/questions/86933/swap-alt-and-super
+
+* keybase
+#+BEGIN_SRC emacs-lisp
+  (setq my-keybase-username "jpj8")
+  (add-to-list 'load-path "~/.emacs.d/keybase-chat")
+  ;; (add-to-list 'load-path "~/.emacs.d/zone-matrix")
+  ;; (require 'zone-matrix)
+  (require 'keybase-chat)
+  ;; (load-file "/home/paul/.emacs.d/keybase-chat/keybase-chat.el")
+  ;; (load-file "/home/paul/.emacs.d/keybase-chat/keybase-markup.el")
+#+END_SRC
+
+#+RESULTS:
+: keybase-chat
+
+#+RESULTS:
+
+#+RESULTS:
+
+#+BEGIN_SRC emacs-lisp
+(setq debug-on-error nil)
+#+END_SRC
+
+#+RESULTS:
+* ssh
+#+BEGIN_SRC emacs-lisp
+(load-org "ssh.org")
+#+END_SRC
+
+#+RESULTS:
+: Loaded ~/.emacs.d/ssh.el
+
+#+BEGIN_SRC emacs-lisp
+(load-org "pim.org")
+#+END_SRC
+
+#+RESULTS:
+: Loaded ~/.emacs.d/pim.el
+
+#+begin_src emacs-lisp
+(defun jupyter-insert-token ()
+  (interactive)
+  (let ((output (shell-command-to-string "jupyter notebook list")))
+        (insert (first (split-string (second (split-string output "token=")) " " )))
+))
+#+end_src
+
+#+RESULTS:
+: jupyter-insert-token
+
+#+begin_src emacs-lisp
+(which-function-mode)
+#+end_src
+
+#+RESULTS:
+: t
+
+* shell
+#+BEGIN_SRC emacs-lisp
+(setq explicit-shell-file-name "/bin/zsh")
+#+END_SRC
+
+#+RESULTS:
+: /bin/zsh
+* jeroen
+
+#+BEGIN_SRC emacs-lisp
+(load-org "drag-stuff.org")
+(load-org "jeroen.org")
+#+END_SRC
+
+#+RESULTS:
+: Loaded ~/.emacs.d/jeroen.el

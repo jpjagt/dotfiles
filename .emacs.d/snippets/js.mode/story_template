@@ -1,0 +1,22 @@
+# -*- mode: snippet -*-
+# name: js-mode
+# key: <story_template
+# --
+import React from 'react'
+
+import { themeDecorator } from '../stories/decorators'
+
+import $0RadioButton from './RadioButton'
+
+export default {
+  component: RadioButton,
+  title: 'RadioButton',
+  decorators: [themeDecorator],
+}
+
+const Template = (args) => <RadioButton {...args} />
+
+export const Default = Template.bind({})
+Default.args = {
+  children: 'Hey there',
+}

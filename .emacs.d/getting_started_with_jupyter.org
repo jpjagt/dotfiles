@@ -1,0 +1,48 @@
+#+BIND: org-export-use-babel nil
+#+TITLE: jupyter
+#+AUTHOR: Paul Lodder
+#+EMAIL: <paul_lodder@live.nl>
+#+DATE: August 27, 2020
+#+LATEX: \setlength\parindent{0pt}
+#+LaTeX_HEADER: \usepackage{minted}
+#+LATEX_HEADER: \usepackage[margin=0.8in]{geometry}
+#+LATEX_HEADER_EXTRA:  \usepackage{mdframed}
+#+LATEX_HEADER_EXTRA: \BeforeBeginEnvironment{minted}{\begin{mdframed}}
+#+LATEX_HEADER_EXTRA: \AfterEndEnvironment{minted}{\end{mdframed}}
+#+MACRO: NEWLINE @@latex:\\@@ @@html:<br>@@
+#+PROPERTY: header-args :exports both :session getting_started_with_jupyter :cache :results value
+#+OPTIONS: ^:nil
+#+LATEX_COMPILER: pdflatex
+
+* General
+Go to directory of =ipynb= file
+
+- =M-x ein:run= and start the jupyter server in this directory
+- open an ipynb
+
+Now you can already execute code blocks etc.
+
+If you want to also have a window open with the kernel itself, run =M-x
+jupyter-server-list-kernels=
+
+It may ask you for a token, if so, run =M-x jupyter-insert-token= make sure you
+have the following function in your config
+#+begin_src emacs-lisp
+(defun jupyter-insert-token ()
+  (interactive)
+  (let ((output (shell-command-to-string "jupyter notebook list")))
+        (insert (first (split-string (second (split-string output "token=")) " " )))
+))
+#+end_src
+
+you will be shown a list of active kernels. press enter on your kernel of
+choice and a buffer will open in which you can directly interact.
+
+* Venv support
+To allow jupyter notebooks running on particular venvs, get into your venv and
+run:
+#+begin_example sh
+(venv)$ pip install ipykernel
+#+end_example
+
+Now just make sure that you are working inside your venv using =M-x venv-workon=

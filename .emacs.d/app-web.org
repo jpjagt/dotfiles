@@ -1,0 +1,81 @@
+#+BIND: org-export-use-babel nil
+#+TITLE: app and web dev support
+#+AUTHOR: Paul Lodder
+#+EMAIL: <paul_lodder@live.nl>
+#+DATE: June 19, 2020
+#+LATEX: \setlength\parindent{0pt}
+#+LaTeX_HEADER: \usepackage{minted}
+#+LATEX_HEADER: \usepackage[margin=0.8in]{geometry}
+#+LATEX_HEADER_EXTRA:  \usepackage{mdframed}
+#+LATEX_HEADER_EXTRA: \BeforeBeginEnvironment{minted}{\begin{mdframed}}
+#+LATEX_HEADER_EXTRA: \AfterEndEnvironment{minted}{\end{mdframed}}
+#+MACRO: NEWLINE @@latex:\\@@ @@html:<br>@@
+#+PROPERTY: header-args :exports both :session app-web :cache :results value
+#+OPTIONS: ^:nil
+#+LATEX_COMPILER: pdflatex
+Let's write a function that just copies a file from the native to the shared
+part or vice versa upon save.
+
+#+BEGIN_SRC emacs-lisp
+(setq project-root "/home/paul/projects/plekje/app/")
+(setq native-root "/home/paul/projects/plekje/app/native/")
+(setq web-root "/home/paul/projects/plekje/app/web/src/")
+
+(defun in-shared ()
+  (if (cl-search "node_modules" (file-name-directory (buffer-file-name)))
+      nil
+    (cl-search "app/shared" (file-name-directory (buffer-file-name)))))
+
+(defun get-dev-env ()
+  (let ((curdir (file-name-directory (buffer-file-name))))
+    (if (cl-search "app/shared" curdir) "shared" (cl-search "app/native" curdir) "native")
+
+    ))
+
+(defun get-relative-path ()
+  (let ((curpath (buffer-file-name)))
+    (second (split-string  curpath (string-join (list "plekje/app/" (get-dev-env)))))
+    ))
+
+(defun copy-file-to-both ()
+  (let* ((rel-path (get-relative-path))
+         (native-path (string-join (list native-root rel-path)))
+         (web-path (string-join (list web-root rel-path))))
+
+    (if (and (in-shared) rel-path)
+        (progn
+          (if (not (file-exists-p (file-name-directory native-path))) (mkdir (file-name-directory native-path) t))
+          (if (not (file-exists-p (file-name-directory web-path))) (mkdir (file-name-directory web-path) t))
+          (copy-file
+                (buffer-file-name)
+                (string-join (list native-root rel-path))
+                t)
+          (copy-file
+                (buffer-file-name)
+                (string-join (list web-root rel-path))
+                t)
+               (message (format "updated %s" rel-path))
+               )
+      ))
+  ;; (let ((new-root (cond ((string-equal (get-dev-env) "native") web-root)
+  ;;                         ((string-equal (get-dev-env) "shared") native-root)
+  ;;                         (t nil))))
+  ;;     (copy-file
+  ;;      (buffer-file-name)
+  ;;      (string-join (list new-root (get-relative-path)))
+  ;;      t)
+
+  ;; )
+  )
+(remove-hook 'after-save-hook 'copy-file-to-both)
+
+
+
+
+
+
+
+#+END_SRC
+
+#+RESULTS:
+| rmail-after-save-hook | format-buffer |

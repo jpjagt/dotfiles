@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: org-mode latex image
+# key: <img
+# --
+#+ATTR_LATEX: :width 0.8\linewidth :float nil
+#+CAPTION:
+#+label: fig:
+[[file:$0]]

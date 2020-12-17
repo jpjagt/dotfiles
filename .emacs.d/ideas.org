@@ -1,0 +1,58 @@
+Be able to mark code blocks to e.g. say these are code blocks with exploratory
+stuff, so don't run them if i want to run all code blocks
+* TODO mark buffers as fixed
+prevnt certain buffers in their position from being overwritten
+
+* Swiper customization
+Restrict swiper searches e..g
+C-s C-f to only find matches within function
+C-s C-l to only search in previous 1000 lines (would make working with large buffers
+so much better)
+https://emacs.stackexchange.com/questions/20503/how-can-i-start-swiper-with-an-initial-filter
+
+* WIP shell-here
+Function that opens shell in directory of current file
+also =shell-region=, opens shell at current region
+* Make sure to use syntax table of language inside src blocks
+* DONE easy grep
+write a func that asks for
+dir to look at
+<file-pattern> to match
+<grep-pattern> to match
+(find . -name "<pattern>") | xargs grep <grep-pattern>
+
+* DONE open region
+open path in region upon =M-x o=
+
+* DONE Replace string in defun only
+
+* DONE cpath and cdir
+include ssh cases as well
+copy filename or copy directory name
+* Latex
+** TODO copy inside math mode
+when copying inside math mode, if pasted outside of math mode add surrounding
+$'s and conversely, if pasting inside math-mode, delete the $'s if they were
+part of the copy
+Needs =region-extract-function=
+setq-mode-local=
+* Keybase
+** TODO show all docs sent in chat
+* TODO function defs
+For functions defined in *org files, let C-h-f jump to org file
+* TODO Auto-insertion org-mode
+Set the session name to an appropriate version of the filename.
+* Toggle long line mode
+Remove line-tail from whitepsace stylekey
+#+BEGIN_SRC emacs-lisp
+
+#+END_SRC
+* Set default dir here
+
+*
+* Dir of buffer!!!
+function that sets default directory to directory of buffer from list
+* scss formatter
+
+* transpose in a 2-word transposes accordingly
+* blacken automatic popup

@@ -1,0 +1,5 @@
+#+BEGIN_SRC emacs-lisp
+  (push '("\\.hdl" . c++-mode) auto-mode-alist)
+  (push '("\\.tst" . c++-mode) auto-mode-alist)
+  (push '("\\.cmp" . org-mode) auto-mode-alist)
+#+END_SRC

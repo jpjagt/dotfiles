@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: new python testcase function
+# key: deftc
+# --
+def $1() -> None:
+    """
+    ${1:$(s-titleize (s-replace "_" " " yas-text))}
+
+    $2
+    """
+    ${0:pass}

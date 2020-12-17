@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: index-mapping
+# key: <id2
+# --
+${1:$(nth 1 (s-split-up-to "2" yas-text 1))} = ${1:}[${1:$(nth 0 (s-split-up-to "2" yas-text 1))}]

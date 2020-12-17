@@ -1,0 +1,124 @@
+* Lisp
+Configurations for all lisp-like languages (Common Lisp, Scheme, Racket, Emacs
+Lisp, etc.)
+
+Uncomment =;; (use-package paredit :ensure t)= because
+https://emacs.stackexchange.com/questions/44277/cannot-modify-an-area-being-edited-in-a-dedicated-buffer
+
+#+BEGIN_SRC emacs-lisp
+  ;; (use-package slime
+  ;;   :ensure t
+  ;;   :config
+  ;;   (defvar slime-fasl-directory "~/tmp/slime-fasls/")
+  ;;   (make-directory slime-fasl-directory t)
+
+  ;;   (setq slime-contribs '(slime-fancy
+  ;;                          slime-fancy-trace
+  ;;                          slime-fancy-inspector
+  ;;                          slime-macrostep
+  ;;                          slime-asdf
+  ;;                          slime-repl-ansi-color
+  ;;                          slime-sprof
+  ;;                          slime-tramp)
+  ;;         common-lisp-hyperspec-root
+  ;;         (concat "file://" (expand-file-name "~/media/hypertext/HyperSpec/"))
+
+  ;;         slime-lisp-implementations
+  ;;         `((sbcl ("/usr/local/bin/sbcl") :coding-system utf-8-unix)
+  ;;           (bigstack-sbcl ("/usr/local/bin/sbcl --control-stack-size 4"))
+  ;;           (patched-sbcl ("/usr/local/bin/sbcl"
+  ;;                          "--core"
+  ;;                          "/usr/local/lib/sbcl/fastload.core")
+  ;;                         :env ("SBCL_HOME=/usr/local/sbcl/"))
+  ;;           (alisp ("/path/to/bin/alisp"))
+  ;;           (clisp ("/bin/clisp"))
+  ;;           (clozure ("/usr/lib/ccl/lx86cl64"))
+  ;;           (ccl ("/usr/lib/ccl/lx86cl64"))
+  ;;           (abcl ("/bin/abcl"))
+  ;;           (ecl ("/bin/ecl"))
+  ;;           (mkcl ("/bin/mkcl")))
+  ;;         slime-default-lisp 'sbcl))
+
+  ;; (require 'slime-tramp)
+
+  (defface paren-face
+    '((((class color) (background dark)) (:foreground "grey20"))
+      (((class color) (background light)) (:foreground "grey80")))
+    "Face used to dim parentheses.")
+
+  ;; (use-package paredit           :ensure t)
+  (use-package aggressive-indent :ensure t)
+  (use-package easy-escape       :ensure t)
+  (use-package highlight-quoted  :ensure t)
+
+  (dolist (hook '(emacs-lisp-mode-hook
+                  lisp-mode-hook
+                  lisp-interaction-mode-hook
+                  scheme-mode-hook
+                  racket-mode-hook
+                  ielm-mode-hook))
+    (dolist (mode (list #'paredit-mode
+                        #'aggressive-indent-mode
+                        #'easy-escape-minor-mode
+                        #'highlight-quoted-mode
+                        (lambda ()
+                          (font-lock-add-keywords nil '(("(\\|)" . 'paren-face))))))
+      (add-hook hook mode)))
+
+  ;; (Define-Key Lisp-Mode-map (Kbd "M-c") 'paredit-convolute-sexp)
+  ;; Causeing  Symbol's function definition is void: ql-docs-reload-docs errors
+  ;; (load (expand-file-name "~/code/lisp/lib/quicklisp-docs/quicklisp-docs.el") t)
+  ;; (setq ql-docs-quicklisp-docs-home "~/code/lisp/quicklisp/docs/"
+  ;;       ql-docs-browser-function #'eww-browse-url)
+  ;; (ql-docs-reload-docs)
+
+  ;; Custom indents for stumpwm
+  (put 'defcommand 'lisp-indent-function 3)
+  (put 'test 'lisp-indent-function 1)
+  (put 'test-op 'lisp-indent-function 1)
+  (put 'for-all 'lisp-indent-function 2)
+
+  ;; (rainbow-delimiters-mode -1)
+
+  (push '("\\.cl$" . lisp-mode) auto-mode-alist)
+  (push '("\\.kif$" . lisp-mode) auto-mode-alist)
+#+END_SRC
+
+#+RESULTS:
+: ((\.kif$ . lisp-mode) (\.cl$ . lisp-mode) (mailcap . mailcap-mode) (.*/etc/netctl/.*$ . sh-mode) (\.timer . conf-mode) (\.service$ . conf-mode) (settings$ . conf-mode) (resources$ . xrdb-mode) (/\.gitmodules\' . conf-mode) (\.asciidoc\' . adoc-mode) (\.[Rr]md\' . rmd-mode) (\.rdf$ . web-mode) (\.html$ . web-mode) (\.ipynb$ . js2-mode) (\.cmp . org-mode) (\.tst . c++-mode) (\.hdl . c++-mode) (\.sol$ . solidity-mode) (\.toml$ . toml-mode) (/Cargo.lock$ . toml-mode) (\.st\' . smalltalk-mode) (\.agda$ . haskell-mode) (\.m$ . octave-mode) (\.arr$ . pyret-mode) (\.pro\' . prolog-mode) (\.P\' . prolog-mode) (\.yap\' . prolog-mode) (\.chr\' . prolog-mode) (\.pl\' . prolog-mode) (/Pipfile.lock$ . js2-mode) (/Pipfile$ . conf-mode) (\.xsh$ . python-mode) (\.py\' . python-mode) (/home/paul/Documents/journal/\(?1:[0-9]\{4\}\)\(?2:[0-9][0-9]\)\(?3:[0-9][0-9]\)\' . org-journal-mode) (\.hva\' . latex-mode) (\.drv\' . latex-mode) (\.go\' . go-mode) (\.hsc\' . haskell-mode) (\.l[gh]s\' . literate-haskell-mode) (\.hsig\' . haskell-mode) (\.[gh]s\' . haskell-mode) (\.cabal\' . haskell-cabal-mode) (\.chs\' . haskell-c2hs-mode) (\.ghci\' . ghci-script-mode) (\.dump-simpl\' . ghc-core-mode) (\.hcr\' . ghc-core-mode) (/git-rebase-todo\' . git-rebase-mode) (\.md\' . markdown-mode) (\.markdown\' . markdown-mode) (/nginx/.+\.conf\' . nginx-mode) (nginx\.conf\' . nginx-mode) (/PKGBUILD\' . pkgbuild-mode) (\.toml\' . toml-mode) (\.\(e?ya?\|ra\)ml\' . yaml-mode) (\.at\' . autotest-mode) (\.asy$ . asy-mode) (\.gpg\(~\|\.~[0-9]+~\)?\' nil epa-file) (\.\(?:3fr\|a\(?:r[tw]\|vs\)\|bmp[23]?\|c\(?:als?\|myka?\|r[2w]\|u[rt]\)\|d\(?:c[mrx]\|ds\|jvu\|ng\|px\)\|exr\|f\(?:ax\|its\)\|gif\(?:87\)?\|hrz\|ic\(?:on\|[bo]\)\|j\(?:\(?:pe\|[np]\)g\)\|k\(?:25\|dc\)\|m\(?:iff\|ng\|rw\|s\(?:l\|vg\)\|tv\)\|nef\|o\(?:rf\|tb\)\|p\(?:bm\|c\(?:ds\|[dltx]\)\|db\|ef\|gm\|i\(?:ct\|x\)\|jpeg\|n\(?:g\(?:24\|32\|8\)\|[gm]\)\|pm\|sd\|tif\|wp\)\|r\(?:a[fs]\|gb[ao]?\|l[ae]\)\|s\(?:c[rt]\|fw\|gi\|r[2f]\|un\|vgz?\)\|t\(?:ga\|i\(?:ff\(?:64\)?\|le\|m\)\|tf\)\|uyvy\|v\(?:da\|i\(?:car\|d\|ff\)\|st\)\|w\(?:bmp\|pg\)\|x\(?:3f\|bm\|cf\|pm\|wd\|[cv]\)\|y\(?:cbcra?\|uv\)\)\' . image-mode) (\.elc\' . elisp-byte-code-mode) (\.dz\' nil jka-compr) (\.xz\' nil jka-compr) (\.lzma\' nil jka-compr) (\.lz\' nil jka-compr) (\.g?z\' nil jka-compr) (\.bz2\' nil jka-compr) (\.Z\' nil jka-compr) (\.vr[hi]?\' . vera-mode) (\(?:\.\(?:rbw?\|ru\|rake\|thor\|jbuilder\|rabl\|gemspec\|podspec\)\|/\(?:Gem\|Rake\|Cap\|Thor\|Puppet\|Berks\|Vagrant\|Guard\|Pod\)file\)\' . ruby-mode) (\.re?st\' . rst-mode) (\.pyw?\' . python-mode) (\.scss\' . scss-mode) (\.awk\' . awk-mode) (\.\(u?lpc\|pike\|pmod\(\.in\)?\)\' . pike-mode) (\.idl\' . idl-mode) (\.java\' . java-mode) (\.m\' . objc-mode) (\.ii\' . c++-mode) (\.i\' . c-mode) (\.lex\' . c-mode) (\.y\(acc\)?\' . c-mode) (\.[ch]\' . c-mode) (\.\(CC?\|HH?\)\' . c++-mode) (\.[ch]\(pp\|xx\|\+\+\)\' . c++-mode) (\.\(cc\|hh\)\' . c++-mode) (\.\(bat\|cmd\)\' . bat-mode) (\.[sx]?html?\(\.[a-zA-Z_]+\)?\' . html-mode) (\.svgz?\' . image-mode) (\.svgz?\' . xml-mode) (\.x[bp]m\' . image-mode) (\.x[bp]m\' . c-mode) (\.p[bpgn]m\' . image-mode) (\.tiff?\' . image-mode) (\.gif\' . image-mode) (\.png\' . image-mode) (\.jpe?g\' . image-mode) (\.te?xt\' . text-mode) (\.[tT]e[xX]\' . tex-mode) (\.ins\' . tex-mode) (\.ltx\' . latex-mode) (\.dtx\' . doctex-mode) (\.org\' . org-mode) (\.el\' . emacs-lisp-mode) (Project\.ede\' . emacs-lisp-mode) (\.\(scm\|stk\|ss\|sch\)\' . scheme-mode) (\.l\' . lisp-mode) (\.li?sp\' . lisp-mode) (\.[fF]\' . fortran-mode) (\.for\' . fortran-mode) (\.p\' . pascal-mode) (\.pas\' . pascal-mode) (\.\(dpr\|DPR\)\' . delphi-mode) (\.ad[abs]\' . ada-mode) (\.ad[bs].dg\' . ada-mode) (\.\([pP]\([Llm]\|erl\|od\)\|al\)\' . perl-mode) (Imakefile\' . makefile-imake-mode) (Makeppfile\(?:\.mk\)?\' . makefile-makepp-mode) (\.makepp\' . makefile-makepp-mode) (\.mk\' . makefile-gmake-mode) (\.make\' . makefile-gmake-mode) ([Mm]akefile\' . makefile-gmake-mode) (\.am\' . makefile-automake-mode) (\.texinfo\' . texinfo-mode) (\.te?xi\' . texinfo-mode) (\.[sS]\' . asm-mode) (\.asm\' . asm-mode) (\.css\' . css-mode) (\.mixal\' . mixal-mode) (\.gcov\' . compilation-mode) (/\.[a-z0-9-]*gdbinit . gdb-script-mode) (-gdb\.gdb . gdb-script-mode) ([cC]hange\.?[lL]og?\' . change-log-mode) ([cC]hange[lL]og[-.][0-9]+\' . change-log-mode) (\$CHANGE_LOG\$\.TXT . change-log-mode) (\.scm\.[0-9]*\' . scheme-mode) (\.[ckz]?sh\'\|\.shar\'\|/\.z?profile\' . sh-mode) (\.bash\' . sh-mode) (\(/\|\`\)\.\(bash_\(profile\|history\|log\(in\|out\)\)\|z?log\(in\|out\)\)\' . sh-mode) (\(/\|\`\)\.\(shrc\|[kz]shrc\|bashrc\|t?cshrc\|esrc\)\' . sh-mode) (\(/\|\`\)\.\([kz]shenv\|xinitrc\|startxrc\|xsession\)\' . sh-mode) (\.m?spec\' . sh-mode) (\.m[mes]\' . nroff-mode) (\.man\' . nroff-mode) (\.sty\' . latex-mode) (\.cl[so]\' . latex-mode) (\.bbl\' . latex-mode) (\.bib\' . bibtex-mode) (\.bst\' . bibtex-style-mode) (\.sql\' . sql-mode) (\.m[4c]\' . m4-mode) (\.mf\' . metafont-mode) (\.mp\' . metapost-mode) (\.vhdl?\' . vhdl-mode) (\.article\' . text-mode) (\.letter\' . text-mode) (\.i?tcl\' . tcl-mode) (\.exp\' . tcl-mode) (\.itk\' . tcl-mode) (\.icn\' . icon-mode) (\.sim\' . simula-mode) (\.mss\' . scribe-mode) (\.f9[05]\' . f90-mode) (\.f0[38]\' . f90-mode) (\.indent\.pro\' . fundamental-mode) (\.\(pro\|PRO\)\' . idlwave-mode) (\.srt\' . srecode-template-mode) (\.prolog\' . prolog-mode) (\.tar\' . tar-mode) (\.\(arc\|zip\|lzh\|lha\|zoo\|[jew]ar\|xpi\|rar\|7z\|ARC\|ZIP\|LZH\|LHA\|ZOO\|[JEW]AR\|XPI\|RAR\|7Z\)\' . archive-mode) (\.oxt\' . archive-mode) (\.\(deb\|[oi]pk\)\' . archive-mode) (\`/tmp/Re . text-mode) (/Message[0-9]*\' . text-mode) (\`/tmp/fol/ . text-mode) (\.oak\' . scheme-mode) (\.sgml?\' . sgml-mode) (\.x[ms]l\' . xml-mode) (\.dbk\' . xml-mode) (\.dtd\' . sgml-mode) (\.ds\(ss\)?l\' . dsssl-mode) (\.jsm?\' . javascript-mode) (\.json\' . javascript-mode) (\.[ds]?vh?\' . verilog-mode) (\.by\' . bovine-grammar-mode) (\.wy\' . wisent-grammar-mode) ([:/\]\..*\(emacs\|gnus\|viper\)\' . emacs-lisp-mode) (\`\..*emacs\' . emacs-lisp-mode) ([:/]_emacs\' . emacs-lisp-mode) (/crontab\.X*[0-9]+\' . shell-script-mode) (\.ml\' . lisp-mode) (\.ld[si]?\' . ld-script-mode) (ld\.?script\' . ld-script-mode) (\.xs\' . c-mode) (\.x[abdsru]?[cnw]?\' . ld-script-mode) (\.zone\' . dns-mode) (\.soa\' . dns-mode) (\.asd\' . lisp-mode) (\.\(asn\|mib\|smi\)\' . snmp-mode) (\.\(as\|mi\|sm\)2\' . snmpv2-mode) (\.\(diffs?\|patch\|rej\)\' . diff-mode) (\.\(dif\|pat\)\' . diff-mode) (\.[eE]?[pP][sS]\' . ps-mode) (\.\(?:PDF\|DVI\|OD[FGPST]\|DOCX?\|XLSX?\|PPTX?\|pdf\|djvu\|dvi\|od[fgpst]\|docx?\|xlsx?\|pptx?\)\' . doc-view-mode-maybe) (configure\.\(ac\|in\)\' . autoconf-mode) (\.s\(v\|iv\|ieve\)\' . sieve-mode) (BROWSE\' . ebrowse-tree-mode) (\.ebrowse\' . ebrowse-tree-mode) (#\*mail\* . mail-mode) (\.g\' . antlr-mode) (\.mod\' . m2-mode) (\.ses\' . ses-mode) (\.docbook\' . sgml-mode) (\.com\' . dcl-mode) (/config\.\(?:bat\|log\)\' . fundamental-mode) (\.\(?:[iI][nN][iI]\|[lL][sS][tT]\|[rR][eE][gG]\|[sS][yY][sS]\)\' . conf-mode) (\.\(?:desktop\|la\)\' . conf-unix-mode) (\.ppd\' . conf-ppd-mode) (java.+\.conf\' . conf-javaprop-mode) (\.properties\(?:\.[a-zA-Z0-9._-]+\)?\' . conf-javaprop-mode) (\`/etc/\(?:DIR_COLORS\|ethers\|.?fstab\|.*hosts\|lesskey\|login\.?de\(?:fs\|vperm\)\|magic\|mtab\|pam\.d/.*\|permissions\(?:\.d/.+\)?\|protocols\|rpc\|services\)\' . conf-space-mode) (\`/etc/\(?:acpid?/.+\|aliases\(?:\.d/.+\)?\|default/.+\|group-?\|hosts\..+\|inittab\|ksysguarddrc\|opera6rc\|passwd-?\|shadow-?\|sysconfig/.+\)\' . conf-mode) ([cC]hange[lL]og[-.][-0-9a-z]+\' . change-log-mode) (/\.?\(?:gitconfig\|gnokiirc\|hgrc\|kde.*rc\|mime\.types\|wgetrc\)\' . conf-mode) (/\.\(?:enigma\|gltron\|gtk\|hxplayer\|net\|neverball\|qt/.+\|realplayer\|scummvm\|sversion\|sylpheed/.+\|xmp\)rc\' . conf-mode) (/\.\(?:gdbtkinit\|grip\|orbital/.+txt\|rhosts\|tuxracer/options\)\' . conf-mode) (/\.?X\(?:default\|resource\|re\)s\> . conf-xdefaults-mode) (/X11.+app-defaults/\|\.ad\' . conf-xdefaults-mode) (/X11.+locale/.+/Compose\' . conf-colon-mode) (/X11.+locale/compose\.dir\' . conf-javaprop-mode) (\.~?[0-9]+\.[0-9][-.0-9]*~?\' nil t) (\.\(?:orig\|in\|[bB][aA][kK]\)\' nil t) ([/.]c\(?:on\)?f\(?:i?g\)?\(?:\.[a-zA-Z0-9._-]+\)?\' . conf-mode-maybe) (\.[1-9]\' . nroff-mode) (\.tgz\' . tar-mode) (\.tbz2?\' . tar-mode) (\.txz\' . tar-mode))
+
+* Roswell setup
+  #+BEGIN_SRC emacs-lisp :tangle no
+    ;(load (expand-file-name "~/.roswell/helper.el"))
+
+    ;(setq inferior-lisp-program "ros -L sbcl-bin -Q -l ~/.sbclrc run")
+  #+END_SRC
+* Scheme
+#+BEGIN_SRC emacs-lisp
+  (use-package geiser
+    :ensure t
+    :config
+    (setq geiser-default-implementation 'chez
+          geiser-active-implementations '(guile chicken chez mit chibi)
+          geiser-repl-skip-version-check-p t
+          ;; geiser-racket-binary "/bin/racket"
+          ;; "~/code/src/racket-6.5/bin/racket"
+          geiser-mode-smart-tab-p t
+          geiser-scsh-manual-lookup-nodes '("scsh" "r5rs")
+          geiser-scsh-manual-lookup-other-window-p t
+          ;; Want to use racket-mode not geiser-mode for .rkt
+          auto-mode-alist (remove '("\\.rkt\\'" . scheme-mode) auto-mode-alist)))
+
+  (put 'big-bang 'scheme-indent-function 3) ; for typed racket
+  (put 'rename-in 'scheme-indent-function 1)
+
+  (use-package scribble-mode :ensure t)
+
+  (use-package racket-mode
+    :ensure t
+    :mode "\\.rkt[dl]?\\'")
+
+  ;; :config
+  ;; (add-hook 'racket-mode-hook      #'racket-unicode-input-method-enable)
+  ;; (add-hook 'racket-repl-mode-hook #'racket-unicode-input-method-enable)
+#+END_SRC

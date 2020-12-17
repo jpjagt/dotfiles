@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: for-loop-mapping
+# key: <for2
+# --
+for ${1:$(s-join ", " (s-split-up-to "2" yas-text 1))} in ${1:}.items()

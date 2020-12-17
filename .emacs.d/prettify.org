@@ -1,0 +1,78 @@
+#+BIND: org-export-use-babel nil
+#+TITLE: Prettify mode
+#+AUTHOR: Paul Lodder
+#+EMAIL: <paul_lodder@live.nl>
+#+DATE: February 18, 2020
+#+LATEX_COMPILER: pdflatexorg-mode restarted
+#+PROPERTY: header-args :exports both :session insurer :cache :results value
+
+Let's work on a prettify utils mode that updates the symbols in
+=prettify-symbols-alist= based on the tex expressions that are present in the
+current buffer.
+
+#+BEGIN_SRC emacs-lisp
+  (load-file "~/.emacs.d/prettify-utils.el")
+    (defun read-lines (filePath)
+      "Return a list of lines of a file at filePath."
+      (with-temp-buffer
+        (insert-file-contents filePath)
+        (split-string (buffer-string) "\n" t)))
+
+    (defun strip-text-properties (txt)
+      (set-text-properties 0 (length txt) nil txt)
+      txt)
+
+
+    (defun re-seq (regexp string)
+      "Get a list of all regexp matches in a string"
+      (save-match-data
+        (let ((pos 0)
+              matches)
+          (while (string-match regexp string pos)
+            (push (match-string 0 string) matches)
+            (setq pos (match-end 0)))
+          matches)))
+
+    (defun replace-in-string (what with in)
+      (replace-regexp-in-string (regexp-quote what) with in nil 'literal))
+
+
+    (defun get-prettify-list-for-buffer ()
+      (setq tex-expr "[\\][0-9a-z{}\\]+")
+      (setq unicode-command "~/.virtualenvs/py3.8/bin/python ~/.emacs.d/write_unicode_for_commands.py")
+      ;; (setq tex-expr "\\[\w|\{\}]+")
+
+      (setq commands (seq-map (lambda (x) (strip-text-properties x)) (seq-filter
+                                                                      (lambda (s)
+                                                                        (string-prefix-p
+                                                                         "\\" s))
+                                                                      (delete-dups
+                                                                       (re-seq
+                                                                        tex-expr
+                                                                        (buffer-string))))))
+      (setq comma-sep-commands  (mapconcat 'identity  commands ","))
+      (setq command-to-exec (string-join (list unicode-command comma-sep-commands) " "))
+      (shell-command (replace-in-string "\\" "\\\\" command-to-exec))
+      (message (replace-in-string "\\" "\\\\" command-to-exec))
+
+      (setq command-symbol-pairs
+            (seq-map (lambda (x) (split-string
+                                  x ",")) (read-lines "/tmp/symbols")))
+      (setq out (seq-map (lambda (el) (first (prettify-utils-generate-f
+                                              el))) command-symbol-pairs))
+      (seq-map (lambda (x) (if (= (length x) 2) (apply #'cons x) x)) out))
+#+END_SRC
+
+#+RESULTS:
+: get-prettify-list-for-buffer
+\\llbracket
+
+
+#+BEGIN_SRC emacs-lisp :results valuec
+  ;; (add-hook `prettify-symbols-mode-hook (lambda ()
+  ;;                                         (setq prettify-symbols-alist
+  ;;                                         (get-prettify-list-for-buffer))))
+#+END_SRC
+
+#+RESULTS:
+| (lambda nil (setq prettify-symbols-alist (get-prettify-list-for-buffer))) | prettify-symbols-mode-set-explicitly |
