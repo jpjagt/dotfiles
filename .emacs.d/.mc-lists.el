@@ -6,6 +6,7 @@
         TeX-insert-backslash
         backward-delete-word
         backward-sexp
+        comint-delchar-or-maybe-eof
         comment-dwim-or-line
         counsel-M-x
         counsel-yank-pop

@@ -210,14 +210,6 @@ standard-indent 2
 ;;     ;;                    'TeX-master-file nil))
 ;;     (load-org "general.org")
 
-(setq my-keybase-username "jpj8")
-(add-to-list 'load-path "~/.emacs.d/keybase-chat")
-;; (add-to-list 'load-path "~/.emacs.d/zone-matrix")
-;; (require 'zone-matrix)
-(require 'keybase-chat)
-;; (load-file "/home/paul/.emacs.d/keybase-chat/keybase-chat.el")
-;; (load-file "/home/paul/.emacs.d/keybase-chat/keybase-markup.el")
-
 (setq debug-on-error nil)
 
 (load-org "ssh.org")

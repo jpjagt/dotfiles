@@ -26,8 +26,8 @@
 )
 
 (setq ssh-config '(
-                   ("fxr" "/ssh:jeroen@168.119.165.84:")
-                   ("lisa-dl" "/ssh:lgpu0348@lisa.surfsara.nl:")
+                   ("fxr" "/plink:jeroen@168.119.165.84:")
+                   ("lisa-dl" "/plink:lgpu0348@lisa.surfsara.nl:")
                   ))
 
 (dolist (elt ssh-config)
@@ -230,15 +230,19 @@
             ((kbd "C-M-.") . mc/unmark-previous-like-this)
              ((kbd "C-c C-,") . mc/mark-all-like-this))
 
-(require 'projectile)
+(use-package projectile
+  :ensure t)
 (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
 (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
 (projectile-mode +1)
 
+(use-package projectile-rails
+  :ensure t)
 (projectile-rails-global-mode)
 (define-key projectile-rails-mode-map (kbd "C-c e") 'projectile-rails-command-map)
 
-(require 'web-mode)
+(use-package web-mode
+  :ensure t)
 (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
@@ -273,26 +277,51 @@
 ;;   (lambda ()
 ;;     (flymake-eslint-enable)))
 
-(add-to-list 'load-path "~/code/paulodder/canvas-utils/")
-(require 'canvas-utils)
-(setq canvas-baseurl "https://canvas.uva.nl") ; url you visit to go to the
+;; (add-to-list 'load-path "~/code/paulodder/canvas-utils/")
+;; (require 'canvas-utils)
+;; (setq canvas-baseurl "https://canvas.uva.nl") ; url you visit to go to the
                                         ; canvas instance of your institution
                                         ; (e.g. https://canvas.uva.nl)
-(setq canvas-token "10392~0HN7MJHY2C0MA2XcZlNvra3OScZR8crUs7xxbjT6yl6rb1YEPYYgb9yzlSgdTETW") ; when logged in generate an access
+;; (setq canvas-token "10392~0HN7MJHY2C0MA2XcZlNvra3OScZR8crUs7xxbjT6yl6rb1YEPYYgb9yzlSgdTETW") ; when logged in generate an access
                                         ; token under Account > Settings
                                         ; > Approved integrations
 
+(when (eq window-system 'w32)
+  (setq putty-directory "C:/Program Files/PuTTY")
+  (setq tramp-default-method "plink")
+  (when (and (not (string-match putty-directory (getenv "PATH")))
+       (file-directory-p putty-directory))
+    (setenv "PATH" (concat putty-directory ";" (getenv "PATH")))
+    (add-to-list 'exec-path putty-directory)))
+
 (load-file "~/code/matthewlmcclure/tramp-virtualenv/tramp-virtualenv.el")
+
+(setq my-keybase-username "jpj8")
+(add-to-list 'load-path "~/.emacs.d/keybase-chat/")
+;; (add-to-list 'load-path "~/.emacs.d/zone-matrix")
+;; (require 'zone-matrix)
+(load-file "~/.emacs.d/keybase-chat/keybase-chat.el")
+(load-file "~/.emacs.d/keybase-chat/keybase-markup.el")
+(require 'keybase)
 
 (global-set-key (kbd "C-;") 'avy-goto-char-2)
 
 (plist-put org-format-latex-options :scale 1.8)
 
+(defun org-copy-src-block ()
+  (interactive)
+  (org-edit-src-code)
+  (mark-whole-buffer)
+  (kill-ring-save)
+  (org-edit-src-abort))
+
+(define-key org-mode-map (kbd "C-M-w") 'org-copy-src-block))
+
 (use-package poporg
       :bind (("C-c /" . poporg-dwim)))
 
-(add-to-list 'load-path "~/.emacs.d/github/ox-ipynb")
-(require 'ox-ipynb)
+;; (add-to-list 'load-path "~/.emacs.d/github/ox-ipynb")
+;; (require 'ox-ipynb)
 
 (defun set-bash () (interactive) (setq explicit-shell-file-name "/bin/bash"))
 (defun set-zsh () (interactive) (setq explicit-shell-file-name "/bin/zsh"))
@@ -304,7 +333,7 @@
         :mode ("\\.py\\'" . python-mode)
         :interpreter ("python" . python-mode)
         :config
-        (setq python-shell-interpreter "python"
+        (setq python-shell-interpreter "ipython"
         ;; python-shell-interpreter-args "--simple-prompt -i --colors=Linux --profile=default")
           python-shell-interpreter-args "")
               (push '("\\.ipynb$" . js2-mode) auto-mode-alist)
@@ -396,7 +425,7 @@
 (push '("/Pipfile.lock$" . js2-mode) auto-mode-alist)
 
 ;; Fix Python loading bug in emacs25
-'(with-eval-after-load 'python
+(with-eval-after-load 'python
   (defun python-shell-completion-native-try ()
     "Return non-nil if can trigger native completion."
     (let ((python-shell-completion-native-enable t)
@@ -482,10 +511,20 @@
 (defun conda-venv-mode () (interactive)
 (setq venv-location "/usr/local/Caskroom/miniconda/base/envs"))
 
-(require 'pygen)
+(use-package pygen
+  :ensure t)
 (add-hook 'python-mode-hook 'pygen-mode)
 
-(load-theme 'doom-palenight t)
+(use-package doom-themes
+  :ensure t
+  :config
+  (load-theme 'doom-palenight t)
+
+  ;; Enable flashing mode-line on errors
+  (doom-themes-visual-bell-config)
+
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config))
 
 ;; (load "~/.emacs.d/icicles-install")
 ;; (customize-variable' "icicle-download-dir" "~/.emacs.d/icicles")
@@ -497,7 +536,8 @@
 ;; (icy-mode 1)
 
 (delete 'flycheck-disabled-checkers "json-jsonlist")
-(require 'flycheck)
+(use-package flycheck
+  :ensure t)
 (flycheck-add-mode 'json-jsonlint 'json-mode)
 (add-hook 'json-mode-hook 'flycheck-mode)
 
@@ -513,7 +553,8 @@
 
 (bind-key* "C-x M-e" 'eval-and-replace)
 
-(require 'ace-window)
+(use-package ace-window
+  :ensure t)
 (global-set-key (kbd "M-o") 'ace-window)
 (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
 (defvar aw-dispatch-alist
@@ -554,6 +595,7 @@
   (dashboard-setup-startup-hook))
 
 (use-package olivetti
+  :ensure t
   :diminish
   :config
   (setq olivetti-body-width 0.7)
@@ -585,3 +627,7 @@
               nil)))
 
 (define-key org-mode-map (kbd "C-c C-8") 'org-copy-section-as-tex)
+
+(defun shell-on-windows ()
+  (let ((explicit-shell-file-name "C:/Windows/System32/bash.exe"))
+    (shell)))
