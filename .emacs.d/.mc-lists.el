@@ -45,6 +45,7 @@
         ivy-switch-buffer
         mark-whole-buffer
         move-windows
+        org-export-dispatch
         projectile-rails-find-stylesheet
         swiper
         text-scale-decrease
