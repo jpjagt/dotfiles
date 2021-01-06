@@ -342,19 +342,6 @@ Load custom commands defined in [[file:custom_commands.org][custom_commands.org]
 ** Swapping alt and windows key
 https://unix.stackexchange.com/questions/86933/swap-alt-and-super
 
-* keybase
-#+BEGIN_SRC emacs-lisp
-  (setq my-keybase-username "jpj8")
-  (add-to-list 'load-path "~/.emacs.d/keybase-chat")
-  ;; (add-to-list 'load-path "~/.emacs.d/zone-matrix")
-  ;; (require 'zone-matrix)
-  (require 'keybase-chat)
-  ;; (load-file "/home/paul/.emacs.d/keybase-chat/keybase-chat.el")
-  ;; (load-file "/home/paul/.emacs.d/keybase-chat/keybase-markup.el")
-#+END_SRC
-
-#+RESULTS:
-: keybase-chat
 
 #+RESULTS:
 

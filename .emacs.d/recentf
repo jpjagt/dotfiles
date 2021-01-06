@@ -2,19 +2,7 @@
 
 (setq recentf-list
       '(
-        "/Users/jeroen/code/jpjagt/now/app/views/sections/_manifesto.html.erb"
-        "/Users/jeroen/code/jpjagt/now/app/views/pages/home.html.erb"
-        "/Users/jeroen/code/jpjagt/now/config/webpacker.yml"
-        "/Users/jeroen/code/jpjagt/now/app/views/sections/_join.html.erb"
-        "/Users/jeroen/code/jpjagt/now/app/value_objects/allocation_preferences.rb"
-        "/Users/jeroen/code/jpjagt/now/app/models/user.rb"
-        "/Users/jeroen/code/uva/msc/dlc/uvadlc_practicals_2020/assignment_3/3_generative/report.org"
-        "/Users/jeroen/code/uva/msc/dlc/uvadlc_practicals_2020/assignment_3/3_generative/part3/train.py"
-        "/Users/jeroen/code/uva/msc/dlc/uvadlc_practicals_2020/assignment_3/3_generative/report.tex"
-        "/Users/jeroen/.emacs.d/jeroen.org"
-        "/Users/jeroen/.emacs.d/ssh.org"
-        "/Users/jeroen/.emacs.d/elpa/dashboard-20201215.1310/dashboard-autoloads.el"
-        "/Users/jeroen/.emacs.d/elpa/page-break-lines-20200305.244/page-break-lines-autoloads.el"
+
         ))
 
 (setq recentf-filter-changer-current 'nil)
