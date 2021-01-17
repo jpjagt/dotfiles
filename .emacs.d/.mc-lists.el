@@ -4,14 +4,18 @@
 (setq mc/cmds-to-run-for-all
       '(
         TeX-insert-backslash
+        avy-goto-char-2
         backward-delete-word
         backward-sexp
+        beginning-of-visual-line
         comint-delchar-or-maybe-eof
         comment-dwim-or-line
         counsel-M-x
         counsel-yank-pop
         dabbrev-expand
+        downcase-region
         drag-stuff-down
+        end-of-visual-line
         eval-and-replace
         forward-sexp
         indent-for-tab-command
@@ -46,8 +50,12 @@
         ivy-switch-buffer
         mark-whole-buffer
         move-windows
+        org-ctrl-c-ctrl-c
+        org-cycle
+        org-cycle-agenda-files
         org-export-dispatch
         projectile-rails-find-stylesheet
+        py-execute-buffer
         swiper
         text-scale-decrease
         ))

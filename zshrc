@@ -64,10 +64,7 @@ else
 fi
 unset __conda_setup
 # <<< conda initialize <<<
-
-# actually, venv > conda
 conda deactivate
-source ~/.virtualenvs/py3.8/bin/activate
 
 # for rake tasks like rake tweet:send[username] to not fail
 unsetopt nomatch
@@ -75,3 +72,10 @@ export PATH="/usr/local/opt/gnu-getopt/bin:$PATH"
 export PATH="/usr/local/opt/gnu-getopt/bin:$PATH"
 export BUNDLER_EDITOR="'/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl' -a"
 export BUNDLER_EDITOR="'/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl' -a"
+
+# use venv and wrapper shell tools
+export WORKON_HOME=~/.virtualenvs
+export VIRTUALENVWRAPPER_PYTHON=$WORKON_HOME/base/bin/python
+mkdir -p $WORKON_HOME
+source $WORKON_HOME/base/bin/virtualenvwrapper.sh
+workon base
