@@ -8,4 +8,4 @@
 ;; ;; Full path of buffer in mode-line
 (setq uniquify-buffer-name-style 'forward)
 
-(load-org "jeroen.org")
+(load-org "jpj.org")

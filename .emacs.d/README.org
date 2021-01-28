@@ -2,20 +2,10 @@
 #+OPTIONS: num:nil email:t
 #+HTML_HEAD: <link rel=stylesheet href="http://auc-computing.nl/css/aucc.css" type="text/css">
 
-* intro
-
-Load elisp from org files
-#+BEGIN_SRC emacs-lisp
-(defun load-org (f)
-  (org-babel-load-file (concat user-emacs-directory f)))
-#+END_SRC
-
-#+RESULTS:
-: Loaded ~/.emacs.d/pauls_functions.el
-
 * files
+
 #+BEGIN_SRC emacs-lisp
-(load-org "files.org")
+(load-config-org-or-el "files")
 (prefer-coding-system 'utf-8)
 (setq-default buffer-file-coding-system 'utf-8-auto-unix)
 
@@ -29,8 +19,8 @@ Load elisp from org files
 * jeroen
 
 #+BEGIN_SRC emacs-lisp
-(load-org "jeroen.org")
+(load-config-org-or-el "jpj")
 #+END_SRC
 
 #+RESULTS:
-: Loaded ~/.emacs.d/jeroen.el
+: t

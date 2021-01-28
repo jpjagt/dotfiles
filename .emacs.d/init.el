@@ -30,8 +30,38 @@
 (eval-when-compile
   (require 'use-package))
 
-;; load the actual configuration
-(org-babel-load-file (concat user-emacs-directory "README.org"))
+;; add straight as package manager
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+;; from protesilaos/dotfiles
+;; I create an "el" version of my Org configuration file as a final step
+;; before closing down Emacs.  This is done to load the latest version
+;; of my code upon startup.
+;;
+;; Also helps with initialisation times.  Not that I care too much about
+;; those… Hence why I no longer bother with deferring package loading
+;; either by default or on a case-by-case basis.
+(defun load-config-org-or-el (fname)
+  (let* ((conf (concat user-emacs-directory fname))
+         (el (concat conf ".el"))
+         (org (concat conf ".org")))
+    (if (file-exists-p el)
+        (load-file el)
+      (use-package org-mode :straight (:type built-in))
+      (org-babel-load-file org))))
+
+(load-config-org-or-el "README")
 
 ;; ;; gc - decrease threshold to 5 MB
 ;; (add-hook 'after-init-hook (lambda () (setq gc-cons-threshold (* 5 1024 1024))))

@@ -111,18 +111,6 @@ With argument ARG, do this that many times."
 (global-set-key (kbd "C-M-<backspace>") `my-delete-surrounded-delimiters)
 (global-set-key (kbd "C-M-r") `my-move-region-inwards)
 
-(unless (package-installed-p 'quelpa)
-  (with-temp-buffer
-    (url-insert-file-contents "https://raw.githubusercontent.com/quelpa/quelpa/master/quelpa.el")
-    (eval-buffer)
-    (quelpa-self-upgrade)))
-
-(quelpa
- '(quelpa-use-package
-   :fetcher git
-   :url "https://github.com/quelpa/quelpa-use-package.git"))
-(require 'quelpa-use-package)
-
 (defun regexp-orrify (&rest disjuncts)
   "Return the regexp disjunction of the given regexps"
   (cond ((null disjuncts) "")
@@ -287,10 +275,9 @@ of the syntax class ')'."
           orderless-regexp)))
 
 (use-package orderless
-  ;; :quelpa (orderless :fetcher github :repo "oantolin/orderless"))
   :ensure t
   :demand
-  ;; :after prot-orderless
+  :after prot-orderless
   :config
   (setq orderless-component-separator " +")
   (setq orderless-matching-styles prot-orderless-default-styles)
@@ -300,6 +287,179 @@ of the syntax class ')'."
   ;; SPC should never complete: use it for `orderless' groups.
   :bind (:map minibuffer-local-completion-map
               ("SPC" . nil)))
+
+(use-package selectrum
+  :straight t
+  :config
+  (set-face-attribute 'selectrum-current-candidate nil :background (doom-darken "#c792ea" 0.6))
+  (selectrum-mode +1)
+)
+
+;; to make sorting and filtering more intelligent
+(straight-use-package 'selectrum-prescient)
+(selectrum-prescient-mode +1)
+
+(use-package embark
+  ;; Note that this gets only the main library.  That repo contains
+  ;; other packages as well (which are small *.el files that are
+  ;; distributed separately).
+  :straight (embark :host github
+                    :repo "oantolin/embark"
+                    :branch "master"
+                    :files ("embark.el"))
+  :demand
+  :diminish embark-collect-zebra-minor-mode
+  :after prot-minibuffer
+  :config
+  (setq embark-collect-initial-view-alist
+        '((file . list)
+          (buffer . list)
+          (symbol . list)
+          (line . list)
+          (xref-location . list)
+          (kill-ring . zebra)
+          (t . list)))
+  (setq embark-collect-live-update-delay 0.5)
+  (setq embark-collect-live-initial-delay 0.8)
+
+  ;; Please don't read too much into the names of those faces.  Just
+  ;; green and yellow.
+  (setq embark-action-indicator (propertize "Act" 'face 'success))
+  (setq embark-become-indicator (propertize "Become" 'face 'warning))
+
+  ;; ;; NOTE: I keep this around for when I do videos, otherwise I do not
+  ;; ;; use it.  It requires `which-key' to display key hints.
+  ;; (setq embark-action-indicator
+  ;;       (lambda (map)
+  ;;         (which-key--show-keymap "Embark" map nil nil 'no-paging)
+  ;;         #'which-key--hide-popup-ignore-command)
+  ;;       embark-become-indicator embark-action-indicator)
+  :hook ((minibuffer-setup-hook . embark-collect-completions-after-input)
+         (embark-post-action-hook . embark-collect--update-linked)
+         (embark-collect-mode-hook . prot-embark-completions-cursor))
+  :bind (("C-r" . embark-act)
+         :map minibuffer-local-completion-map
+         ("C-r" . embark-act)
+         ("C-." . embark-act-noexit)
+         ("C->" . embark-become)
+         ("M-q" . embark-collect-toggle-view) ; parallel of `fill-paragraph'
+         :map embark-collect-mode-map
+         ("C-r" . embark-act)
+         ("C-." . embark-act-noexit)
+         ("r" . embark-act)
+         ("." . embark-act-noexit)
+         ("M-q" . embark-collect-toggle-view)
+         :map embark-symbol-map
+         ("." . embark-find-definition)
+         ("k" . describe-keymap)))
+
+;; Integration with Consult.  Note that the package is `embark-consult',
+;; but because it comes from the same repo as Embark I prefer to use
+;; this straight.el directive (check the main embark package above).
+(use-package embark-consult
+  :straight (embark-consult :host github
+                            :repo "oantolin/embark"
+                            :branch "master"
+                            :files ("embark-consult.el"))
+  :demand
+  :after (embark consult)
+  ;; ;; Use the hook, or check `prot-embark-consult-preview-toggle'.
+  ;; :hook (embark-collect-mode-hook . embark-consult-preview-minor-mode)
+  :bind (:map embark-collect-mode-map
+         ("C-j" . embark-consult-preview-at-point)))
+
+(use-package prot-embark
+  :straight (:type built-in)
+  :demand
+  :after embark
+  :hook ((minibuffer-exit-hook . prot-embark-clear-live-buffers)
+         (embark-collect-post-revert-hook . prot-embark-collect-fit-window)
+         (embark-collect-mode-hook . prot-embark-hl-line)
+         (embark-collect-mode-hook . prot-embark-display-line-numbers))
+  ;; NOTE: to switch to the live collection buffer, I also use
+  ;; `prot-minibuffer-focus-mini-or-completions' which is bound to
+  ;; "s-v".
+  :bind (:map embark-collect-mode-map
+         ("h" . prot-simple-describe-symbol)  ; from `prot-simple.el'
+         ("C-g" . prot-embark-keyboard-quit)
+         ("C-k" . prot-embark-collection-kill-line)
+         ("C-M-n" . prot-embark-completions-act-next)
+         ("C-M-p" . prot-embark-completions-act-previous)
+         ("C-M-j" . prot-embark-completions-act-current)
+         ("C-M-v" . prot-embark-consult-preview-toggle) ; "view", "visualise" mnemonic
+         ("C-n" . prot-embark-next-line-or-mini)
+         ("C-p" . prot-embark-previous-line-or-mini)
+         ("M-F" . prot-embark-collection-flush-lines) ; M-S-f like M-S-5 (M-%)
+         ("M-K" . prot-embark-collection-keep-lines)  ; same principle as right above
+         :map minibuffer-local-completion-map
+         ("C-n" . prot-embark-switch-to-completions-top)
+         ("C-p" . prot-embark-switch-to-completions-bottom)
+         ("C-l" . prot-embark-completions-toggle)))
+
+(use-package marginalia
+  :straight (:host github :repo "minad/marginalia" :branch "main")
+  :demand
+  :config
+  (setq marginalia-annotators
+        '(marginalia-annotators-heavy
+          marginalia-annotators-light))
+  (marginalia-mode 1))
+
+(use-package consult
+  :ensure t
+  :demand
+  :config
+  (setq consult-line-numbers-widen t)
+  (setq completion-in-region-function #'consult-completion-in-region)
+  (setq consult-async-min-input 3)
+  (setq consult-async-input-debounce 0.5)
+  (setq consult-async-input-throttle 0.8)
+  (setq consult-narrow-key ">")
+
+  ;; configure a function which returns the project root directory
+  (autoload 'projectile-project-root "projectile")
+  (setq consult-project-root-function #'projectile-project-root)
+
+  ;; NOTE: check `embark-consult' for previews that can be used with the
+  ;; default minibuffer and Embark collections.
+  :bind (("C-x M-:" . consult-complex-command)
+         ("C-x M-m" . consult-minor-mode-menu)
+         ("C-x M-k" . consult-kmacro)
+         ("M-g g" . consult-goto-line)
+         ("M-g M-g" . consult-goto-line)
+         ("M-X" . consult-mode-command)
+         ("M-K" . consult-keep-lines)  ; M-S-k is similar to M-S-5 (M-%)
+         ("M-s f" . consult-find)
+         ("M-s g" . consult-grep)
+         ("M-s m" . consult-mark)
+         ("C-j" . consult-buffer)
+         ("C-x b" . consult-buffer)
+         :map consult-narrow-map
+         ("?" . consult-narrow-help)))
+
+;; enforce the switch-buffer binding
+(bind-key* "C-j" 'consult-buffer)
+
+(use-package prot-consult
+  ;; :after (consult prot-pulse)
+  :after (consult)
+  :config
+  (setq consult-project-root-function #'prot-consult-project-root)
+  (setq prot-consult-add-advice-set-hooks t)
+  (setq prot-consult-command-centre-list
+        '(consult-line
+          prot-consult-line
+          consult-mark))
+  (setq prot-consult-command-top-list
+        '(consult-outline
+          consult-imenu
+          prot-consult-outline
+          prot-consult-imenu))
+  (prot-consult-set-up-hooks-mode 1)
+  :bind (("M-s i" . prot-consult-imenu)
+         ("M-s s" . prot-consult-outline)    ; M-s o is `occur'
+         ("M-s y" . prot-consult-yank)
+         ("M-s l" . prot-consult-line)))
 
 (use-package prot-minibuffer
   :demand
@@ -496,7 +656,7 @@ The normal global definition of the character C-x indirects to this keymap.")
 (bind-key* "M-<up>"    'windmove-up)
 (bind-key* "M-<down>"  'windmove-down)
 
-(bind-key* "C-j" 'ivy-switch-buffer)
+(bind-key* "s-s" 'shell)
 
 (auto-fill-mode 1)
 
@@ -518,20 +678,20 @@ The normal global definition of the character C-x indirects to this keymap.")
   :ensure t
   :config (global-set-key (kbd "C-s") 'swiper))
 
-(use-package counsel
-  :ensure t
-  :config
-  (global-set-key (kbd "M-x")         'counsel-M-x)
-  (global-set-key (kbd "C-x C-f")     'counsel-find-file)
-  (global-set-key (kbd "C-h S")       'counsel-info-lookup-symbol)
-  (global-set-key (kbd "C-c 8 <ret>") 'counsel-unicode-char)
+;; (use-package counsel
+;;   :ensure t
+;;   :config
+;;   ;; (global-set-key (kbd "M-x")         'counsel-M-x)
+;;   ;; (global-set-key (kbd "C-x C-f")     'counsel-find-file)
+;;   (global-set-key (kbd "C-h S")       'counsel-info-lookup-symbol)
+;;   (global-set-key (kbd "C-c 8 <ret>") 'counsel-unicode-char)
 
-  (global-set-key (kbd "C-c g") 'counsel-git)
-  (global-set-key (kbd "C-c j") 'counsel-git-grep)
-  ;; (global-set-key (kbd "C-c k") 'counsel-rg)
-  (global-set-key (kbd "C-x l") 'counsel-locate)
+;;   (global-set-key (kbd "C-c g") 'counsel-git)
+;;   (global-set-key (kbd "C-c j") 'counsel-git-grep)
+;;   ;; (global-set-key (kbd "C-c k") 'counsel-rg)
+;;   (global-set-key (kbd "C-x l") 'counsel-locate)
 
-  (setq counsel-find-file-ignore-regexp "\\*.fasl$"))
+;;   (setq counsel-find-file-ignore-regexp "\\*.fasl$"))
 
 ;; (use-package ivy
 ;;   :ensure t
@@ -621,7 +781,6 @@ The normal global definition of the character C-x indirects to this keymap.")
 (global-set-key (kbd "C--") 'text-scale-decrease)
 (global-set-key (kbd "C-c t") 'tramp-cleanup-this-connection)
 (global-set-key (kbd "C-x C-b") 'ibuffer)
-(global-set-key (kbd "C-c k") 'keybase-open-chat)
 (add-hook 'emacs-lisp-mode-hook
           (lambda ()
             (local-set-key (kbd "C-c C-c") 'eval-buffer)))
@@ -652,7 +811,8 @@ The normal global definition of the character C-x indirects to this keymap.")
 )
 (global-set-key (kbd "M-;") 'comment-dwim-or-line)
 
-(require 'wrap-region)
+(use-package wrap-region
+  :diminish)
 (wrap-region-global-mode)
 (wrap-region-add-wrapper "`" "`")
 (wrap-region-add-wrapper "'" "'")
@@ -948,7 +1108,10 @@ even beep.)"
 
 (use-package magit
   :ensure t
-  :bind ("C-x g" . magit-status)
+  :bind (
+         ("C-x g" . magit-status)
+         :map magit-mode-map
+         ("C-j" . consult-buffer))
   :diminish magit-minor-mode)
 
 ;; (add-hook 'yas-minor-mode-hook (lambda () (yas-activate-extra-mode
@@ -960,16 +1123,18 @@ even beep.)"
 ;; (add-hook 'yas-minor-mode-hook
 ;;           (lambda ()
 ;;             (yas-activate-extra-mode 'fundamental-mode)))
-(require 'yasnippet)
+(use-package yasnippet
+  :diminish)
 (yas-global-mode 1)
 
 (bind-keys* ((kbd "C-.") . mc/mark-next-like-this)
             ((kbd "C-,") . mc/mark-previous-like-this)
-            ((kbd "C-M-,") . mc/unmark-next-like-this)
-            ((kbd "C-M-.") . mc/unmark-previous-like-this)
+            ((kbd "C-M-.") . mc/unmark-next-like-this)
+            ((kbd "C-M-,") . mc/unmark-previous-like-this)
              ((kbd "C-c C-,") . mc/mark-all-like-this))
 
 (use-package projectile
+  :diminish
   :ensure t)
 (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
 (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
@@ -1049,13 +1214,15 @@ even beep.)"
 
 (load-file "~/code/matthewlmcclure/tramp-virtualenv/tramp-virtualenv.el")
 
-;; (setq my-keybase-username "jpj8")
-;; (add-to-list 'load-path "~/.emacs.d/keybase-chat/")
-;; ;; (add-to-list 'load-path "~/.emacs.d/zone-matrix")
-;; ;; (require 'zone-matrix)
-;; (load-file "~/.emacs.d/keybase-chat/keybase-chat.el")
-;; (load-file "~/.emacs.d/keybase-chat/keybase-markup.el")
-;; (require 'keybase)
+(setq my-keybase-username "jpj8")
+(use-package keybase-chat
+  :straight (keybase-chat
+             :host github
+             :repo "paulodder/keybase-chat"
+             )
+)
+
+(bind-key (kbd "C-c k") 'keybase-join-channel)
 
 (global-set-key (kbd "C-;") 'avy-goto-char-2)
 
@@ -1717,7 +1884,8 @@ c  is called, for each contiguous sub-region, with METHOD as its
     ;; ;;   :tag "py-shell-name"
     ;; ;;   :group 'python-mode)
 
-(require 'blacken)
+(use-package blacken
+  :diminish)
 (setq blacken-line-length 79)
 (setq blacken-executable "/Users/jeroen/.virtualenvs/py3.8/bin/black")
 (add-hook 'python-mode-hook 'blacken-mode 'too-long-lines-mode)
@@ -1987,6 +2155,36 @@ c  is called, for each contiguous sub-region, with METHOD as its
   (let ((explicit-shell-file-name "C:/Windows/System32/bash.exe"))
     (shell)))
 
+;; (use-package diminish
+;;   :straight t
+;;   :config
+;;   (diminish 'projectile-mode)
+;;   (diminish 'auto-fill-mode))
+
+(use-package rich-minority
+  :straight t
+  :config
+  ;; (setq rm-blacklist "Projectile.*")
+  (setq rm-whitelist
+        '(
+          ;; " Fill"
+          ;; "yas"
+          "mc:*"
+          " Def"
+          ))
+  (setq rm-whitelist-regexps
+        '(
+          "mc:*"
+          " Def"
+          ))
+  (setq rm-whitelist (mapconcat 'identity rm-whitelist-regexps "\\|"))
+  ;; (setq rm-whitelist
+  ;;     (format "^ \(%s\)$"
+  ;;             (mapconcat #'identity
+  ;;                        rm-whitelist-regexps
+  ;;                        "\\|")))
+  (rich-minority-mode 1))
+
 ;; status-icon to the left of filename
 (defun render-mode-line-status-icon (read-only modified)
   (if read-only
@@ -2040,8 +2238,10 @@ c  is called, for each contiguous sub-region, with METHOD as its
 
        ;; the current major mode
        (propertize " %m" 'face 'font-lock-comment-face)
+       " "
+       ;; rich-minority minor modes
+       rm--mode-line-construct
        "  "
-       ;;minor-mode-alist
        ))
 
 (defun mode-line-render ()
@@ -2058,14 +2258,15 @@ c  is called, for each contiguous sub-region, with METHOD as its
                    )
                   mode-line-right-section)))
 
+
 ;; actually render the mode-line
-(setq-default mode-line-format (mode-line-render))
+;; (setq-default mode-line-format (mode-line-render))
 
 ;; move modeline to the top of the buffer
 (setq-default header-line-format (mode-line-render))
-(setq-default mode-line-format'(""))
+;; (setq-default mode-line-format'(""))
 ;; hide empty mode-line
-;; (setq-default mode-line-format nil)
+(setq-default mode-line-format nil)
 
 ;; reduce height of empty mode-line
 (set-face-attribute 'mode-line nil :foreground "white" :background nil :box nil :overline "#1e212e")
@@ -2080,6 +2281,12 @@ c  is called, for each contiguous sub-region, with METHOD as its
                     :box '(:line-width 5 :color "#1c1f2b")
                     :overline nil
                     :underline nil)
+
+(use-package powerthesaurus
+  :straight t
+  :config
+  (bind-key* "s-p" 'powerthesaurus-lookup-word-dwim)
+  )
 
 (defun maak-belachelijk ()
   (interactive)

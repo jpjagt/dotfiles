@@ -22,6 +22,7 @@
         indent-rigidly
         ivy-done
         kill-region
+        kill-visual-line
         kmacro-end-and-call-macro
         mark-sexp
         org-beginning-of-line
@@ -43,16 +44,20 @@
       '(
         ace-window
         beginning-of-buffer
+        consult-buffer
         counsel-find-file
         describe-key
         elpy-shell-send-statement-and-step
         end-of-buffer
+        eval-expression
         ivy-switch-buffer
+        kmacro-start-macro
         mark-whole-buffer
         move-windows
         org-ctrl-c-ctrl-c
         org-cycle
         org-cycle-agenda-files
+        org-execute-code-in-shell
         org-export-dispatch
         projectile-rails-find-stylesheet
         py-execute-buffer

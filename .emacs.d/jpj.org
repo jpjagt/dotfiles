@@ -18,6 +18,7 @@ https://stackoverflow.com/questions/45992859/how-to-read-python-documentation-in
 * interesting configs?
 
 - https://github.com/gonsie/dotfiles/blob/master/emacs
+
 * keybindings that are still freeish
 
 - C-c b
@@ -231,33 +232,6 @@ Taken from https://emacs.stackexchange.com/questions/10786/remove-parentheses-ar
 #+RESULTS:
 : my-move-region-inwards
 * vital functions/libraries
-** quelpa-use-package
-
-we need quelpa for this:
-
-#+BEGIN_SRC emacs-lisp
-(unless (package-installed-p 'quelpa)
-  (with-temp-buffer
-    (url-insert-file-contents "https://raw.githubusercontent.com/quelpa/quelpa/master/quelpa.el")
-    (eval-buffer)
-    (quelpa-self-upgrade)))
-#+END_SRC
-
-#+RESULTS:
-
-great, so now, quelpa-use-package:
-
-#+BEGIN_SRC emacs-lisp
-(quelpa
- '(quelpa-use-package
-   :fetcher git
-   :url "https://github.com/quelpa/quelpa-use-package.git"))
-(require 'quelpa-use-package)
-#+END_SRC
-
-#+RESULTS:
-: quelpa-use-package
-
 ** [paul] regexp-orrify
 
 #+BEGIN_SRC emacs-lisp
@@ -280,7 +254,7 @@ great, so now, quelpa-use-package:
 : s
 
 * appearance
-** Font lock
+** font lock
 #+BEGIN_SRC emacs-lisp
   ;; Enable pretty syntax highlighting everywhere
   (global-font-lock-mode t)
@@ -357,7 +331,7 @@ Turn off all windows decoration.
 #+RESULTS:
 : Loaded ~/.emacs.d/prettify.el
 
-* theming
+** theming
 
 themes i like:
 | doom-laserwave |
@@ -501,6 +475,7 @@ add his prot-.el files to load-path:
 | ~/.emacs.d/repos/protesilaos/dotfiles/emacs/.emacs.d/straight/repos/prot-lisp/ | /home/paul/org-mode/lisp | ~/.emacs.d/elpa/use-package | /Users/jeroen/.emacs.d/elpa/ac-ispell-20151101.226 | /Users/jeroen/.emacs.d/elpa/ace-window-20200606.1259 | /Users/jeroen/.emacs.d/elpa/add-node-modules-path-20180710.2342 | /Users/jeroen/.emacs.d/elpa/adoc-mode-0.6.6 | /Users/jeroen/.emacs.d/elpa/afternoon-theme-20140104.1859 | /Users/jeroen/.emacs.d/elpa/auctex-12.2.3/ | /Users/jeroen/.emacs.d/elpa/auctex-12.2.3 | /Users/jeroen/.emacs.d/elpa/avy-20200624.1148 | /Users/jeroen/.emacs.d/elpa/beacon-1.3.4 | /Users/jeroen/.emacs.d/elpa/blacken-20200626.2018 | /Users/jeroen/.emacs.d/elpa/counsel-20200615.1226 | /Users/jeroen/.emacs.d/elpa/cyberpunk-theme-20200601.1632 | /Users/jeroen/.emacs.d/elpa/dashboard-20201215.1310 | /Users/jeroen/.emacs.d/elpa/doom-themes-20201107.315 | /Users/jeroen/.emacs.d/elpa/emmet-mode-20180613.341 | /Users/jeroen/.emacs.d/elpa/expand-region-20200304.1839 | /Users/jeroen/.emacs.d/elpa/flymake-eslint-20191129.1558 | /Users/jeroen/.emacs.d/elpa/helm-3.6.2 | /Users/jeroen/.emacs.d/elpa/helm-core-3.6.2 | /Users/jeroen/.emacs.d/elpa/htmlize-20200816.746 | /Users/jeroen/.emacs.d/elpa/hydra-20200711.1210 | /Users/jeroen/.emacs.d/elpa/jedi-20191011.1750 | /Users/jeroen/.emacs.d/elpa/auto-complete-1.5.1 | /Users/jeroen/.emacs.d/elpa/jedi-core-0.2.8 | /Users/jeroen/.emacs.d/elpa/epc-0.1.1 | /Users/jeroen/.emacs.d/elpa/ctable-0.1.2 | /Users/jeroen/.emacs.d/elpa/concurrent-0.5.1 | /Users/jeroen/.emacs.d/elpa/js-format-20170119.102 | /Users/jeroen/.emacs.d/elpa/js2-mode-20200725.112 | /Users/jeroen/.emacs.d/elpa/latex-unicode-math-mode-0.3.1 | /Users/jeroen/.emacs.d/elpa/lv-20200507.1518 | /Users/jeroen/.emacs.d/elpa/magit-2.90.1 | /Users/jeroen/.emacs.d/elpa/git-commit-2.90.1 | /Users/jeroen/.emacs.d/elpa/ghub-3.3.0 | /Users/jeroen/.emacs.d/elpa/magit-popup-2.13.2 | /Users/jeroen/.emacs.d/elpa/markdown-mode-2.4 | /Users/jeroen/.emacs.d/elpa/markup-faces-1.0.0 | /Users/jeroen/.emacs.d/elpa/multiple-cursors-1.4.0 | /Users/jeroen/.emacs.d/elpa/nginx-mode-1.1.9 | /Users/jeroen/.emacs.d/elpa/ob-ipython-20180224.953 | /Users/jeroen/.emacs.d/elpa/dash-functional-20200617.702 | /Users/jeroen/.emacs.d/elpa/olivetti-20201029.922 | /Users/jeroen/.emacs.d/elpa/org-20201109 | /Users/jeroen/.emacs.d/elpa/org-bullets-20200317.1740 | /Users/jeroen/.emacs.d/elpa/org-journal-2.0.0 | /Users/jeroen/.emacs.d/elpa/page-break-lines-20200305.244 | /Users/jeroen/.emacs.d/elpa/pdf-tools-20200512.1524 | /Users/jeroen/.emacs.d/elpa/pinentry-0.1 | /Users/jeroen/.emacs.d/elpa/pkgbuild-mode-0.14 | /Users/jeroen/.emacs.d/elpa/poporg-20170403.751 | /Users/jeroen/.emacs.d/elpa/popup-0.5.8 | /Users/jeroen/.emacs.d/elpa/prettier-js-20180109.726 | /Users/jeroen/.emacs.d/elpa/projectile-rails-20200916.1458 | /Users/jeroen/.emacs.d/elpa/inf-ruby-20200826.1458 | /Users/jeroen/.emacs.d/elpa/inflections-20170913.916 | /Users/jeroen/.emacs.d/elpa/projectile-20200916.814 | /Users/jeroen/.emacs.d/elpa/pygen-20161121.506 | /Users/jeroen/.emacs.d/elpa/elpy-1.34.0 | /Users/jeroen/.emacs.d/elpa/highlight-indentation-0.7.0 | /Users/jeroen/.emacs.d/elpa/company-0.9.12 | /Users/jeroen/.emacs.d/elpa/python-environment-0.0.2 | /Users/jeroen/.emacs.d/elpa/deferred-0.5.1 | /Users/jeroen/.emacs.d/elpa/python-mode-20200608.737 | /Users/jeroen/.emacs.d/elpa/pyvenv-1.21 | /Users/jeroen/.emacs.d/elpa/rainbow-delimiters-20200827.321 | /Users/jeroen/.emacs.d/elpa/rainbow-mode-1.0.4 | /Users/jeroen/.emacs.d/elpa/rake-20180212.1008 | /Users/jeroen/.emacs.d/elpa/f-20191110.1357 | /Users/jeroen/.emacs.d/elpa/request-20200517.1305 | /Users/jeroen/.emacs.d/elpa/scss-mode-0.5.0 | /Users/jeroen/.emacs.d/elpa/solarized-theme-20200717.1054 | /Users/jeroen/.emacs.d/elpa/sublime-themes-20170606.1844 | /Users/jeroen/.emacs.d/elpa/swiper-20200503.1102 | /Users/jeroen/.emacs.d/elpa/ivy-20200615.1103 | /Users/jeroen/.emacs.d/elpa/tablist-1.0 | /Users/jeroen/.emacs.d/elpa/tide-20200823.524 | /Users/jeroen/.emacs.d/elpa/flycheck-20200820.1403 | /Users/jeroen/.emacs.d/elpa/pkg-info-20150517.1143 | /Users/jeroen/.emacs.d/elpa/epl-20180205.2049 | /Users/jeroen/.emacs.d/elpa/toml-mode-20161107.1800 | /Users/jeroen/.emacs.d/elpa/treepy-0.1.1 | /Users/jeroen/.emacs.d/elpa/typescript-mode-20200817.817 | /Users/jeroen/.emacs.d/elpa/unicode-fonts-0.4.10 | /Users/jeroen/.emacs.d/elpa/ucs-utils-0.8.4 | /Users/jeroen/.emacs.d/elpa/font-utils-0.7.8 | /Users/jeroen/.emacs.d/elpa/persistent-soft-0.8.10 | /Users/jeroen/.emacs.d/elpa/list-utils-0.4.6 | /Users/jeroen/.emacs.d/elpa/pcache-0.4.2 | /Users/jeroen/.emacs.d/elpa/use-package-2.4 | /Users/jeroen/.emacs.d/elpa/bind-key-2.4 | /Users/jeroen/.emacs.d/elpa/virtualenvwrapper-0.2.0 | /Users/jeroen/.emacs.d/elpa/s-1.12.0 | /Users/jeroen/.emacs.d/elpa/visual-fill-column-1.11 | /Users/jeroen/.emacs.d/elpa/vlf-1.7.1 | /Users/jeroen/.emacs.d/elpa/web-mode-20200826.1954 | /Users/jeroen/.emacs.d/elpa/which-key-20200908.2301 | /Users/jeroen/.emacs.d/elpa/with-editor-2.9.3 | /Users/jeroen/.emacs.d/elpa/async-1.9.4 | /Users/jeroen/.emacs.d/elpa/wrap-region-20140117.720 | /Users/jeroen/.emacs.d/elpa/dash-2.17.0 | /Users/jeroen/.emacs.d/elpa/yaml-mode-20200518.914 | /Users/jeroen/.emacs.d/elpa/yasnippet-20200604.246 | /Users/jeroen/.emacs.d/elpa/zones-2019.7.13 | /Library/Application Support/Emacs/27.1/site-lisp | /Library/Application Support/Emacs/site-lisp | /Applications/Emacs.app/Contents/Resources/site-lisp | /Applications/Emacs.app/Contents/Resources/lisp | /Applications/Emacs.app/Contents/Resources/lisp/vc | /Applications/Emacs.app/Contents/Resources/lisp/url | /Applications/Emacs.app/Contents/Resources/lisp/textmodes | /Applications/Emacs.app/Contents/Resources/lisp/progmodes | /Applications/Emacs.app/Contents/Resources/lisp/play | /Applications/Emacs.app/Contents/Resources/lisp/org | /Applications/Emacs.app/Contents/Resources/lisp/nxml | /Applications/Emacs.app/Contents/Resources/lisp/net | /Applications/Emacs.app/Contents/Resources/lisp/mh-e | /Applications/Emacs.app/Contents/Resources/lisp/mail | /Applications/Emacs.app/Contents/Resources/lisp/leim | /Applications/Emacs.app/Contents/Resources/lisp/language | /Applications/Emacs.app/Contents/Resources/lisp/international | /Applications/Emacs.app/Contents/Resources/lisp/image | /Applications/Emacs.app/Contents/Resources/lisp/gnus | /Applications/Emacs.app/Contents/Resources/lisp/eshell | /Applications/Emacs.app/Contents/Resources/lisp/erc | /Applications/Emacs.app/Contents/Resources/lisp/emulation | /Applications/Emacs.app/Contents/Resources/lisp/emacs-lisp | /Applications/Emacs.app/Contents/Resources/lisp/cedet | /Applications/Emacs.app/Contents/Resources/lisp/calendar | /Applications/Emacs.app/Contents/Resources/lisp/calc | /Applications/Emacs.app/Contents/Resources/lisp/obsolete |
 
 * selection candidates and search
+** orderless
 
 #+BEGIN_SRC emacs-lisp
 (use-package prot-orderless
@@ -519,10 +494,9 @@ add his prot-.el files to load-path:
           orderless-regexp)))
 
 (use-package orderless
-  ;; :quelpa (orderless :fetcher github :repo "oantolin/orderless"))
   :ensure t
   :demand
-  ;; :after prot-orderless
+  :after prot-orderless
   :config
   (setq orderless-component-separator " +")
   (setq orderless-matching-styles prot-orderless-default-styles)
@@ -535,6 +509,215 @@ add his prot-.el files to load-path:
 #+END_SRC
 
 #+RESULTS:
+** selectrum
+
+#+BEGIN_SRC emacs-lisp
+(use-package selectrum
+  :straight t
+  :config
+  (set-face-attribute 'selectrum-current-candidate nil :background (doom-darken "#c792ea" 0.6))
+  (selectrum-mode +1)
+)
+#+END_SRC
+
+#+RESULTS:
+: t
+
+*** prescient
+
+selectrum provides no smart sorting OOTB, for which we use =prescient.el=:
+
+#+BEGIN_SRC emacs-lisp
+;; to make sorting and filtering more intelligent
+(straight-use-package 'selectrum-prescient)
+(selectrum-prescient-mode +1)
+#+END_SRC
+
+#+RESULTS:
+: t
+
+** embark
+
+#+BEGIN_SRC emacs-lisp
+(use-package embark
+  ;; Note that this gets only the main library.  That repo contains
+  ;; other packages as well (which are small *.el files that are
+  ;; distributed separately).
+  :straight (embark :host github
+                    :repo "oantolin/embark"
+                    :branch "master"
+                    :files ("embark.el"))
+  :demand
+  :diminish embark-collect-zebra-minor-mode
+  :after prot-minibuffer
+  :config
+  (setq embark-collect-initial-view-alist
+        '((file . list)
+          (buffer . list)
+          (symbol . list)
+          (line . list)
+          (xref-location . list)
+          (kill-ring . zebra)
+          (t . list)))
+  (setq embark-collect-live-update-delay 0.5)
+  (setq embark-collect-live-initial-delay 0.8)
+
+  ;; Please don't read too much into the names of those faces.  Just
+  ;; green and yellow.
+  (setq embark-action-indicator (propertize "Act" 'face 'success))
+  (setq embark-become-indicator (propertize "Become" 'face 'warning))
+
+  ;; ;; NOTE: I keep this around for when I do videos, otherwise I do not
+  ;; ;; use it.  It requires `which-key' to display key hints.
+  ;; (setq embark-action-indicator
+  ;;       (lambda (map)
+  ;;         (which-key--show-keymap "Embark" map nil nil 'no-paging)
+  ;;         #'which-key--hide-popup-ignore-command)
+  ;;       embark-become-indicator embark-action-indicator)
+  :hook ((minibuffer-setup-hook . embark-collect-completions-after-input)
+         (embark-post-action-hook . embark-collect--update-linked)
+         (embark-collect-mode-hook . prot-embark-completions-cursor))
+  :bind (("C-r" . embark-act)
+         :map minibuffer-local-completion-map
+         ("C-r" . embark-act)
+         ("C-." . embark-act-noexit)
+         ("C->" . embark-become)
+         ("M-q" . embark-collect-toggle-view) ; parallel of `fill-paragraph'
+         :map embark-collect-mode-map
+         ("C-r" . embark-act)
+         ("C-." . embark-act-noexit)
+         ("r" . embark-act)
+         ("." . embark-act-noexit)
+         ("M-q" . embark-collect-toggle-view)
+         :map embark-symbol-map
+         ("." . embark-find-definition)
+         ("k" . describe-keymap)))
+
+;; Integration with Consult.  Note that the package is `embark-consult',
+;; but because it comes from the same repo as Embark I prefer to use
+;; this straight.el directive (check the main embark package above).
+(use-package embark-consult
+  :straight (embark-consult :host github
+                            :repo "oantolin/embark"
+                            :branch "master"
+                            :files ("embark-consult.el"))
+  :demand
+  :after (embark consult)
+  ;; ;; Use the hook, or check `prot-embark-consult-preview-toggle'.
+  ;; :hook (embark-collect-mode-hook . embark-consult-preview-minor-mode)
+  :bind (:map embark-collect-mode-map
+         ("C-j" . embark-consult-preview-at-point)))
+
+(use-package prot-embark
+  :straight (:type built-in)
+  :demand
+  :after embark
+  :hook ((minibuffer-exit-hook . prot-embark-clear-live-buffers)
+         (embark-collect-post-revert-hook . prot-embark-collect-fit-window)
+         (embark-collect-mode-hook . prot-embark-hl-line)
+         (embark-collect-mode-hook . prot-embark-display-line-numbers))
+  ;; NOTE: to switch to the live collection buffer, I also use
+  ;; `prot-minibuffer-focus-mini-or-completions' which is bound to
+  ;; "s-v".
+  :bind (:map embark-collect-mode-map
+         ("h" . prot-simple-describe-symbol)  ; from `prot-simple.el'
+         ("C-g" . prot-embark-keyboard-quit)
+         ("C-k" . prot-embark-collection-kill-line)
+         ("C-M-n" . prot-embark-completions-act-next)
+         ("C-M-p" . prot-embark-completions-act-previous)
+         ("C-M-j" . prot-embark-completions-act-current)
+         ("C-M-v" . prot-embark-consult-preview-toggle) ; "view", "visualise" mnemonic
+         ("C-n" . prot-embark-next-line-or-mini)
+         ("C-p" . prot-embark-previous-line-or-mini)
+         ("M-F" . prot-embark-collection-flush-lines) ; M-S-f like M-S-5 (M-%)
+         ("M-K" . prot-embark-collection-keep-lines)  ; same principle as right above
+         :map minibuffer-local-completion-map
+         ("C-n" . prot-embark-switch-to-completions-top)
+         ("C-p" . prot-embark-switch-to-completions-bottom)
+         ("C-l" . prot-embark-completions-toggle)))
+#+END_SRC
+
+#+RESULTS:
+: prot-embark-completions-toggle
+
+** marginalia
+
+#+BEGIN_SRC emacs-lisp
+(use-package marginalia
+  :straight (:host github :repo "minad/marginalia" :branch "main")
+  :demand
+  :config
+  (setq marginalia-annotators
+        '(marginalia-annotators-heavy
+          marginalia-annotators-light))
+  (marginalia-mode 1))
+#+END_SRC
+
+#+RESULTS:
+: t
+
+** consult
+
+#+BEGIN_SRC emacs-lisp
+(use-package consult
+  :ensure t
+  :demand
+  :config
+  (setq consult-line-numbers-widen t)
+  (setq completion-in-region-function #'consult-completion-in-region)
+  (setq consult-async-min-input 3)
+  (setq consult-async-input-debounce 0.5)
+  (setq consult-async-input-throttle 0.8)
+  (setq consult-narrow-key ">")
+
+  ;; configure a function which returns the project root directory
+  (autoload 'projectile-project-root "projectile")
+  (setq consult-project-root-function #'projectile-project-root)
+
+  ;; NOTE: check `embark-consult' for previews that can be used with the
+  ;; default minibuffer and Embark collections.
+  :bind (("C-x M-:" . consult-complex-command)
+         ("C-x M-m" . consult-minor-mode-menu)
+         ("C-x M-k" . consult-kmacro)
+         ("M-g g" . consult-goto-line)
+         ("M-g M-g" . consult-goto-line)
+         ("M-X" . consult-mode-command)
+         ("M-K" . consult-keep-lines)  ; M-S-k is similar to M-S-5 (M-%)
+         ("M-s f" . consult-find)
+         ("M-s g" . consult-grep)
+         ("M-s m" . consult-mark)
+         ("C-j" . consult-buffer)
+         ("C-x b" . consult-buffer)
+         :map consult-narrow-map
+         ("?" . consult-narrow-help)))
+
+;; enforce the switch-buffer binding
+(bind-key* "C-j" 'consult-buffer)
+
+(use-package prot-consult
+  ;; :after (consult prot-pulse)
+  :after (consult)
+  :config
+  (setq consult-project-root-function #'prot-consult-project-root)
+  (setq prot-consult-add-advice-set-hooks t)
+  (setq prot-consult-command-centre-list
+        '(consult-line
+          prot-consult-line
+          consult-mark))
+  (setq prot-consult-command-top-list
+        '(consult-outline
+          consult-imenu
+          prot-consult-outline
+          prot-consult-imenu))
+  (prot-consult-set-up-hooks-mode 1)
+  :bind (("M-s i" . prot-consult-imenu)
+         ("M-s s" . prot-consult-outline)    ; M-s o is `occur'
+         ("M-s y" . prot-consult-yank)
+         ("M-s l" . prot-consult-line)))
+#+END_SRC
+
+#+RESULTS:
+
 
 * minibuffer
 
@@ -610,8 +793,6 @@ add his prot-.el files to load-path:
 
 #+RESULTS:
 : previous-completion
-
-
 
 * configuring windows
 ** manage window view
@@ -786,14 +967,14 @@ move windows with arrow keys (i know...)
 #+RESULTS:
 : windmove-down
 
-switch buffer with =C-j=:
+open shell with =s-s=:
 
 #+BEGIN_SRC emacs-lisp
-(bind-key* "C-j" 'ivy-switch-buffer)
+(bind-key* "s-s" 'shell)
 #+END_SRC
 
 #+RESULTS:
-: ivy-switch-buffer
+: shell
 
 * auto-fill-mode
 
@@ -859,20 +1040,20 @@ when you are in the =Size Mode= column. Let's change this behaviour so that
 #+END_SRC
 * counsel
 #+BEGIN_SRC emacs-lisp
-(use-package counsel
-  :ensure t
-  :config
-  (global-set-key (kbd "M-x")         'counsel-M-x)
-  (global-set-key (kbd "C-x C-f")     'counsel-find-file)
-  (global-set-key (kbd "C-h S")       'counsel-info-lookup-symbol)
-  (global-set-key (kbd "C-c 8 <ret>") 'counsel-unicode-char)
+  ;; (use-package counsel
+  ;;   :ensure t
+  ;;   :config
+  ;;   ;; (global-set-key (kbd "M-x")         'counsel-M-x)
+  ;;   ;; (global-set-key (kbd "C-x C-f")     'counsel-find-file)
+  ;;   (global-set-key (kbd "C-h S")       'counsel-info-lookup-symbol)
+  ;;   (global-set-key (kbd "C-c 8 <ret>") 'counsel-unicode-char)
 
-  (global-set-key (kbd "C-c g") 'counsel-git)
-  (global-set-key (kbd "C-c j") 'counsel-git-grep)
-  ;; (global-set-key (kbd "C-c k") 'counsel-rg)
-  (global-set-key (kbd "C-x l") 'counsel-locate)
+  ;;   (global-set-key (kbd "C-c g") 'counsel-git)
+  ;;   (global-set-key (kbd "C-c j") 'counsel-git-grep)
+  ;;   ;; (global-set-key (kbd "C-c k") 'counsel-rg)
+  ;;   (global-set-key (kbd "C-x l") 'counsel-locate)
 
-  (setq counsel-find-file-ignore-regexp "\\*.fasl$"))
+  ;;   (setq counsel-find-file-ignore-regexp "\\*.fasl$"))
 #+END_SRC
 * ivy
 #+BEGIN_SRC emacs-lisp
@@ -985,7 +1166,6 @@ show filesize as kb, mb, etc:
 (global-set-key (kbd "C--") 'text-scale-decrease)
 (global-set-key (kbd "C-c t") 'tramp-cleanup-this-connection)
 (global-set-key (kbd "C-x C-b") 'ibuffer)
-(global-set-key (kbd "C-c k") 'keybase-open-chat)
 (add-hook 'emacs-lisp-mode-hook
           (lambda ()
             (local-set-key (kbd "C-c C-c") 'eval-buffer)))
@@ -1038,7 +1218,8 @@ Let's write a function that replaces a string only in current defun definition
 
 ** wrap-region
 #+BEGIN_SRC emacs-lisp
-(require 'wrap-region)
+(use-package wrap-region
+  :diminish)
 (wrap-region-global-mode)
 (wrap-region-add-wrapper "`" "`")
 (wrap-region-add-wrapper "'" "'")
@@ -1409,7 +1590,10 @@ even beep.)"
 #+BEGIN_SRC emacs-lisp
 (use-package magit
   :ensure t
-  :bind ("C-x g" . magit-status)
+  :bind (
+         ("C-x g" . magit-status)
+         :map magit-mode-map
+         ("C-j" . consult-buffer))
   :diminish magit-minor-mode)
 #+END_SRC
 * yasnippet
@@ -1424,7 +1608,8 @@ even beep.)"
 ;; (add-hook 'yas-minor-mode-hook
 ;;           (lambda ()
 ;;             (yas-activate-extra-mode 'fundamental-mode)))
-(require 'yasnippet)
+(use-package yasnippet
+  :diminish)
 (yas-global-mode 1)
 #+END_SRC
 
@@ -1435,8 +1620,8 @@ even beep.)"
 #+BEGIN_SRC emacs-lisp
 (bind-keys* ((kbd "C-.") . mc/mark-next-like-this)
             ((kbd "C-,") . mc/mark-previous-like-this)
-            ((kbd "C-M-,") . mc/unmark-next-like-this)
-            ((kbd "C-M-.") . mc/unmark-previous-like-this)
+            ((kbd "C-M-.") . mc/unmark-next-like-this)
+            ((kbd "C-M-,") . mc/unmark-previous-like-this)
              ((kbd "C-c C-,") . mc/mark-all-like-this))
 #+END_SRC
 
@@ -1447,6 +1632,7 @@ even beep.)"
 
 #+BEGIN_SRC emacs-lisp
 (use-package projectile
+  :diminish
   :ensure t)
 (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
 (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
@@ -1595,17 +1781,19 @@ make sure tramp works on windows:
 run: =git clone https://github.com/paulodder/keybase-chat=
 
 #+BEGIN_SRC emacs-lisp
-;; (setq my-keybase-username "jpj8")
-;; (add-to-list 'load-path "~/.emacs.d/keybase-chat/")
-;; ;; (add-to-list 'load-path "~/.emacs.d/zone-matrix")
-;; ;; (require 'zone-matrix)
-;; (load-file "~/.emacs.d/keybase-chat/keybase-chat.el")
-;; (load-file "~/.emacs.d/keybase-chat/keybase-markup.el")
-;; (require 'keybase)
+(setq my-keybase-username "jpj8")
+(use-package keybase-chat
+  :straight (keybase-chat
+             :host github
+             :repo "paulodder/keybase-chat"
+             )
+)
+
+(bind-key (kbd "C-c k") 'keybase-join-channel)
 #+END_SRC
 
 #+RESULTS:
-: keybase
+: keybase-join-channel
 
 * avy
 #+BEGIN_SRC emacs-lisp
@@ -1627,6 +1815,18 @@ Change the size of inline latex eqs (=C-x C-c C-l=).
 
 In order to create those images when opening org file, insert this:
 =#+STARTUP: latexpreview=.
+
+** toggle code block execution
+
+#+BEGIN_SRC emacs-lisp
+(defun org-toggle-execution-on-export ()
+  (interactive)
+  (setq org-export-babel-evaluate (not org-export-babel-evaluate))
+  (message "org-export-babel-evaluate turned %s" (if org-export-babel-evaluate "on" "off")))
+#+END_SRC
+
+#+RESULTS:
+: org-toggle-execution-on-export
 
 ** [paul] execute source block
 
@@ -2517,7 +2717,8 @@ Add node modules bin folder to exec-path
 use-package doesn't seem to work with blacken
 
 #+BEGIN_SRC emacs-lisp
-(require 'blacken)
+(use-package blacken
+  :diminish)
 (setq blacken-line-length 79)
 (setq blacken-executable "/Users/jeroen/.virtualenvs/py3.8/bin/black")
 (add-hook 'python-mode-hook 'blacken-mode 'too-long-lines-mode)
@@ -2784,7 +2985,6 @@ Let's write a function that gets the token
 #+END_SRC
 
 #+RESULTS:
-
 * highlight syntax errors in json
 This requires =jsonlint=. Install with =npm install jsonlint -g=.
 
@@ -2817,7 +3017,6 @@ This requires =jsonlint=. Install with =npm install jsonlint -g=.
 
 #+RESULTS:
 : eval-and-replace
-
 * ace-window
 
 #+BEGIN_SRC emacs-lisp
@@ -2843,7 +3042,6 @@ This requires =jsonlint=. Install with =npm install jsonlint -g=.
 
 #+RESULTS:
 : aw-dispatch-alist
-
 * emacs-dashboard
 the =dashboard= package changes the splash screen into something useful.
 
@@ -2884,7 +3082,6 @@ enable it:
 
 #+RESULTS:
 : t
-
 * focus mode (centered editing)
 
 olivetti provides that centered buffer:
@@ -2910,7 +3107,6 @@ olivetti provides that centered buffer:
 
 #+RESULTS:
 : defocus
-
 * random utils
 
 ** copy org block as ans block
@@ -2949,6 +3145,55 @@ run bash on windows:
 : shell-on-windows
 
 * mode-line
+
+** minor modes
+
+diminish.el (re)moves the text some minor modes add to the minor lighter text
+in mode-line.
+
+#+BEGIN_SRC emacs-lisp
+;; (use-package diminish
+;;   :straight t
+;;   :config
+;;   (diminish 'projectile-mode)
+;;   (diminish 'auto-fill-mode))
+#+END_SRC
+
+however, i'd like to whitelist minor modes that /are/ allowed instead of having
+to blacklist all i /don't/ want. for that, there exists =rich-minority=:
+
+[it doesn't work tho. so using diminish for now]
+
+#+BEGIN_SRC emacs-lisp
+(use-package rich-minority
+  :straight t
+  :config
+  ;; (setq rm-blacklist "Projectile.*")
+  (setq rm-whitelist
+        '(
+          ;; " Fill"
+          ;; "yas"
+          "mc:*"
+          " Def"
+          ))
+  (setq rm-whitelist-regexps
+        '(
+          "mc:*"
+          " Def"
+          ))
+  (setq rm-whitelist (mapconcat 'identity rm-whitelist-regexps "\\|"))
+  ;; (setq rm-whitelist
+  ;;     (format "^ \(%s\)$"
+  ;;             (mapconcat #'identity
+  ;;                        rm-whitelist-regexps
+  ;;                        "\\|")))
+  (rich-minority-mode 1))
+#+END_SRC
+
+#+RESULTS:
+: t
+
+** hide mode-line, put at header-line spot
 
 #+BEGIN_SRC emacs-lisp
 ;; status-icon to the left of filename
@@ -3004,8 +3249,10 @@ run bash on windows:
 
        ;; the current major mode
        (propertize " %m" 'face 'font-lock-comment-face)
+       " "
+       ;; rich-minority minor modes
+       rm--mode-line-construct
        "  "
-       ;;minor-mode-alist
        ))
 
 (defun mode-line-render ()
@@ -3022,14 +3269,15 @@ run bash on windows:
                    )
                   mode-line-right-section)))
 
+
 ;; actually render the mode-line
-(setq-default mode-line-format (mode-line-render))
+;; (setq-default mode-line-format (mode-line-render))
 
 ;; move modeline to the top of the buffer
 (setq-default header-line-format (mode-line-render))
-(setq-default mode-line-format'(""))
+;; (setq-default mode-line-format'(""))
 ;; hide empty mode-line
-;; (setq-default mode-line-format nil)
+(setq-default mode-line-format nil)
 
 ;; reduce height of empty mode-line
 (set-face-attribute 'mode-line nil :foreground "white" :background nil :box nil :overline "#1e212e")
@@ -3044,10 +3292,23 @@ run bash on windows:
                     :box '(:line-width 5 :color "#1c1f2b")
                     :overline nil
                     :underline nil)
-
 #+END_SRC
 
 #+RESULTS:
+
+
+* powerthesaurus in emacs
+
+#+BEGIN_SRC emacs-lisp
+(use-package powerthesaurus
+  :straight t
+  :config
+  (bind-key* "s-p" 'powerthesaurus-lookup-word-dwim)
+  )
+#+END_SRC
+
+#+RESULTS:
+: t
 
 * pim
 #+BEGIN_SRC emacs-lisp
