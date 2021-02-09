@@ -11,17 +11,22 @@
 (require 'package)
 ;; configure package sources
 (setq package-archives '(("melpa" . "http://melpa.org/packages/")
-                 ("gnu"          . "https://elpa.gnu.org/packages/")
-                 ("melpa"     . "https://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
-                 ;; melpa.org/packages hangs (see https://emacs.stackexchange.com/questions/37353/can-not-access-melpa-packages-hung-up-at-contacting-host-elpa-gnu-org80)
-                ("melpa"        . "https://stable.melpa.org/packages/")
-                ;; ("melpa"     . "http://melpa.milkbox.net/packages/")
-                ;; ("melpa-stable" . "https://stable.melpa.org/packages/")
-                ;; ("marmalade"    . "https://marmalade-repo.org/packages/")
-                ;; ("org"          . "http://orgmode.org/elpa/")
-                 ))
+                         ("gnu"          . "https://elpa.gnu.org/packages/")
+                         ("melpa"     . "https://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
+                         ;; melpa.org/packages hangs (see https://emacs.stackexchange.com/questions/37353/can-not-access-melpa-packages-hung-up-at-contacting-host-elpa-gnu-org80)
+                         ("melpa"        . "https://stable.melpa.org/packages/")
+                         ;; ("melpa"     . "http://melpa.milkbox.net/packages/")
+                         ;; ("melpa-stable" . "https://stable.melpa.org/packages/")
+                         ;; ("marmalade"    . "https://marmalade-repo.org/packages/")
+                         ;; ("org"          . "http://orgmode.org/elpa/")
+                         ))
 
 (package-initialize)
+
+;; set environment from shell
+;; you may first need to do: M-x package-install RET exec-path-from-shell RET
+(when (memq window-system '(mac ns x))
+  (exec-path-from-shell-initialize))
 
 ;; Use git version of use-package
 (add-to-list 'load-path "~/.emacs.d/elpa/use-package")

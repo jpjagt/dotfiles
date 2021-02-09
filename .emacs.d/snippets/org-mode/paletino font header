@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: palatino font header
+# key: palatino
+# --
+#+LaTeX_HEADER: \usepackage{mathpazo}

@@ -23,7 +23,17 @@ https://stackoverflow.com/questions/45992859/how-to-read-python-documentation-in
 
 - C-c b
 - C-x C-n (goal-column)
+- C-x j
 
+* init
+#+BEGIN_SRC emacs-lisp
+(use-package exec-path-from-shell
+  :straight t
+  )
+
+(when (memq window-system '(mac ns x))
+  (exec-path-from-shell-initialize))
+#+END_SRC
 * basic emacs
 ** no debug
 
@@ -465,6 +475,9 @@ of the syntax class ')'."
 * prot
 https://gitlab.com/protesilaos/dotfiles
 
+to clone to the proper path:
+=cd ~/.emacs.d && mkdir repos && cd repos && mkdir protesilaos && cd protesilaos && git clone https://gitlab.com/protesilaos/dotfiles.git=
+
 add his prot-.el files to load-path:
 
 #+BEGIN_SRC emacs-lisp
@@ -660,7 +673,7 @@ selectrum provides no smart sorting OOTB, for which we use =prescient.el=:
 
 #+BEGIN_SRC emacs-lisp
 (use-package consult
-  :ensure t
+  :straight t
   :demand
   :config
   (setq consult-line-numbers-widen t)
@@ -712,12 +725,11 @@ selectrum provides no smart sorting OOTB, for which we use =prescient.el=:
   (prot-consult-set-up-hooks-mode 1)
   :bind (("M-s i" . prot-consult-imenu)
          ("M-s s" . prot-consult-outline)    ; M-s o is `occur'
-         ("M-s y" . prot-consult-yank)
+         ("M-y" . prot-consult-yank)
          ("M-s l" . prot-consult-line)))
 #+END_SRC
 
 #+RESULTS:
-
 
 * minibuffer
 
@@ -1596,6 +1608,9 @@ even beep.)"
          ("C-j" . consult-buffer))
   :diminish magit-minor-mode)
 #+END_SRC
+
+#+RESULTS:
+
 * yasnippet
 
 #+BEGIN_SRC emacs-lisp
@@ -1642,24 +1657,29 @@ even beep.)"
 #+RESULTS:
 : t
 
-* rails
-
-** projectile-rails
-
-projectile-rails is used for navigation inside a rails project.
+* format-all
 
 #+BEGIN_SRC emacs-lisp
-(use-package projectile-rails
-  :ensure t)
-(projectile-rails-global-mode)
-(define-key projectile-rails-mode-map (kbd "C-c e") 'projectile-rails-command-map)
+(use-package inheritenv
+  :straight (
+             :host github :repo "purcell/inheritenv"
+             :branch "main" :files ("inheritenv.el")
+             )
+  )
+
+(use-package format-all
+  :straight t
+  :config
+  (add-hook 'ruby-mode-hook 'format-all-mode)
+  (add-hook 'yaml-mode-hook 'format-all-mode)
+  (add-hook 'emacs-lisp-mode 'format-all-mode)
+  )
 #+END_SRC
 
 #+RESULTS:
-: projectile-rails-command-map
+: t
 
 * web-mode
-
 web-mode ensures syntax highlighting for a bunch of web code files (html), including .html.erb
 
 #+BEGIN_SRC emacs-lisp
@@ -1690,7 +1710,70 @@ web-mode ensures syntax highlighting for a bunch of web code files (html), inclu
 
 #+RESULTS:
 : ((\.jsx?$ . web-mode) (\.djhtml\' . web-mode) (\.mustache\' . web-mode) (\.erb\' . web-mode) (\.as[cp]x\' . web-mode) (\.[agj]sp\' . web-mode) (\.tpl\.php\' . web-mode) (\.phtml\' . web-mode) (\.odc\' . archive-mode) (\.odf\' . archive-mode) (\.odi\' . archive-mode) (\.otp\' . archive-mode) (\.odp\' . archive-mode) (\.otg\' . archive-mode) (\.odg\' . archive-mode) (\.ots\' . archive-mode) (\.ods\' . archive-mode) (\.odm\' . archive-mode) (\.ott\' . archive-mode) (\.odt\' . archive-mode) (\.[jt]sx?\' . web-mode) (\.php\' . web-mode) (\.html\' . web-mode) (\.hbs\' . web-mode) (\.ejs\' . web-mode) (/Pipfile.lock$ . js2-mode) (/Pipfile$ . conf-mode) (\.xsh$ . python-mode) (\.ipynb$ . js2-mode) (\.py\' . python-mode) (/Users/jeroen/Documents/journal/\(?1:[0-9]\{4\}\)\(?2:[0-9][0-9]\)\(?3:[0-9][0-9]\)\(\.gpg\)?\' . org-journal-mode) (\.gpg\(~\|\.~[0-9]+~\)?\' nil epa-file) (\.hva\' . latex-mode) (\.drv\' . latex-mode) (/git-rebase-todo\' . git-rebase-mode) (\.\(?:md\|markdown\|mkd\|mdown\|mkdn\|mdwn\)\' . markdown-mode) (/nginx/.+\.conf\' . nginx-mode) (nginx\.conf\' . nginx-mode) (/PKGBUILD\' . pkgbuild-mode) (\.toml\' . toml-mode) (\.ts$ . typescript-mode) (\.\(e?ya?\|ra\)ml\' . yaml-mode) (\.elc\' . elisp-byte-code-mode) (\.zst\' nil jka-compr) (\.dz\' nil jka-compr) (\.xz\' nil jka-compr) (\.lzma\' nil jka-compr) (\.lz\' nil jka-compr) (\.g?z\' nil jka-compr) (\.bz2\' nil jka-compr) (\.Z\' nil jka-compr) (\.vr[hi]?\' . vera-mode) (\(?:\.\(?:rbw?\|ru\|rake\|thor\|jbuilder\|rabl\|gemspec\|podspec\)\|/\(?:Gem\|Rake\|Cap\|Thor\|Puppet\|Berks\|Vagrant\|Guard\|Pod\)file\)\' . ruby-mode) (\.re?st\' . rst-mode) (\.py[iw]?\' . python-mode) (\.m\' . octave-maybe-mode) (\.less\' . less-css-mode) (\.scss\' . scss-mode) (\.awk\' . awk-mode) (\.\(u?lpc\|pike\|pmod\(\.in\)?\)\' . pike-mode) (\.idl\' . idl-mode) (\.java\' . java-mode) (\.m\' . objc-mode) (\.ii\' . c++-mode) (\.i\' . c-mode) (\.lex\' . c-mode) (\.y\(acc\)?\' . c-mode) (\.h\' . c-or-c++-mode) (\.c\' . c-mode) (\.\(CC?\|HH?\)\' . c++-mode) (\.[ch]\(pp\|xx\|\+\+\)\' . c++-mode) (\.\(cc\|hh\)\' . c++-mode) (\.\(bat\|cmd\)\' . bat-mode) (\.[sx]?html?\(\.[a-zA-Z_]+\)?\' . mhtml-mode) (\.svgz?\' . image-mode) (\.svgz?\' . xml-mode) (\.x[bp]m\' . image-mode) (\.x[bp]m\' . c-mode) (\.p[bpgn]m\' . image-mode) (\.tiff?\' . image-mode) (\.gif\' . image-mode) (\.png\' . image-mode) (\.jpe?g\' . image-mode) (\.te?xt\' . text-mode) (\.[tT]e[xX]\' . tex-mode) (\.ins\' . tex-mode) (\.ltx\' . latex-mode) (\.dtx\' . doctex-mode) (\.org\' . org-mode) (\.el\' . emacs-lisp-mode) (Project\.ede\' . emacs-lisp-mode) (\.\(scm\|stk\|ss\|sch\)\' . scheme-mode) (\.l\' . lisp-mode) (\.li?sp\' . lisp-mode) (\.[fF]\' . fortran-mode) (\.for\' . fortran-mode) (\.p\' . pascal-mode) (\.pas\' . pascal-mode) (\.\(dpr\|DPR\)\' . delphi-mode) (\.ad[abs]\' . ada-mode) (\.ad[bs]\.dg\' . ada-mode) (\.\([pP]\([Llm]\|erl\|od\)\|al\)\' . perl-mode) (Imakefile\' . makefile-imake-mode) (Makeppfile\(?:\.mk\)?\' . makefile-makepp-mode) (\.makepp\' . makefile-makepp-mode) (\.mk\' . makefile-bsdmake-mode) (\.make\' . makefile-bsdmake-mode) (GNUmakefile\' . makefile-gmake-mode) ([Mm]akefile\' . makefile-bsdmake-mode) (\.am\' . makefile-automake-mode) (\.texinfo\' . texinfo-mode) (\.te?xi\' . texinfo-mode) (\.[sS]\' . asm-mode) (\.asm\' . asm-mode) (\.css\' . css-mode) (\.mixal\' . mixal-mode) (\.gcov\' . compilation-mode) (/\.[a-z0-9-]*gdbinit . gdb-script-mode) (-gdb\.gdb . gdb-script-mode) ([cC]hange\.?[lL]og?\' . change-log-mode) ([cC]hange[lL]og[-.][0-9]+\' . change-log-mode) (\$CHANGE_LOG\$\.TXT . change-log-mode) (\.scm\.[0-9]*\' . scheme-mode) (\.[ckz]?sh\'\|\.shar\'\|/\.z?profile\' . sh-mode) (\.bash\' . sh-mode) (\(/\|\`\)\.\(bash_\(profile\|history\|log\(in\|out\)\)\|z?log\(in\|out\)\)\' . sh-mode) (\(/\|\`\)\.\(shrc\|zshrc\|m?kshrc\|bashrc\|t?cshrc\|esrc\)\' . sh-mode) (\(/\|\`\)\.\([kz]shenv\|xinitrc\|startxrc\|xsession\)\' . sh-mode) (\.m?spec\' . sh-mode) (\.m[mes]\' . nroff-mode) (\.man\' . nroff-mode) (\.sty\' . latex-mode) (\.cl[so]\' . latex-mode) (\.bbl\' . latex-mode) (\.bib\' . bibtex-mode) (\.bst\' . bibtex-style-mode) (\.sql\' . sql-mode) (\(acinclude\|aclocal\|acsite\)\.m4\' . autoconf-mode) (\.m[4c]\' . m4-mode) (\.mf\' . metafont-mode) (\.mp\' . metapost-mode) (\.vhdl?\' . vhdl-mode) (\.article\' . text-mode) (\.letter\' . text-mode) (\.i?tcl\' . tcl-mode) (\.exp\' . tcl-mode) (\.itk\' . tcl-mode) (\.icn\' . icon-mode) (\.sim\' . simula-mode) (\.mss\' . scribe-mode) (\.f9[05]\' . f90-mode) (\.f0[38]\' . f90-mode) (\.indent\.pro\' . fundamental-mode) (\.\(pro\|PRO\)\' . idlwave-mode) (\.srt\' . srecode-template-mode) (\.prolog\' . prolog-mode) (\.tar\' . tar-mode) (\.\(arc\|zip\|lzh\|lha\|zoo\|[jew]ar\|xpi\|rar\|cbr\|7z\|ARC\|ZIP\|LZH\|LHA\|ZOO\|[JEW]AR\|XPI\|RAR\|CBR\|7Z\)\' . archive-mode) (\.oxt\' . archive-mode) (\.\(deb\|[oi]pk\)\' . archive-mode) (\`/tmp/Re . text-mode) (/Message[0-9]*\' . text-mode) (\`/tmp/fol/ . text-mode) (\.oak\' . scheme-mode) (\.sgml?\' . sgml-mode) (\.x[ms]l\' . xml-mode) (\.dbk\' . xml-mode) (\.dtd\' . sgml-mode) (\.ds\(ss\)?l\' . dsssl-mode) (\.js[mx]?\' . javascript-mode) (\.har\' . javascript-mode) (\.json\' . javascript-mode) (\.[ds]?va?h?\' . verilog-mode) (\.by\' . bovine-grammar-mode) (\.wy\' . wisent-grammar-mode) ([:/\]\..*\(emacs\|gnus\|viper\)\' . emacs-lisp-mode) (\`\..*emacs\' . emacs-lisp-mode) ([:/]_emacs\' . emacs-lisp-mode) (/crontab\.X*[0-9]+\' . shell-script-mode) (\.ml\' . lisp-mode) (\.ld[si]?\' . ld-script-mode) (ld\.?script\' . ld-script-mode) (\.xs\' . c-mode) (\.x[abdsru]?[cnw]?\' . ld-script-mode) (\.zone\' . dns-mode) (\.soa\' . dns-mode) (\.asd\' . lisp-mode) (\.\(asn\|mib\|smi\)\' . snmp-mode) (\.\(as\|mi\|sm\)2\' . snmpv2-mode) (\.\(diffs?\|patch\|rej\)\' . diff-mode) (\.\(dif\|pat\)\' . diff-mode) (\.[eE]?[pP][sS]\' . ps-mode) (\.\(?:PDF\|DVI\|OD[FGPST]\|DOCX\|XLSX?\|PPTX?\|pdf\|djvu\|dvi\|od[fgpst]\|docx\|xlsx?\|pptx?\)\' . doc-view-mode-maybe) (configure\.\(ac\|in\)\' . autoconf-mode) (\.s\(v\|iv\|ieve\)\' . sieve-mode) (BROWSE\' . ebrowse-tree-mode) (\.ebrowse\' . ebrowse-tree-mode) (#\*mail\* . mail-mode) (\.g\' . antlr-mode) (\.mod\' . m2-mode) (\.ses\' . ses-mode) (\.docbook\' . sgml-mode) (\.com\' . dcl-mode) (/config\.\(?:bat\|log\)\' . fundamental-mode) (/\.\(authinfo\|netrc\)\' . authinfo-mode) (\.\(?:[iI][nN][iI]\|[lL][sS][tT]\|[rR][eE][gG]\|[sS][yY][sS]\)\' . conf-mode) (\.la\' . conf-unix-mode) (\.ppd\' . conf-ppd-mode) (java.+\.conf\' . conf-javaprop-mode) (\.properties\(?:\.[a-zA-Z0-9._-]+\)?\' . conf-javaprop-mode) (\.toml\' . conf-toml-mode) (\.desktop\' . conf-desktop-mode) (/\.redshift\.conf\' . conf-windows-mode) (\`/etc/\(?:DIR_COLORS\|ethers\|.?fstab\|.*hosts\|lesskey\|login\.?de\(?:fs\|vperm\)\|magic\|mtab\|pam\.d/.*\|permissions\(?:\.d/.+\)?\|protocols\|rpc\|services\)\' . conf-space-mode) (\`/etc/\(?:acpid?/.+\|aliases\(?:\.d/.+\)?\|default/.+\|group-?\|hosts\..+\|inittab\|ksysguarddrc\|opera6rc\|passwd-?\|shadow-?\|sysconfig/.+\)\' . conf-mode) ([cC]hange[lL]og[-.][-0-9a-z]+\' . change-log-mode) (/\.?\(?:gitconfig\|gnokiirc\|hgrc\|kde.*rc\|mime\.types\|wgetrc\)\' . conf-mode) (/\.\(?:asound\|enigma\|fetchmail\|gltron\|gtk\|hxplayer\|mairix\|mbsync\|msmtp\|net\|neverball\|nvidia-settings-\|offlineimap\|qt/.+\|realplayer\|reportbug\|rtorrent\.\|screen\|scummvm\|sversion\|sylpheed/.+\|xmp\)rc\' . conf-mode) (/\.\(?:gdbtkinit\|grip\|mpdconf\|notmuch-config\|orbital/.+txt\|rhosts\|tuxracer/options\)\' . conf-mode) (/\.?X\(?:default\|resource\|re\)s\> . conf-xdefaults-mode) (/X11.+app-defaults/\|\.ad\' . conf-xdefaults-mode) (/X11.+locale/.+/Compose\' . conf-colon-mode) (/X11.+locale/compose\.dir\' . conf-javaprop-mode) (\.~?[0-9]+\.[0-9][-.0-9]*~?\' nil t) (\.\(?:orig\|in\|[bB][aA][kK]\)\' nil t) ([/.]c\(?:on\)?f\(?:i?g\)?\(?:\.[a-zA-Z0-9._-]+\)?\' . conf-mode-maybe) (\.[1-9]\' . nroff-mode) (\.art\' . image-mode) (\.avs\' . image-mode) (\.bmp\' . image-mode) (\.cmyk\' . image-mode) (\.cmyka\' . image-mode) (\.crw\' . image-mode) (\.dcr\' . image-mode) (\.dcx\' . image-mode) (\.dng\' . image-mode) (\.dpx\' . image-mode) (\.fax\' . image-mode) (\.hrz\' . image-mode) (\.icb\' . image-mode) (\.icc\' . image-mode) (\.icm\' . image-mode) (\.ico\' . image-mode) (\.icon\' . image-mode) (\.jbg\' . image-mode) (\.jbig\' . image-mode) (\.jng\' . image-mode) (\.jnx\' . image-mode) (\.miff\' . image-mode) (\.mng\' . image-mode) (\.mvg\' . image-mode) (\.otb\' . image-mode) (\.p7\' . image-mode) (\.pcx\' . image-mode) (\.pdb\' . image-mode) (\.pfa\' . image-mode) (\.pfb\' . image-mode) (\.picon\' . image-mode) (\.pict\' . image-mode) (\.rgb\' . image-mode) (\.rgba\' . image-mode) (\.tga\' . image-mode) (\.wbmp\' . image-mode) (\.webp\' . image-mode) (\.wmf\' . image-mode) (\.wpg\' . image-mode) (\.xcf\' . image-mode) (\.xmp\' . image-mode) (\.xwd\' . image-mode) (\.yuv\' . image-mode) (\.tgz\' . tar-mode) (\.tbz2?\' . tar-mode) (\.txz\' . tar-mode) (\.tzst\' . tar-mode))
-* react
+
+* screenshots of emacs things
+
+#+BEGIN_SRC emacs-lisp
+(use-package escr
+  :straight (:host github :repo "atykhonov/escr"))
+
+(global-set-key (kbd "C-x j r") 'escr-region-screenshot)
+(global-set-key (kbd "C-x j f") 'escr-frame-screenshot)
+(global-set-key (kbd "C-x j w") 'escr-window-screenshot)
+
+(defun insert-screenshot (file-name)
+  "Save screenshot to FILE-NAME and insert an Org link at point.
+
+This calls the `import' from ImageMagick to take the screenshot,
+and `optipng' to reduce the file size if the program is present."
+  (interactive "FSave to file: ")
+  ;; Get absolute path
+  (let ((file (expand-file-name file-name)))
+    ;; Create the directory if necessary
+    (make-directory (file-name-directory file) 'parents)
+    ;; Still, make sure to signal if the screenshot was in fact not created
+    (unless (= 0 (call-process "import" nil nil nil file))
+      (user-error "`import' failed to create screenshot %s" file))
+    (if (executable-find "optipng")
+        (start-process "optipng" nil "optipng" file))
+    (insert
+     ;; A link relative to the buffer where it is inserted is more portable
+     (format "[[file:%s]]"
+             (file-relative-name file
+                                 (file-name-directory buffer-file-name))))
+    (when (eq major-mode 'org-mode)
+      (org-redisplay-inline-images))))
+#+END_SRC
+
+#+RESULTS:
+: insert-screenshot
+
+* everything per-mode/language/etc
+** ruby
+
+if ruby interpreter complains about unknown file encodings, try this:
+
+#+BEGIN_SRC emacs-lisp
+;; (setq ruby-insert-encoding-magic-comment nil)
+#+END_SRC
+
+*** rails
+**** projectile-rails
+
+projectile-rails is used for navigation inside a rails project.
+
+#+BEGIN_SRC emacs-lisp
+(use-package projectile-rails
+  :ensure t)
+(projectile-rails-global-mode)
+(define-key projectile-rails-mode-map (kbd "C-c e") 'projectile-rails-command-map)
+#+END_SRC
+
+#+RESULTS:
+: projectile-rails-command-map
+
+
+** react
 
 i use a number of packages here: first, web-mode, which does a bunch of stuff. initialization:
 
@@ -1738,6 +1821,8 @@ then, flymake-eslint, which does eslint:
 #+END_SRC
 
 #+RESULTS:
+
+
 
 * canvas-utils
 #+BEGIN_SRC emacs-lisp
@@ -2640,7 +2725,7 @@ Add node modules bin folder to exec-path
 #+END_SRC
 
 #+RESULTS:
-| lambda | nil | (make-variable-buffer-local (quote after-save-hook)) | (add-hook (quote after-save-hook) (quote special-hook)) |
+| lambda | nil | (global-set-key (kbd C-c C-v) #'js-format-buffer) |
 
 #+RESULTS:
 : scss-mode
@@ -3162,20 +3247,11 @@ in mode-line.
 however, i'd like to whitelist minor modes that /are/ allowed instead of having
 to blacklist all i /don't/ want. for that, there exists =rich-minority=:
 
-[it doesn't work tho. so using diminish for now]
-
 #+BEGIN_SRC emacs-lisp
 (use-package rich-minority
   :straight t
   :config
   ;; (setq rm-blacklist "Projectile.*")
-  (setq rm-whitelist
-        '(
-          ;; " Fill"
-          ;; "yas"
-          "mc:*"
-          " Def"
-          ))
   (setq rm-whitelist-regexps
         '(
           "mc:*"
@@ -3237,8 +3313,10 @@ to blacklist all i /don't/ want. for that, there exists =rich-minority=:
 (setq mode-line-right-section
       (list
        ;; git branch
-       '(:eval (propertize (substring vc-mode 5)
-                           'face 'font-lock-comment-face))
+       '(:eval (if vc-mode
+                   (propertize (substring vc-mode 5)
+                           'face 'font-lock-comment-face)
+                   ""))
 
        ;; line and column
        " [" ;; '%02' to set to 2 chars at least; prevents flickering
@@ -3296,6 +3374,16 @@ to blacklist all i /don't/ want. for that, there exists =rich-minority=:
 
 #+RESULTS:
 
+* hippie-expand
+
+built on top of dabbrev. let's try it out
+
+#+BEGIN_SRC emacs-lisp
+(bind-key* "M-/" 'hippie-expand)
+#+END_SRC
+
+#+RESULTS:
+: hippie-expand
 
 * powerthesaurus in emacs
 
@@ -3309,6 +3397,69 @@ to blacklist all i /don't/ want. for that, there exists =rich-minority=:
 
 #+RESULTS:
 : t
+
+* prism
+
+colours code based on indentation level.
+
+#+BEGIN_SRC emacs-lisp
+(use-package prism
+  :straight (:host github :repo "alphapapa/prism.el" :branch "master")
+  :defer
+  :config
+  (setq prism-comments nil) ; non-nil distorts colours
+  (setq prism-num-faces 8))
+
+  ;; ;; NOTE: read the manual of the `modus-themes' for prism.el
+
+  ;; ;; for 4 colours (the closest to the default)
+  ;; (prism-set-colors
+  ;;   :desaturations '(0) ; may lower the contrast ratio
+  ;;   :lightens '(0)      ; same
+  ;;   :colors (modus-themes-with-colors
+  ;;             (list fg-main
+  ;;                   cyan-alt-other
+  ;;                   magenta-alt-other
+  ;;                   magenta)))
+  ;;
+  ;; ;; for 16 colours
+  ;; (prism-set-colors
+  ;;   :desaturations '(0) ; may lower the contrast ratio
+  ;;   :lightens '(0)      ; same
+  ;;   :colors (modus-themes-with-colors
+  ;;             (list fg-main
+  ;;                   magenta
+  ;;                   cyan-alt-other
+  ;;                   magenta-alt-other
+  ;;                   blue
+  ;;                   magenta-alt
+  ;;                   cyan-alt
+  ;;                   red-alt-other
+  ;;                   green
+  ;;                   fg-main
+  ;;                   cyan
+  ;;                   yellow
+  ;;                   blue-alt
+  ;;                   red-alt
+  ;;                   green-alt-other
+  ;;                   fg-special-warm)))
+  ;;
+  ;; for 8 colours
+  ;; (prism-set-colors
+  ;;   :desaturations '(0) ; may lower the contrast ratio
+  ;;   :lightens '(0)      ; same
+  ;;   :colors (modus-themes-with-colors
+  ;;             (list fg-special-cold
+  ;;                   magenta
+  ;;                   magenta-alt-other
+  ;;                   cyan-alt-other
+  ;;                   fg-main
+  ;;                   blue-alt
+  ;;                   red-alt-other
+  ;;                   cyan))))
+#+END_SRC
+
+#+RESULTS:
 
 * pim
 #+BEGIN_SRC emacs-lisp

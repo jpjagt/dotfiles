@@ -9,12 +9,15 @@
         backward-sexp
         beginning-of-visual-line
         comint-delchar-or-maybe-eof
+        comint-previous-input
         comment-dwim-or-line
         counsel-M-x
         counsel-yank-pop
         dabbrev-expand
         downcase-region
         drag-stuff-down
+        drag-stuff-up
+        embark-export
         end-of-visual-line
         eval-and-replace
         forward-sexp
@@ -44,6 +47,7 @@
       '(
         ace-window
         beginning-of-buffer
+        comint-send-input
         consult-buffer
         counsel-find-file
         describe-key
@@ -60,6 +64,7 @@
         org-execute-code-in-shell
         org-export-dispatch
         projectile-rails-find-stylesheet
+        prot-embark-collection-kill-line
         py-execute-buffer
         swiper
         text-scale-decrease

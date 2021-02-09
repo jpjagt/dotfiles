@@ -1,3 +1,10 @@
+(use-package exec-path-from-shell
+  :straight t
+  )
+
+(when (memq window-system '(mac ns x))
+  (exec-path-from-shell-initialize))
+
 (setq debug-on-error nil)
 
 (setq-default inhibit-startup-screen t
@@ -406,7 +413,7 @@ of the syntax class ')'."
   (marginalia-mode 1))
 
 (use-package consult
-  :ensure t
+  :straight t
   :demand
   :config
   (setq consult-line-numbers-widen t)
@@ -458,7 +465,7 @@ of the syntax class ')'."
   (prot-consult-set-up-hooks-mode 1)
   :bind (("M-s i" . prot-consult-imenu)
          ("M-s s" . prot-consult-outline)    ; M-s o is `occur'
-         ("M-s y" . prot-consult-yank)
+         ("M-y" . prot-consult-yank)
          ("M-s l" . prot-consult-line)))
 
 (use-package prot-minibuffer
@@ -1140,10 +1147,20 @@ even beep.)"
 (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
 (projectile-mode +1)
 
-(use-package projectile-rails
-  :ensure t)
-(projectile-rails-global-mode)
-(define-key projectile-rails-mode-map (kbd "C-c e") 'projectile-rails-command-map)
+(use-package inheritenv
+  :straight (
+             :host github :repo "purcell/inheritenv"
+             :branch "main" :files ("inheritenv.el")
+             )
+  )
+
+(use-package format-all
+  :straight t
+  :config
+  (add-hook 'ruby-mode-hook 'format-all-mode)
+  (add-hook 'yaml-mode-hook 'format-all-mode)
+  (add-hook 'emacs-lisp-mode 'format-all-mode)
+  )
 
 (use-package web-mode
   :ensure t
@@ -1168,6 +1185,41 @@ even beep.)"
 (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+
+(use-package escr
+  :straight (:host github :repo "atykhonov/escr"))
+
+(global-set-key (kbd "C-x j r") 'escr-region-screenshot)
+(global-set-key (kbd "C-x j f") 'escr-frame-screenshot)
+(global-set-key (kbd "C-x j w") 'escr-window-screenshot)
+
+(defun insert-screenshot (file-name)
+  "Save screenshot to FILE-NAME and insert an Org link at point.
+
+This calls the `import' from ImageMagick to take the screenshot,
+and `optipng' to reduce the file size if the program is present."
+  (interactive "FSave to file: ")
+  ;; Get absolute path
+  (let ((file (expand-file-name file-name)))
+    ;; Create the directory if necessary
+    (make-directory (file-name-directory file) 'parents)
+    ;; Still, make sure to signal if the screenshot was in fact not created
+    (unless (= 0 (call-process "import" nil nil nil file))
+      (user-error "`import' failed to create screenshot %s" file))
+    (if (executable-find "optipng")
+        (start-process "optipng" nil "optipng" file))
+    (insert
+     ;; A link relative to the buffer where it is inserted is more portable
+     (format "[[file:%s]]"
+             (file-relative-name file
+                                 (file-name-directory buffer-file-name))))
+    (when (eq major-mode 'org-mode)
+      (org-redisplay-inline-images))))
+
+(use-package projectile-rails
+  :ensure t)
+(projectile-rails-global-mode)
+(define-key projectile-rails-mode-map (kbd "C-c e") 'projectile-rails-command-map)
 
 (add-to-list 'auto-mode-alist '("\\.jsx?$" . web-mode)) ;; auto-enable for .js/.jsx files
 (setq web-mode-content-types-alist '(("jsx" . "\\.js[x]?\\'")))
@@ -1227,6 +1279,11 @@ even beep.)"
 (global-set-key (kbd "C-;") 'avy-goto-char-2)
 
 (plist-put org-format-latex-options :scale 1.8)
+
+(defun org-toggle-execution-on-export ()
+  (interactive)
+  (setq org-export-babel-evaluate (not org-export-babel-evaluate))
+  (message "org-export-babel-evaluate turned %s" (if org-export-babel-evaluate "on" "off")))
 
 (defun org-execute-code-in-shell  (&optional arg _info)
   "Copy current src block's contents and execute it in code shell buffer."
@@ -2165,13 +2222,6 @@ c  is called, for each contiguous sub-region, with METHOD as its
   :straight t
   :config
   ;; (setq rm-blacklist "Projectile.*")
-  (setq rm-whitelist
-        '(
-          ;; " Fill"
-          ;; "yas"
-          "mc:*"
-          " Def"
-          ))
   (setq rm-whitelist-regexps
         '(
           "mc:*"
@@ -2282,11 +2332,68 @@ c  is called, for each contiguous sub-region, with METHOD as its
                     :overline nil
                     :underline nil)
 
+(bind-key* "M-/" 'hippie-expand)
+
 (use-package powerthesaurus
   :straight t
   :config
   (bind-key* "s-p" 'powerthesaurus-lookup-word-dwim)
   )
+
+(use-package prism
+  :straight (:host github :repo "alphapapa/prism.el" :branch "master")
+  :defer
+  :config
+  (setq prism-comments nil) ; non-nil distorts colours
+  (setq prism-num-faces 8))
+
+  ;; ;; NOTE: read the manual of the `modus-themes' for prism.el
+
+  ;; ;; for 4 colours (the closest to the default)
+  ;; (prism-set-colors
+  ;;   :desaturations '(0) ; may lower the contrast ratio
+  ;;   :lightens '(0)      ; same
+  ;;   :colors (modus-themes-with-colors
+  ;;             (list fg-main
+  ;;                   cyan-alt-other
+  ;;                   magenta-alt-other
+  ;;                   magenta)))
+  ;;
+  ;; ;; for 16 colours
+  ;; (prism-set-colors
+  ;;   :desaturations '(0) ; may lower the contrast ratio
+  ;;   :lightens '(0)      ; same
+  ;;   :colors (modus-themes-with-colors
+  ;;             (list fg-main
+  ;;                   magenta
+  ;;                   cyan-alt-other
+  ;;                   magenta-alt-other
+  ;;                   blue
+  ;;                   magenta-alt
+  ;;                   cyan-alt
+  ;;                   red-alt-other
+  ;;                   green
+  ;;                   fg-main
+  ;;                   cyan
+  ;;                   yellow
+  ;;                   blue-alt
+  ;;                   red-alt
+  ;;                   green-alt-other
+  ;;                   fg-special-warm)))
+  ;;
+  ;; for 8 colours
+  ;; (prism-set-colors
+  ;;   :desaturations '(0) ; may lower the contrast ratio
+  ;;   :lightens '(0)      ; same
+  ;;   :colors (modus-themes-with-colors
+  ;;             (list fg-special-cold
+  ;;                   magenta
+  ;;                   magenta-alt-other
+  ;;                   cyan-alt-other
+  ;;                   fg-main
+  ;;                   blue-alt
+  ;;                   red-alt-other
+  ;;                   cyan))))
 
 (defun maak-belachelijk ()
   (interactive)
