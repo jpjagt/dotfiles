@@ -4,16 +4,22 @@
 (setq mc/cmds-to-run-for-all
       '(
         TeX-insert-backslash
+        TeX-newline
         avy-goto-char-2
         backward-delete-word
+        backward-sentence
         backward-sexp
+        beginning-of-defun
         beginning-of-visual-line
         comint-delchar-or-maybe-eof
+        comint-magic-space
         comint-previous-input
         comment-dwim-or-line
         counsel-M-x
         counsel-yank-pop
         dabbrev-expand
+        default-indent-new-line
+        dired-next-line
         downcase-region
         drag-stuff-down
         drag-stuff-up
@@ -21,13 +27,17 @@
         end-of-visual-line
         eval-and-replace
         forward-sexp
+        ibuffer-mark-for-delete
         indent-for-tab-command
         indent-rigidly
+        indent-rigidly-left
         ivy-done
         kill-region
         kill-visual-line
         kmacro-end-and-call-macro
         mark-sexp
+        markdown-outdent-or-delete
+        my-delete-surrounded-delimiters
         org-beginning-of-line
         org-delete-char
         org-edit-special
@@ -37,9 +47,11 @@
         org-return
         org-self-insert-command
         org-yank
+        prot-consult-yank
         py-electric-colon
         py-hungry-delete-backwards
         py-indent-or-complete
+        yaml-electric-backspace
         yas-expand
         ))
 
@@ -51,12 +63,19 @@
         consult-buffer
         counsel-find-file
         describe-key
+        dired-display-file
         elpy-shell-send-statement-and-step
         end-of-buffer
         eval-expression
+        find-file
+        find-file-other-window
+        ibuffer-update
         ivy-switch-buffer
+        keyboard-escape-quit
+        kmacro-end-macro
         kmacro-start-macro
         mark-whole-buffer
+        mouse-drag-secondary
         move-windows
         org-ctrl-c-ctrl-c
         org-cycle
@@ -66,6 +85,10 @@
         projectile-rails-find-stylesheet
         prot-embark-collection-kill-line
         py-execute-buffer
+        python-shell-send-buffer
+        save-and-run-pasp
+        sh-learn-line-indent
         swiper
+        switch-to-buffer-other-window
         text-scale-decrease
         ))

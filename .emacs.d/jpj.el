@@ -126,7 +126,8 @@ With argument ARG, do this that many times."
                    "\\|"
                    (apply #'regexp-orrify (cdr disjuncts))))))
 
-(require 's)
+(use-package s
+  :straight t)
 
 ;; Enable pretty syntax highlighting everywhere
 (global-font-lock-mode t)
@@ -194,6 +195,10 @@ With argument ARG, do this that many times."
   (interactive)
   (load-theme 'doom-opera-light t))
 
+(defun gray ()
+  (interactive)
+  (load-theme 'doom-nova t))
+
 (defun dark ()
   (interactive)
   (load-theme 'doom-palenight t))
@@ -209,14 +214,14 @@ With argument ARG, do this that many times."
 ;; (require 'sanity)
 ;; ;; (require 'elegance)
 
-(set-face-font 'default "Roboto Mono 12")
+(set-face-font 'default "DM Mono 13")
 
 ;; ;; (set-frame-parameter (selected-frame)
 ;; ;;                      'internal-border-width 24)
 (setq default-frame-alist
       (append (list '(vertical-scroll-bars . nil)
                     ;; '(internal-border-width . 24)
-                    '(font . "Roboto Mono 12"))))
+                    '(font . "DM Mono 13"))))
 
 
 ;; ;; Line spacing, can be 0 for code and 1 or 2 for text
@@ -712,6 +717,8 @@ The normal global definition of the character C-x indirects to this keymap.")
 
 (require 'dired-x)
 
+(setq dired-dwim-target t)
+
 (setq dired-omit-files
       (concat dired-omit-files
               "\\|"
@@ -944,6 +951,14 @@ The normal global definition of the character C-x indirects to this keymap.")
 (global-set-key (kbd "C-c C-d") 'duplicate-line)
 
 
+(defun python-gitignore  ()
+  (interactive)
+  (let ((fullpath (string-join (list default-directory ".gitignore"))))
+    (if (file-exists-p fullpath)
+        (progn
+          (shell-command-to-string "curl 'https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore' >> .gitignore")
+          (message (format "Added python-gitignore in %s" default-directory))))))
+
 (defun emacs-gitignore  ()
   (interactive)
   (let ((fullpath (string-join (list default-directory ".gitignore"))))
@@ -1131,7 +1146,7 @@ even beep.)"
 ;;           (lambda ()
 ;;             (yas-activate-extra-mode 'fundamental-mode)))
 (use-package yasnippet
-  :diminish)
+  :straight t)
 (yas-global-mode 1)
 
 (bind-keys* ((kbd "C-.") . mc/mark-next-like-this)
@@ -1186,6 +1201,12 @@ even beep.)"
 (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
 
+(use-package tramp
+  :straight t
+  :config
+  (setq tramp-message-show-message "show-message")
+  )
+
 (use-package escr
   :straight (:host github :repo "atykhonov/escr"))
 
@@ -1216,10 +1237,21 @@ and `optipng' to reduce the file size if the program is present."
     (when (eq major-mode 'org-mode)
       (org-redisplay-inline-images))))
 
+;; (setq ruby-insert-encoding-magic-comment nil)
+
 (use-package projectile-rails
   :ensure t)
 (projectile-rails-global-mode)
 (define-key projectile-rails-mode-map (kbd "C-c e") 'projectile-rails-command-map)
+
+(use-package emmet-mode
+  :straight t
+  :config (setq emmet-expand-jsx-className? t))
+
+(defun web-mode-init-emmet-hook ()
+  (emmet-mode))
+
+(add-hook 'web-mode-hook  'web-mode-init-emmet-hook)
 
 (add-to-list 'auto-mode-alist '("\\.jsx?$" . web-mode)) ;; auto-enable for .js/.jsx files
 (setq web-mode-content-types-alist '(("jsx" . "\\.js[x]?\\'")))
@@ -1246,6 +1278,79 @@ and `optipng' to reduce the file size if the program is present."
 ;; (add-hook 'web-mode-hook
 ;;   (lambda ()
 ;;     (flymake-eslint-enable)))
+
+(use-package flymake-json
+  :straight t
+  :config
+  (global-set-key (kbd "C-c j v") 'flymake-json-load)
+  )
+
+(use-package org-trello
+  :straight t)
+
+(custom-set-variables '(org-trello-files (directory-files "~/trello/" nil "\\.org$")))
+
+(use-package deft
+         :straight t
+         :commands (deft)
+         :config (setq deft-directory "~/notes"
+                       deft-extensions '("org" "md" "txt")
+                       deft-default-extension "org"
+                       deft-use-filter-string-for-filename t))
+
+
+
+(bind-key* (kbd "C-c C-;") 'deft)
+
+(use-package pasp-mode
+  :straight t)
+
+(defun eval-region-pasp ()
+  (interactive)
+  (let ((code (if (region-active-p)
+                  (buffer-substring-no-properties (region-beginning)
+                                                  (region-end))
+                (org-element-property :value (org-element-at-point))))
+        (this-buf (current-buffer)))
+    (save-window-excursion (switch-to-buffer-other-window (concat "*"
+                                                                  (file-name-base)
+                                                                  "*"))
+                           (end-of-buffer)
+                           (insert (format "print_answer_sets(\"\"\"%s\"\"\")"
+                                           code))
+                           (comint-send-input)
+                           (switch-to-buffer this-buf))))
+
+;; (with-temp-buffer )
+(defun save-and-run-pasp ()
+  (interactive)
+  (progn
+    (save-buffer)
+    (pasp-run-buffer)))
+(define-key pasp-mode-map (kbd "C-c C-c") #'save-and-run-pasp)
+
+;; patch this function to add quotes around filepath
+(defun pasp-generate-command (encoding &optional instance)
+  "Generate Clingo call with some ASP input file.
+
+   Argument ENCODING The current buffer which holds the problem encoding.
+   Optional argument INSTANCE The problem instance which is solved by the encoding.
+     If no instance it is assumed to be also in the encoding file."
+     (if 'instance
+         (concat pasp-clingo-path " " pasp-clingo-options " '" encoding "' " instance)
+       (concat pasp-clingo-path " " pasp-clingo-options " '" encoding "'")))
+
+(setq pasp-clingo-options "-n 0")
+
+(defun pasp-gvis ()
+  (interactive)
+  (let ((answerset (buffer-substring (region-beginning)
+                                                  (region-end))))
+    (shell-command (format "python /Users/jeroen/code/UvA/msc/krr/gvis.py '%s'"
+                                           answerset))))
+
+(eval-after-load 'pasp-compilation-mode
+                 '(define-key pasp-compilation-mode-map (kbd "C-c C-v") 'pasp-gvis))
 
 ;; (add-to-list 'load-path "~/code/paulodder/canvas-utils/")
 ;; (require 'canvas-utils)
@@ -1314,11 +1419,40 @@ and `optipng' to reduce the file size if the program is present."
 (org-defkey org-mode-map "\C-c\C-c" `org-execute-code-in-shell)
 (org-defkey org-mode-map "\C-c\c" 'org-ctrl-c-ctrl-c)
 
+(fset 'org-yank-src-block-into-session
+   (kmacro-lambda-form [?\C-c ?\' ?\C-x ?h ?\M-w ?\C-u ?\C-  ?\C-u ?\C-  ?\C-c ?\' ?\C-c ?\C-v ?\C-z ?\C-a ?\C-  ?\C-e backspace ?\C-e ?  ?\C-\M-y ?\M-o] 0 "%d"))
+
+(define-key org-mode-map (kbd "C-c y") 'org-yank-src-block-into-session)
+
 (fset 'org-copy-src-block
    (kmacro-lambda-form [?\C-c ?\' ?\C-x ?h ?\M-w ?\C-u ?\C-  ?\C-u ?\C-  ?\C-c ?\'] 0 "%d"))
 
 
 (define-key org-mode-map (kbd "C-M-w") 'org-copy-src-block)
+
+(defun exec-source-block ()
+  "Copies and pastes the current source block to
+  the active python session and executes it."
+  (interactive)
+  (let* ((this-window (selected-window))
+         (sb-content (if (region-active-p)
+                         (substring-no-properties (buffer-string)
+                                                  (- (region-beginning)
+                                                     1)
+                                                  (- (region-end)
+                                                     1))
+                       (string-trim (org-element-property :value (org-element-at-point)))))
+         (sb-info (org-babel-get-src-block-info))
+         (maybe-cpaste-content (if (string= "python"
+                                            (first sb-info))
+                                   (concat "\n%cpaste\n" sb-content "\n--")
+                                 sb-content)))
+    (save-excursion
+      (org-babel-switch-to-session)
+      (end-of-buffer)
+      (insert maybe-cpaste-content)
+      (comint-send-input)
+      (select-window this-window))))
 
 (use-package poporg
       :bind (("C-c /" . poporg-dwim)))
@@ -1568,6 +1702,9 @@ and `optipng' to reduce the file size if the program is present."
 ;;    (latex . t)))
 
 (setq org-latex-inline-image-rules '(("file" . "\\.\\(pdf\\|jpeg\\|jpg\\|png\\|ps\\|eps\\|tikz\\|pgf\\|svg\\|gif\\)\\'")))
+
+(use-package scratch
+  :straight t)
 
 ;; (require 'auctex)
 (require 'mode-local)
@@ -1893,9 +2030,9 @@ c  is called, for each contiguous sub-region, with METHOD as its
     (tide-setup)
     (tide-hl-identifier-mode)))
 
-(use-package tide
-   :hook (web-mode . my/activate-tide-mode)
-   :ensure t)
+;; (use-package tide
+;;    :hook (web-mode . my/activate-tide-mode)
+;;    :ensure t)
 (add-hook 'rjsx-mode-hook 'prettier-js-mode)
 
 ;; (define-key dump-jump-mode-map (kbd "C-M-p") nil)
@@ -2276,8 +2413,10 @@ c  is called, for each contiguous sub-region, with METHOD as its
 (setq mode-line-right-section
       (list
        ;; git branch
-       '(:eval (propertize (substring vc-mode 5)
-                           'face 'font-lock-comment-face))
+       '(:eval (if vc-mode
+                   (propertize (substring vc-mode 5)
+                           'face 'font-lock-comment-face)
+                   ""))
 
        ;; line and column
        " [" ;; '%02' to set to 2 chars at least; prevents flickering
@@ -2408,3 +2547,6 @@ c  is called, for each contiguous sub-region, with METHOD as its
                       (point)))
           (if (<= (point) initial-end)
                   (call-interactively 'upcase-char)))))))
+
+(use-package atomic-chrome
+  :straight t)
