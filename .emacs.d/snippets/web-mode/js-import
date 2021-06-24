@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: js-import
+# key: <im
+# --
+import ${1:Div} from './$1'

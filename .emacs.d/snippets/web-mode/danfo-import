@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: danfo-import
+# key: <dfd
+# --
+import * as dfd from 'danfojs/src/index'

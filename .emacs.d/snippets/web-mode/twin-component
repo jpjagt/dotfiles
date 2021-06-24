@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: twin-component
+# key: <twc
+# --
+import React from 'react'
+import tw from 'twin.macro'
+
+const ${1:Div} = tw.div``
+
+export default $1

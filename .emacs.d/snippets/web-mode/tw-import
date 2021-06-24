@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: tw-import
+# key: <twin
+# --
+import tw from 'twin.macro'

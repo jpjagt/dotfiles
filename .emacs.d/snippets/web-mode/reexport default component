@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: reexport default component
+# key: <rex
+# --
+export { default as $1 } from './${1:Div}'

@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: console-log-nobraces
+# key: clo
+# --
+console.log($0)

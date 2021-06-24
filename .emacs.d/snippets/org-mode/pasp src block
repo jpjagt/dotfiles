@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: pasp src block
+# key: <pasp
+# --
+#+BEGIN_SRC pasp
+$0
+#+END_SRC
