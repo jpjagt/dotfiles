@@ -11,7 +11,7 @@
 
 [core]
   pager = less -FRSX
-	editor = '/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl' -n -w
+	editor = emacs -nw
 
 [alias]
   co = checkout
@@ -52,3 +52,5 @@
 	name = jeroen
 [credential]
 	helper = osxkeychain
+[http]
+	postBuffer = 524288000
