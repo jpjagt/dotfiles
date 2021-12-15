@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: r-src-block
+# key: <r
+# --
+#+BEGIN_SRC r
+$0
+#+END_SRC

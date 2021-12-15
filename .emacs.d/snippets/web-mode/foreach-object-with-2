@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: foreach-object-with-2
+# key: <forEach2
+# --
+Object.keys(${1:}).forEach((${1:$(car (s-split-up-to "2" yas-text 1))}) => {
+  const ${1:$(nth 1 (s-split-up-to "2" yas-text 1))} = $1[${1:$(car (s-split-up-to "2" yas-text 1))}]
+  $0
+})

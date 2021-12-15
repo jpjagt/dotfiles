@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: import-react-hot-toast
+# key: toast
+# --
+import toast from 'react-hot-toast'

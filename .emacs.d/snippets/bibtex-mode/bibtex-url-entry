@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: bibtex-url-entry
+# key: <url
+# --
+@online\{label,
+  author = \{\},
+  title = \{\},
+  year = 2020,
+  url = \{$0\},
+  urldate = \{\}
+\}

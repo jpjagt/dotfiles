@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: import-fxr-ui
+# key: <imui
+# --
+import { $0 } from '@fxr/ui'

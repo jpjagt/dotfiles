@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: references
+# key: <references
+# --
+bibliographystyle:unsrt
+bibliography:/Users/jeroen/Documents/literature/references.bib

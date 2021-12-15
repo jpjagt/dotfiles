@@ -1,0 +1,13 @@
+# -*- mode: snippet -*-
+# name: no-section-numbers
+# key: <numbers
+# --
+
+* settings :noexport:
+
+#+BEGIN_SRC emacs-lisp
+(setq org-export-with-section-numbers nil)
+(setq org-export-with-toc nil)
+#+END_SRC
+
+#+RESULTS:

@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: self._variable
+# key: <s_
+# --
+self._$1 = ${1:}

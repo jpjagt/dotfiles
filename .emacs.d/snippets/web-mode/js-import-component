@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: js-import-component
+# key: <imc
+# --
+import ${1:Div} from '../components/$1'
