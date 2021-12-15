@@ -12,11 +12,17 @@
               initial-scratch-message "")
 
 (toggle-frame-fullscreen)
+(toggle-frame-fullscreen)
 
 ;; File for custom-set variables
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (when (file-exists-p custom-file)
   (load custom-file))
+
+(defun jpj ()
+  (interactive)
+  (find-file "~/.emacs.d/jpj.org")
+  )
 
 (setq mac-option-key-is-meta nil
       mac-command-key-is-meta t
@@ -32,6 +38,8 @@
 
 (defun define-custom-function (name func)
   (define-named-lambda name (lambda () (funcall func))))
+
+(bind-key* "s-u"  'revert-buffer)
 
 (defun push-mark-no-activate ()
   "Pushes `point' to `mark-ring' and does not activate the region
@@ -128,6 +136,12 @@ With argument ARG, do this that many times."
 
 (use-package s
   :straight t)
+
+(defun eval-region-and-insert ()
+  (interactive)
+  (let ((currbuf (get-buffer (or (buffer-file-name) (buffer-name)))))
+    (eval-region (region-beginning) (region-end) currbuf)
+                        ))
 
 ;; Enable pretty syntax highlighting everywhere
 (global-font-lock-mode t)
@@ -268,6 +282,22 @@ of the syntax class ')'."
            (char-equal (char-syntax cb) ?\) )
            (blink-matching-open))))
     (when matching-text (message matching-text))))
+
+(defun wrap-region-in-text (prefix suffix)
+  (interactive)
+  (save-excursion
+    (goto-char (region-beginning))
+    (insert prefix))
+  (save-excursion
+    (goto-char (region-end))
+    (insert suffix)))
+
+(defun wrap-region-in-component (component)
+  (wrap-region-in-text (s-concat "<" component ">") (s-concat "</" component ">")))
+
+(defun wrap-region-in-trans ()
+  (interactive)
+  (wrap-region-in-component "Trans"))
 
 (add-to-list 'load-path "~/.emacs.d/repos/protesilaos/dotfiles/emacs/.emacs.d/straight/repos/prot-lisp/")
 
@@ -442,7 +472,7 @@ of the syntax class ')'."
          ("M-X" . consult-mode-command)
          ("M-K" . consult-keep-lines)  ; M-S-k is similar to M-S-5 (M-%)
          ("M-s f" . consult-find)
-         ("M-s g" . consult-grep)
+         ("M-s g" . counsel-rg) ; THIS IS COUNSEL! NOT CONSULT
          ("M-s m" . consult-mark)
          ("C-j" . consult-buffer)
          ("C-x b" . consult-buffer)
@@ -645,24 +675,6 @@ The normal global definition of the character C-x indirects to this keymap.")
 ;; (global-set-key (kbd "-") 'exec-underscore)
 ;; (global-set-key (kbd "_") 'exec-hyphen)
 
-(defun slick-cut (beg end)
-  (interactive
-   (if mark-active
-       (list (region-beginning) (region-end))
-     (message "Cut line")
-     (list (line-beginning-position) (line-beginning-position 2)))))
-
-(advice-add 'kill-region :before #'slick-cut)
-
-(defun slick-copy (beg end)
-  (interactive
-   (if mark-active
-       (list (region-beginning) (region-end))
-     (message "Copied line")
-     (list (line-beginning-position) (line-beginning-position 2)))))
-
-(advice-add 'kill-ring-save :before #'slick-copy)
-
 (bind-key* "M-<left>"  'windmove-left)
 (bind-key* "M-<right>" 'windmove-right)
 (bind-key* "M-<up>"    'windmove-up)
@@ -793,7 +805,6 @@ The normal global definition of the character C-x indirects to this keymap.")
 (global-set-key (kbd "C-c b") 'bury-buffer)
 (global-set-key (kbd "C-+") 'text-scale-increase)
 (global-set-key (kbd "C--") 'text-scale-decrease)
-(global-set-key (kbd "C-c t") 'tramp-cleanup-this-connection)
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 (add-hook 'emacs-lisp-mode-hook
           (lambda ()
@@ -1201,11 +1212,27 @@ even beep.)"
 (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
 
+(use-package restclient
+  :straight t)
+
+(autoload #'tramp-register-crypt-file-name-handler "tramp-crypt")
 (use-package tramp
   :straight t
   :config
-  (setq tramp-message-show-message "show-message")
+    (setq tramp-message-show-message "show-message")
+    (setq vc-ignore-dir-regexp
+        (format "\\(%s\\)\\|\\(%s\\)"
+                vc-ignore-dir-regexp
+                tramp-file-name-regexp))
+    (setq tramp-verbose 1)
+    (global-set-key (kbd "C-c t") 'tramp-cleanup-this-connection)
   )
+
+(use-package polymode
+  :straight t)
+
+(use-package poly-markdown
+  :straight t)
 
 (use-package escr
   :straight (:host github :repo "atykhonov/escr"))
@@ -1285,10 +1312,10 @@ and `optipng' to reduce the file size if the program is present."
   (global-set-key (kbd "C-c j v") 'flymake-json-load)
   )
 
-(use-package org-trello
-  :straight t)
+;; (use-package org-trello
+;;   :straight t)
 
-(custom-set-variables '(org-trello-files (directory-files "~/trello/" nil "\\.org$")))
+;; (custom-set-variables '(org-trello-files (directory-files "~/trello/" nil "\\.org$")))
 
 (use-package deft
          :straight t
@@ -1296,6 +1323,7 @@ and `optipng' to reduce the file size if the program is present."
          :config (setq deft-directory "~/notes"
                        deft-extensions '("org" "md" "txt")
                        deft-default-extension "org"
+                       deft-auto-save-interval 300
                        deft-use-filter-string-for-filename t))
 
 
@@ -1352,6 +1380,50 @@ and `optipng' to reduce the file size if the program is present."
 (eval-after-load 'pasp-compilation-mode
                  '(define-key pasp-compilation-mode-map (kbd "C-c C-v") 'pasp-gvis))
 
+(use-package ess
+  :straight t
+  :config
+  (add-hook `inferior-ess-mode-hook (lambda () (setq comint-input-ring-size 1500)))
+  (setq ess-eval-visibly 'nowait) ;; don't hang buffer when exec-ing code
+  (setq ess-fancy-comments nil) ;; don't indent comments
+  )
+
+(eval-after-load "comint"
+   '(progn
+      (define-key comint-mode-map [up]
+        'comint-previous-matching-input-from-input)
+      (define-key comint-mode-map [down]
+        'comint-next-matching-input-from-input)
+
+      ;; also recommended for ESS use --
+      (setq comint-move-point-for-output 'others)
+      ;; somewhat extreme, almost disabling writing in *R*, *shell* buffers above prompt:
+      ;; (setq comint-scroll-to-bottom-on-input 'this)
+      ))
+
+(defun load-ess-mode-maps ()
+  (dolist (m (list ess-r-mode-map inferior-ess-mode-map))
+    (bind-keys :map m
+               ("M-i" . ess-insert-assign)
+               )))
+(add-hook `inferior-ess-mode-hook 'load-ess-mode-maps)
+
+(use-package ess-R-data-view
+  :straight t
+  :config
+  (bind-key* "C-x w" 'ess-R-dv-ctable)
+   )
+
+
+
+;; (use-package ess-view
+;;   :straight t)
+
+;; (setq ess-view--spreadsheet-program "/Applications/Numbers.app")
+
+(use-package poly-R
+  :straight t)
+
 ;; (add-to-list 'load-path "~/code/paulodder/canvas-utils/")
 ;; (require 'canvas-utils)
 ;; (setq canvas-baseurl "https://canvas.uva.nl") ; url you visit to go to the
@@ -1384,6 +1456,51 @@ and `optipng' to reduce the file size if the program is present."
 (global-set-key (kbd "C-;") 'avy-goto-char-2)
 
 (plist-put org-format-latex-options :scale 1.8)
+
+(defun exec-source-block ()
+  "Copies and pastes the current source block to
+  the active python session and executes it."
+  (interactive)
+  (let* ((this-window (selected-window))
+         (sb-content (if (region-active-p)
+                         (substring-no-properties (buffer-string)
+                                                  (- (region-beginning)
+                                                     1)
+                                                  (- (region-end)
+                                                     1))
+                       (string-trim (org-element-property :value (org-element-at-point)))))
+         (sb-info (org-babel-get-src-block-info))
+         (maybe-cpaste-content (if (string= "python"
+                                            (first sb-info))
+                                   (concat "\n%cpaste\n" sb-content "\n--")
+                                 sb-content)))
+    (save-excursion
+      (org-babel-switch-to-session)
+      (end-of-buffer)
+      (insert maybe-cpaste-content)
+      (comint-send-input)
+      (select-window this-window))))
+
+
+(defun org-src-exec-blocks-up-until ()
+  "applies exec-source-block to all source blocks up until current point"
+  (interactive)
+  (let ((max-point (point)))
+    (save-excursion
+      (beginning-of-buffer)
+      (org-babel-next-src-block)
+      (while (<= (point) max-point)
+        (progn
+          (org-babel-next-src-block)
+          (exec-source-block))))))
+
+(define-key org-mode-map (kbd "C-c C-c") 'exec-source-block)
+(define-key org-mode-map (kbd "C-c c") 'org-ctrl-c-ctrl-c)
+
+(bind-keys* :map org-mode-map
+            ((kbd "M-n") . org-babel-next-src-block)
+            ((kbd "M-p") . org-babel-previous-src-block)
+            )
 
 (defun org-toggle-execution-on-export ()
   (interactive)
@@ -1703,6 +1820,88 @@ and `optipng' to reduce the file size if the program is present."
 
 (setq org-latex-inline-image-rules '(("file" . "\\.\\(pdf\\|jpeg\\|jpg\\|png\\|ps\\|eps\\|tikz\\|pgf\\|svg\\|gif\\)\\'")))
 
+;; installation
+;; (let ((packages (list 'org-plus-contrib 'org-ref)))
+;;   ; refresh if needed.
+;;   (unless (cl-every #'package-installed-p packages)
+;;     (package-refresh-contents))
+
+;;   (dolist (package packages)
+;;     (unless (package-installed-p package)
+;;       (package-install package))))
+
+(setq org-ref-notes-directory "~/Documents/literature/notes"
+      org-ref-pdf-directory "~/Documents/literature/bibtex-pdfs/"
+      org-ref-default-bibliography '("~/Documents/literature/references.bib")
+      )
+
+(setq bibtex-completion-bibliography
+      '(org-ref-default-bibliography
+        ))
+(setq bibtex-completion-notes-path org-ref-notes-directory)
+
+(unless (file-exists-p org-ref-pdf-directory)
+  (make-directory org-ref-pdf-directory t))
+
+;; Some org-mode customization
+(setq org-src-fontify-natively t
+      org-confirm-babel-evaluate nil
+      org-src-preserve-indentation t)
+
+(org-babel-do-load-languages
+ 'org-babel-load-languages '((python . t)))
+
+(setq org-latex-pdf-process
+      '("pdflatex -interaction nonstopmode -output-directory %o %f"
+  "bibtex %b"
+  "pdflatex -interaction nonstopmode -output-directory %o %f"
+  "pdflatex -interaction nonstopmode -output-directory %o %f"))
+
+(setq bibtex-autokey-year-length 4
+      bibtex-autokey-name-year-separator "-"
+      bibtex-autokey-year-title-separator "-"
+      bibtex-autokey-titleword-separator "-"
+      bibtex-autokey-titlewords 2
+      bibtex-autokey-titlewords-stretch 1
+      bibtex-autokey-titleword-length 5)
+
+(use-package dash)
+(setq org-latex-default-packages-alist
+      (-remove-item
+       '("" "hyperref" nil)
+       org-latex-default-packages-alist))
+
+;; Append new packages
+(add-to-list 'org-latex-default-packages-alist '("" "natbib" "") t)
+(add-to-list 'org-latex-default-packages-alist
+       '("linktocpage,pdfstartview=FitH,colorlinks,
+linkcolor=blue,anchorcolor=blue,
+citecolor=blue,filecolor=blue,menucolor=blue,urlcolor=blue"
+         "hyperref" nil)
+       t)
+
+;; some requires for basic org-ref usage
+;; (require 'org-plus-contrib)
+(require 'org-ref)
+(require 'org-ref-pdf)
+(require 'org-ref-url-utils)
+
+;; setup org-ref
+(setq org-ref-notes-function
+      (lambda (thekey)
+  (let ((bibtex-completion-bibliography (org-ref-find-bibliography)))
+    (bibtex-completion-edit-notes
+     (list (car (org-ref-get-bibtex-key-and-file thekey)))))))
+
+;; (use-package org-plus-contrib
+;;   :straight t)
+;; (use-package org-ref
+;;   :straight t)
+;; (use-package org-ref-pdf
+;;   :straight t)
+;; (use-package org-ref-url-utils
+;;   :straight t)
+
 (use-package scratch
   :straight t)
 
@@ -1993,6 +2192,9 @@ c  is called, for each contiguous sub-region, with METHOD as its
 
 (define-key shell-mode-map (kbd "SPC") 'comint-magic-space)
 
+;; (use-package vterm
+;;   :straight t)
+
 (push "~/.node_modules_global/bin" exec-path)
 (load-file "~/.emacs.d/prettier-emacs/prettier-js.el")
 (add-hook 'js-mode-hook 'prettier-js-mode)
@@ -2232,6 +2434,11 @@ c  is called, for each contiguous sub-region, with METHOD as its
 ;; (use-package pygen
 ;;   :ensure t)
 ;; (add-hook 'python-mode-hook 'pygen-mode)
+
+(use-package python-docstring
+  :straight t)
+
+(add-hook 'python-mode-hook 'python-docstring-mode)
 
 ;; (load "~/.emacs.d/icicles-install")
 ;; (customize-variable' "icicle-download-dir" "~/.emacs.d/icicles")
@@ -2479,6 +2686,18 @@ c  is called, for each contiguous sub-region, with METHOD as its
   (bind-key* "s-p" 'powerthesaurus-lookup-word-dwim)
   )
 
+(use-package google-translate
+  :straight t
+  :config
+  (setq google-translate-default-source-language "nl")
+  (setq google-translate-default-target-language "en")
+  (bind-key* "C-c t" 'google-translate-smooth-translate)
+  (setq google-translate-translation-directions-alist
+      '(("nl" . "en") ("en" . "nl") ("en" . "es") ("es" . "en")))
+  )
+
+(bind-key* "C-c t" 'google-translate-smooth-translate)
+
 (use-package prism
   :straight (:host github :repo "alphapapa/prism.el" :branch "master")
   :defer
@@ -2550,3 +2769,13 @@ c  is called, for each contiguous sub-region, with METHOD as its
 
 (use-package atomic-chrome
   :straight t)
+
+(fset 'shell-last-python-script
+   (kmacro-lambda-form [?\M-r ?p ?y ?t ?h ?o ?n ?  return] 0 "%d"))
+
+(bind-keys* :map shell-mode-map
+            ((kbd "C-M-r") . shell-last-python-script)
+            )
+
+(fset 'fxr-restart-fxrbot
+   (kmacro-lambda-form [?c ?d return ?c ?d ?  ?k ?e ?y ?b ?a ?s ?e return ?k ?i ?l ?l ?  ?\C-a ?\C-k ?p ?s ?  ?- ?e ?f ?  ?| ?  ?g ?r ?e ?p ?  ?f ?x ?r ?b ?o ?t return ?\C-a ?\M-f ?\M-f ?\C-a ?\C-p ?\M-f ?\M-f ?\M-b ?\C-  ?\M-f ?\M-w ?\M-> ?k ?i ?l ?l ?  ?\C-y return ?c ?a ?t ?  ?s ?t ?a ?r ?t ?_ ?f ?x ?r ?b ?o ?t ?. ?s ?h return ?\C-p ?\C-p ?\C-a ?\C-  ?\C-n ?\C-e ?\M-w ?\M-> ?\C-y return ?\C-c ?\C-c ?n ?o ?h ?u ?p ?  ?p ?y ?t ?h ?o ?n ?  ?/ ?h ?o ?m ?e ?/ ?j ?e ?r ?o ?e ?n ?/ ?k ?e ?y ?b ?a ?s ?e ?/ ?f ?x ?r ?b ?o ?t ?. ?p ?y ?  ?& return return] 0 "%d"))

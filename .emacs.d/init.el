@@ -12,9 +12,9 @@
 ;; configure package sources
 (setq package-archives '(("melpa" . "http://melpa.org/packages/")
                          ("gnu"          . "https://elpa.gnu.org/packages/")
-                         ("melpa"     . "https://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
+                         ;; ("melpa"     . "https://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
                          ;; melpa.org/packages hangs (see https://emacs.stackexchange.com/questions/37353/can-not-access-melpa-packages-hung-up-at-contacting-host-elpa-gnu-org80)
-                         ("melpa"        . "https://stable.melpa.org/packages/")
+                         ;; ("melpa"        . "https://stable.melpa.org/packages/")
                          ;; ("melpa"     . "http://melpa.milkbox.net/packages/")
                          ;; ("melpa-stable" . "https://stable.melpa.org/packages/")
                          ;; ("marmalade"    . "https://marmalade-repo.org/packages/")

@@ -3,6 +3,7 @@
 
 (setq mc/cmds-to-run-for-all
       '(
+        LaTeX-babel-insert-hyphen
         TeX-insert-backslash
         TeX-newline
         avy-goto-char-2
@@ -25,32 +26,46 @@
         drag-stuff-up
         embark-export
         end-of-visual-line
+        ess-indent-or-complete
+        ess-insert-assign
+        ess-roxy-goto-end-of-roxy-comment
+        ess-roxy-move-beginning-of-line
+        ess-roxy-newline
+        ess-smart-comma
+        ess-yank
         eval-and-replace
         forward-sexp
         ibuffer-mark-for-delete
         indent-for-tab-command
         indent-rigidly
         indent-rigidly-left
+        insert-char
         ivy-done
         kill-region
         kill-visual-line
         kmacro-end-and-call-macro
+        mac-next-tab-or-toggle-tab-bar
         mark-sexp
+        markdown-enter-key
         markdown-outdent-or-delete
         my-delete-surrounded-delimiters
         org-beginning-of-line
         org-delete-char
         org-edit-special
         org-end-of-line
+        org-fill-paragraph
         org-kill-line
         org-open-line
+        org-promote-subtree
         org-return
         org-self-insert-command
+        org-transpose-words
         org-yank
         prot-consult-yank
         py-electric-colon
         py-hungry-delete-backwards
         py-indent-or-complete
+        transpose-words
         yaml-electric-backspace
         yas-expand
         ))
@@ -62,8 +77,10 @@
         comint-send-input
         consult-buffer
         counsel-find-file
+        deft
         describe-key
         dired-display-file
+        dired-unmark-backward
         elpy-shell-send-statement-and-step
         end-of-buffer
         eval-expression
@@ -74,12 +91,14 @@
         keyboard-escape-quit
         kmacro-end-macro
         kmacro-start-macro
+        mac-mouse-buffer-menu
         mark-whole-buffer
         mouse-drag-secondary
         move-windows
         org-ctrl-c-ctrl-c
         org-cycle
         org-cycle-agenda-files
+        org-date-from-calendar
         org-execute-code-in-shell
         org-export-dispatch
         projectile-rails-find-stylesheet

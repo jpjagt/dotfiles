@@ -47,21 +47,25 @@
   (let ((session-name (file-name-sans-extension (file-name-nondirectory buffer-file-name))))
     (message session-name)
     (insert
-     (format  "#+BIND: org-export-use-babel nil
-#+TITLE: TITLE
+     (format  "#+TITLE: %s
+#+BIND: org-export-use-babel nil
 #+AUTHOR: jeroen jagt
 #+EMAIL: <jpjagt@pm.me>
 #+DATE: %s
 #+LATEX: \\setlength\\parindent{0pt}
-#+LaTeX_HEADER: \\usepackage{minted}
-#+LATEX_HEADER: \\usepackage[margin=0.8in]{geometry}
+#+LATEX_HEADER: \\usepackage{minted}
+#+LATEX_HEADER: \\usepackage[margin=1.2in]{geometry}
+#+LATEX_HEADER: \\usepackage{mathpazo}
+#+LATEX_HEADER: \\usepackage{adjustbox}
 #+LATEX_HEADER_EXTRA:  \\usepackage{mdframed}
 #+LATEX_HEADER_EXTRA: \\BeforeBeginEnvironment{minted}{\\begin{mdframed}}
 #+LATEX_HEADER_EXTRA: \\AfterEndEnvironment{minted}{\\end{mdframed}}
+#+LATEX_HEADER_EXTRA: \\BeforeBeginEnvironment{tabular}{\\begin{adjustbox}{center}}
+#+LATEX_HEADER_EXTRA: \\AfterEndEnvironment{tabular}{\\end{adjustbox}}
 #+MACRO: NEWLINE @@latex:\\\\@@ @@html:<br>@@
 #+PROPERTY: header-args :exports both :session %s :cache :results value
 #+OPTIONS: ^:nil
-#+LATEX_COMPILER: pdflatex" (insdate-insert-current-date t) session-name)
+#+LATEX_COMPILER: pdflatex" session-name (insdate-insert-current-date t) session-name)
      ;; (org-mode-restart)
      )))
 (define-auto-insert "\\.org$" #'my/org-template)
@@ -79,13 +83,17 @@
 ;;   (let ((default-directory dir))
 ;;     (shell name)))
 
-(defun cpath ()
-  "Copy the current buffer full path to the clipboard."
-  (interactive)
+(defun get-current-fpath ()
   (let* ((filename-raw (if (equal major-mode 'dired-mode)
                       default-directory
                     (buffer-file-name)))
          (filename (if (string-prefix-p "/ssh:" filename-raw) (remove-ssh-prefix filename-raw) filename-raw)))
+    filename))
+
+(defun cpath ()
+  "Copy the current buffer full path to the clipboard."
+  (interactive)
+  (let* ((filename (get-current-fpath)))
     (when filename
       (kill-new filename)
       (message "Copied buffer file name '%s' to the clipboard." filename))))
