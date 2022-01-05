@@ -18,7 +18,7 @@
  '(js-auto-format-command "prettier")
  '(js-auto-format-command-args "--write --single-quote --no-semi")
  '(objed-cursor-color "#ff5370")
- '(org-agenda-files nil)
+ '(org-agenda-files '("~/Documents/uni/made-msc/y1/p2/mi/essay/essay.org"))
  '(package-selected-packages
    '(consult use-package quelpa orderless expand-region exwm tide rjsx-mode scss-mode js-format htmlize smooth-scroll smooth-scrolling slack neotree ts org-mime oauth2 auctex-lua request auctex srefactor emojify-logos call-graph indium wiki-summary simple-call-tree google-this undo-tree smartparens swoop tree-mode magit swiper-helm counsel-tramp tramp-term))
  '(pdf-view-midnight-colors (cons "#EEFFFF" "#292D3E"))

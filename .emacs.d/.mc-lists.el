@@ -34,11 +34,13 @@
         ess-smart-comma
         ess-yank
         eval-and-replace
+        fill-paragraph
         forward-sexp
         ibuffer-mark-for-delete
         indent-for-tab-command
         indent-rigidly
         indent-rigidly-left
+        indent-rigidly-right
         insert-char
         ivy-done
         kill-region
@@ -92,8 +94,10 @@
         kmacro-end-macro
         kmacro-start-macro
         mac-mouse-buffer-menu
+        mac-mwheel-scroll
         mark-whole-buffer
         mouse-drag-secondary
+        mouse-set-region
         move-windows
         org-ctrl-c-ctrl-c
         org-cycle
@@ -107,6 +111,7 @@
         python-shell-send-buffer
         save-and-run-pasp
         sh-learn-line-indent
+        shell
         swiper
         switch-to-buffer-other-window
         text-scale-decrease

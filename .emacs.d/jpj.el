@@ -137,11 +137,86 @@ With argument ARG, do this that many times."
 (use-package s
   :straight t)
 
+(use-package crux
+  :straight t)
+
 (defun eval-region-and-insert ()
   (interactive)
   (let ((currbuf (get-buffer (or (buffer-file-name) (buffer-name)))))
     (eval-region (region-beginning) (region-end) currbuf)
                         ))
+
+(defun find-and-replace-in-git-repo ()
+  "Find and replace old with new in current git repo"
+  (interactive)
+  (let* ((old (read-string "old:"))
+         (new (read-string "new:"))
+         (cmd
+          (s-join ""
+                  (list
+                   "~/.virtualenvs/base/bin/pdfx -v '"
+                   old
+                   "' | sed -n 's/" old "/" new "/p'"))))
+    (shell-command cmd buffer)
+    (switch-to-buffer buffer)))
+;; git grep -l '.apply(' | xargs sed -i '' 's/.apply/.swifter.apply/g'
+
+(use-package ace-window
+  :ensure t)
+(global-set-key (kbd "M-o") 'ace-window)
+(setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+(defvar aw-dispatch-alist
+  '((?x aw-delete-window "Delete Window")
+  (?m aw-swap-window "Swap Windows")
+  (?M aw-move-window "Move Window")
+  (?c aw-copy-window "Copy Window")
+  (?j aw-switch-buffer-in-window "Select Buffer")
+  (?n aw-flip-window)
+  (?u aw-switch-buffer-other-window "Switch Buffer Other Window")
+  (?c aw-split-window-fair "Split Fair Window")
+  (?v aw-split-window-vert "Split Vert Window")
+  (?b aw-split-window-horz "Split Horz Window")
+  (?o delete-other-windows "Delete Other Windows")
+  (?? aw-show-dispatch-help))
+  "List of actions for `aw-dispatch-default'.")
+
+(defun get-current-fpath ()
+  (let* ((filename-raw (if (equal major-mode 'dired-mode)
+                      default-directory
+                    (buffer-file-name)))
+         (filename (if (string-prefix-p "/ssh:" filename-raw) (remove-ssh-prefix filename-raw) filename-raw)))
+    filename))
+
+(defun cpath ()
+  "Copy the current buffer full path to the clipboard."
+  (interactive)
+  (let* ((filename (get-current-fpath)))
+    (when filename
+      (kill-new filename)
+      (message "Copied buffer file name '%s' to the clipboard." filename))))
+
+
+(defun cdir ()
+  "Copy the current buffer full path to the clipboard."
+  (interactive)
+  (let* ((filename-raw (if (equal major-mode 'dired-mode)
+                      default-directory
+                    (buffer-file-name)))
+         (filename (file-name-directory (if (string-prefix-p "/ssh:" filename-raw) (remove-ssh-prefix filename-raw) filename-raw))))
+    (when filename
+      (kill-new filename)
+      (message "Copied buffer file name '%s' to the clipboard." filename))))
+
+(defun cfile ()
+  "Copy the current buffer file name to the clipboard."
+  (interactive)
+  (let* ((filepath-raw (if (equal major-mode 'dired-mode)
+                      default-directory
+                    (buffer-file-name)))
+         (filename (file-name-nondirectory filepath-raw)))
+    (when filename
+      (kill-new filename)
+      (message "Copied buffer file name '%s' to the clipboard." filename))))
 
 ;; Enable pretty syntax highlighting everywhere
 (global-font-lock-mode t)
@@ -300,6 +375,11 @@ of the syntax class ')'."
   (wrap-region-in-component "Trans"))
 
 (add-to-list 'load-path "~/.emacs.d/repos/protesilaos/dotfiles/emacs/.emacs.d/straight/repos/prot-lisp/")
+
+nil
+
+(use-package bug-hunter
+  :straight t)
 
 (use-package prot-orderless
   :demand
@@ -801,14 +881,20 @@ The normal global definition of the character C-x indirects to this keymap.")
 (use-package expand-region
   :bind ("C-=" . er/expand-region))
 
-;; (global-set-key (kbd "C-c 3") 'browse-url-at-point)
+;; buffer management
 (global-set-key (kbd "C-c b") 'bury-buffer)
+(global-set-key (kbd "C-x C-b") 'ibuffer)
+
+;; zoom in/out
 (global-set-key (kbd "C-+") 'text-scale-increase)
 (global-set-key (kbd "C--") 'text-scale-decrease)
-(global-set-key (kbd "C-x C-b") 'ibuffer)
+
+;; find the file which is referenced at point
+(global-set-key (kbd "C-M-o") 'ffap)
 (add-hook 'emacs-lisp-mode-hook
           (lambda ()
             (local-set-key (kbd "C-c C-c") 'eval-buffer)))
+nil
 
 (defun find-pattern-in-dir ()
   (interactive)
@@ -834,6 +920,13 @@ The normal global definition of the character C-x indirects to this keymap.")
    (save-excursion (call-interactively 'comment-line)))
 
 )
+
+(defun crux-comment ()
+  (interactive)
+  "Comments if region selected, else comment line"
+   (crux-with-region-or-line (save-excursion (call-interactively 'comment-dwim)))
+)
+
 (global-set-key (kbd "M-;") 'comment-dwim-or-line)
 
 (use-package wrap-region
@@ -846,58 +939,6 @@ The normal global definition of the character C-x indirects to this keymap.")
 (wrap-region-add-wrapper "$" "$")
 (wrap-region-global-mode t)
 
-(defun format-arg ()
-  (interactive)
-  (if (use-region-p)
-      (save-excursion (goto-char (region-beginning))
-                      (insert "(format \"%s\" ")
-                      (goto-char (region-end))
-                      (insert  ")")
-                      ;; (let ((arg (extract-rectangle (region-beginning) (region-end))))
-                      ;;   (insert (concat "(format \"%s\" " (format "%s)" arg))))
-                      )))
-
-;; (format "%s" fdsf
-;; (format "%s" fdf
-
-(defun print-arg-python ()
-  (interactive)
-  (if (use-region-p)
-      (let ((msg (read-from-minibuffer "Message to print with: ")))
-      (save-excursion (goto-char (region-beginning))
-                      (insert "print(f\"")
-                      (insert (format "%s: {" msg))
-                      (goto-char (region-end))
-                      (insert  "}\")")
-                      ;; (let ((arg (extract-rectangle (region-beginning) (region-end))))
-                      ;;   (insert (concat "(format \"%s\" " (format "%s)" arg))))
-                      ))))
-
-(defun print-arg ()
-  (interactive)
-    (cond
-     ((string-match-p (regexp-quote "emacs-lisp") (symbol-name major-mode))
-      (call-interactively 'print-arg-elisp))
-      ((string-match-p (regexp-quote "python") (symbol-name major-mode))
-      (call-interactively 'print-arg-python))
-))
-
-
-
-(defun print-arg-elisp ()
-  (interactive)
-  (if (use-region-p)
-      (save-excursion (goto-char (region-beginning))
-                      (insert "(message (format \"%s\" ")
-                      (goto-char (region-end))
-                      (insert  "))")
-                      ;; (let ((arg (extract-rectangle (region-beginning) (region-end))))
-                      ;;   (insert (concat "(format \"%s\" " (format "%s)" arg))))
-                      )))
-
-(defalias  'farg 'format-arg)
-(defalias  'parg 'print-arg)
-
 (defun copy-and-comment ()
   (interactive)
   (if (use-region-p)
@@ -907,6 +948,12 @@ The normal global definition of the character C-x indirects to this keymap.")
         (call-interactively (lambda () (interactive) (comment-region beg end)))
       )))
 (global-set-key (kbd "C-M-;") 'copy-and-comment)
+
+(defun set-default-dir-of ()
+  (interactive)
+  (let ((b (read-buffer "Select buffer: " (buffer-list))))
+    (setq default-directory (buffer-file-name (get-buffer (read-buffer "check" nil nil (lambda (b) (not (null (buffer-file-name (cdr b)))))))))
+    ))
 
 (setq indent-rigidly-map
       (let ((map (make-sparse-keymap)))
@@ -918,49 +965,14 @@ The normal global definition of the character C-x indirects to this keymap.")
         map)
       )
 
-(defun set-default-dir-of ()
-  (interactive)
-  (let ((b (read-buffer "Select buffer: " (buffer-list))))
-    (setq default-directory (buffer-file-name (get-buffer (read-buffer "check" nil nil (lambda (b) (not (null (buffer-file-name (cdr b)))))))))
-    ))
-
 (load-org "drag-stuff.org")
 
-(require 'package)
-(add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
+(define-key indent-rigidly-map (kbd "C-p") 'drag-stuff-up)
+(define-key indent-rigidly-map (kbd "C-n") 'drag-stuff-down)
+(define-key indent-rigidly-map (kbd "C-f") 'drag-stuff-right)
+(define-key indent-rigidly-map (kbd "C-b") 'drag-stuff-left)
 
-(add-hook 'org-mode-hook 'auto-fill-mode)
-(add-hook 'org-mode-hook 'org-indent-mode)
-
-;; (defun move-line-up ()
-;;   "Move up the current line."
-;;   (interactive)
-;;   (transpose-lines 1)
-;;   (forward-line -2)
-;;   (indent-according-to-mode))
-
-;; (defun move-line-down ()
-;;   "Move down the current line."
-;;   (interactive)
-;;   (forward-line 1)
-;;   (transpose-lines 1)
-;;   (forward-line -1)
-;;   (indent-according-to-mode))
-
-;; (global-set-key [(meta up)]  'move-line-up)
-;; (global-set-key [(meta down)]  'move-line-down)
-
-(defun duplicate-line()
-  (interactive)
-  (move-beginning-of-line 1)
-  (kill-line)
-  (yank)
-  (open-line 1)
-  (next-line 1)
-  (yank)
-)
-(global-set-key (kbd "C-c C-d") 'duplicate-line)
-
+(drag-stuff-mode)
 
 (defun python-gitignore  ()
   (interactive)
@@ -978,35 +990,12 @@ The normal global definition of the character C-x indirects to this keymap.")
           (shell-command-to-string "curl 'https://raw.githubusercontent.com/github/gitignore/master/Global/Emacs.gitignore' >> .gitignore")
           (message (format "Added emacs-gitignore in %s" default-directory))))))
 
-  ;; (yank)
-
-  ;;     (shell-command-to-string "curl 'https://raw.githubusercontent.com/github/gitignore/master/Global/Emacs.gitignore' >> .gitignore")
-  ;; (message (format "Added gitignore in %s" default-directory))
-;; )
-
-;;  (require 'hydra)
-;; (defhydra hydra-zoom (global-map "M")
-;;   "zoom"
-;;   ("g" text-scale-increase "in")
-;;  ("l" text-scale-decrease "out"))
-;; (drag-stuff-mode)
-;; (defhydra hydra-zoom (global-map "<f2>")
-;;   "zoom"
-;;   ("g" text-scale-increase "in")
-;;   ("l" text-scale-decrease "out"))
-(define-key indent-rigidly-map (drag-stuff--kbd 'left) 'drag-stuff-left)
-(define-key indent-rigidly-map (kbd "C-p") 'drag-stuff-up)
-(define-key indent-rigidly-map (kbd "C-n") 'drag-stuff-down)
-(define-key indent-rigidly-map (kbd "C-f") 'drag-stuff-right)
-(define-key indent-rigidly-map (kbd "C-b") 'drag-stuff-left)
-(drag-stuff-mode)
-
 (defun occur-selection ()
   (interactive)
   (when (region-active-p)
     (let (deactivate-mark)
       (occur (regexp-quote (buffer-substring (region-beginning) (region-end)))))))
-(global-set-key [(meta o)] 'occur-selection)
+(global-set-key [(super o)] 'occur-selection)
 
 ;; (savehist-mode 1)
 
@@ -1139,6 +1128,9 @@ even beep.)"
            (goto-char end))))
      (point))))
 
+(require 'unicode-fonts)
+(unicode-fonts-setup)
+
 (use-package magit
   :ensure t
   :bind (
@@ -1168,8 +1160,7 @@ even beep.)"
 
 (use-package projectile
   :diminish
-  :ensure t)
-(define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
+  :straight t)
 (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
 (projectile-mode +1)
 
@@ -1212,6 +1203,8 @@ even beep.)"
 (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
 
+nil
+
 (use-package restclient
   :straight t)
 
@@ -1228,6 +1221,22 @@ even beep.)"
     (global-set-key (kbd "C-c t") 'tramp-cleanup-this-connection)
   )
 
+(when (eq window-system 'w32)
+  (setq putty-directory "C:/Program Files/PuTTY")
+  (setq tramp-default-method "plink")
+  (when (and (not (string-match putty-directory (getenv "PATH")))
+       (file-directory-p putty-directory))
+    (setenv "PATH" (concat putty-directory ";" (getenv "PATH")))
+    (add-to-list 'exec-path putty-directory)))
+
+;; (load-file "~/code/matthewlmcclure/tramp-virtualenv/tramp-virtualenv.el")
+
+(use-package tramp-virtualenv
+  :straight (:host github :repo "paulodder/tramp-virtualenv" :branch "master")
+  :config
+  (setq tramp-virtualenv-venvs-dir "~/.virtualenvs")
+  )
+
 (use-package polymode
   :straight t)
 
@@ -1240,29 +1249,6 @@ even beep.)"
 (global-set-key (kbd "C-x j r") 'escr-region-screenshot)
 (global-set-key (kbd "C-x j f") 'escr-frame-screenshot)
 (global-set-key (kbd "C-x j w") 'escr-window-screenshot)
-
-(defun insert-screenshot (file-name)
-  "Save screenshot to FILE-NAME and insert an Org link at point.
-
-This calls the `import' from ImageMagick to take the screenshot,
-and `optipng' to reduce the file size if the program is present."
-  (interactive "FSave to file: ")
-  ;; Get absolute path
-  (let ((file (expand-file-name file-name)))
-    ;; Create the directory if necessary
-    (make-directory (file-name-directory file) 'parents)
-    ;; Still, make sure to signal if the screenshot was in fact not created
-    (unless (= 0 (call-process "import" nil nil nil file))
-      (user-error "`import' failed to create screenshot %s" file))
-    (if (executable-find "optipng")
-        (start-process "optipng" nil "optipng" file))
-    (insert
-     ;; A link relative to the buffer where it is inserted is more portable
-     (format "[[file:%s]]"
-             (file-relative-name file
-                                 (file-name-directory buffer-file-name))))
-    (when (eq major-mode 'org-mode)
-      (org-redisplay-inline-images))))
 
 ;; (setq ruby-insert-encoding-magic-comment nil)
 
@@ -1424,25 +1410,6 @@ and `optipng' to reduce the file size if the program is present."
 (use-package poly-R
   :straight t)
 
-;; (add-to-list 'load-path "~/code/paulodder/canvas-utils/")
-;; (require 'canvas-utils)
-;; (setq canvas-baseurl "https://canvas.uva.nl") ; url you visit to go to the
-                                        ; canvas instance of your institution
-                                        ; (e.g. https://canvas.uva.nl)
-;; (setq canvas-token "10392~0HN7MJHY2C0MA2XcZlNvra3OScZR8crUs7xxbjT6yl6rb1YEPYYgb9yzlSgdTETW") ; when logged in generate an access
-                                        ; token under Account > Settings
-                                        ; > Approved integrations
-
-(when (eq window-system 'w32)
-  (setq putty-directory "C:/Program Files/PuTTY")
-  (setq tramp-default-method "plink")
-  (when (and (not (string-match putty-directory (getenv "PATH")))
-       (file-directory-p putty-directory))
-    (setenv "PATH" (concat putty-directory ";" (getenv "PATH")))
-    (add-to-list 'exec-path putty-directory)))
-
-(load-file "~/code/matthewlmcclure/tramp-virtualenv/tramp-virtualenv.el")
-
 (setq my-keybase-username "jpj8")
 (use-package keybase-chat
   :straight (keybase-chat
@@ -1541,11 +1508,19 @@ and `optipng' to reduce the file size if the program is present."
 
 (define-key org-mode-map (kbd "C-c y") 'org-yank-src-block-into-session)
 
-(fset 'org-copy-src-block
-   (kmacro-lambda-form [?\C-c ?\' ?\C-x ?h ?\M-w ?\C-u ?\C-  ?\C-u ?\C-  ?\C-c ?\'] 0 "%d"))
-
-
-(define-key org-mode-map (kbd "C-M-w") 'org-copy-src-block)
+(defun copy-source-block ()
+  "Copies the current source block."
+  (interactive)
+  (let* ((this-window (selected-window))
+         (sb-content (if (region-active-p)
+                         (substring-no-properties (buffer-string)
+                                                  (- (region-beginning)
+                                                     1)
+                                                  (- (region-end)
+                                                     1))
+                       (string-trim (org-element-property :value (org-element-at-point)))))
+         (sb-info (org-babel-get-src-block-info)))
+    (kill-new sb-content)))
 
 (defun exec-source-block ()
   "Copies and pastes the current source block to
@@ -1571,18 +1546,94 @@ and `optipng' to reduce the file size if the program is present."
       (comint-send-input)
       (select-window this-window))))
 
+(org-defkey org-mode-map "\C-c\C-c" `exec-source-block)
+(org-defkey org-mode-map "\C-\M-w" `copy-source-block)
+
+(add-hook 'org-mode-hook 'auto-fill-mode)
+(add-hook 'org-mode-hook 'org-indent-mode)
+nil
+
+(defun insdate-insert-current-date (&optional omit-day-of-week-p)
+  "Insert today's date using the current locale.
+  With a prefix argument, the date is inserted without the day of
+  the week."
+  (interactive "P*")
+  (calendar-date-string (calendar-current-date) nil
+                        omit-day-of-week-p))
+
+(defun my/org-template ()
+  (let ((session-name (file-name-sans-extension (file-name-nondirectory buffer-file-name))))
+    (message session-name)
+    (insert
+     (format  "#+TITLE: %s
+#+BIND: org-export-use-babel nil
+#+AUTHOR: jeroen jagt
+#+EMAIL: <jpjagt@pm.me>
+#+DATE: %s
+#+LATEX: \\setlength\\parindent{0pt}
+#+LATEX_HEADER: \\usepackage{minted}
+#+LATEX_HEADER: \\usepackage[margin=1.2in]{geometry}
+#+LATEX_HEADER: \\usepackage{mathpazo}
+#+LATEX_HEADER: \\usepackage{adjustbox}
+#+LATEX_HEADER_EXTRA:  \\usepackage{mdframed}
+#+LATEX_HEADER_EXTRA: \\BeforeBeginEnvironment{minted}{\\begin{mdframed}}
+#+LATEX_HEADER_EXTRA: \\AfterEndEnvironment{minted}{\\end{mdframed}}
+#+LATEX_HEADER_EXTRA: \\BeforeBeginEnvironment{tabular}{\\begin{adjustbox}{center}}
+#+LATEX_HEADER_EXTRA: \\AfterEndEnvironment{tabular}{\\end{adjustbox}}
+#+MACRO: NEWLINE @@latex:\\\\@@ @@html:<br>@@
+#+PROPERTY: header-args :exports both :session %s :cache :results value
+#+OPTIONS: ^:nil
+#+LATEX_COMPILER: pdflatex" session-name (insdate-insert-current-date t) session-name)
+     ;; (org-mode-restart)
+     )))
+(define-auto-insert "\\.org$" #'my/org-template)
+  ;; ))
+
+(load-library "magit-section")
+(use-package org-roam
+  :straight t
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n i" . org-roam-node-insert)
+         ("C-c n a" . org-roam-alias-add))
+  :config
+  (setq org-roam-directory (file-truename "~/Documents/org-roam"))
+  (setq org-roam-completion-everywhere t)
+  (setq org-roam-capture-templates
+        '(
+          ("d" "default" plain
+           "%?" ;; the template content; %? is where the cursor will land
+           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+TITLE: ${title}\n")
+           :unnarrowed t)
+          ("b" "book notes" plain
+           (file "~/Documents/org-roam/templates/book-notes-template.org")
+           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+TITLE: ${title}\n#+FILETAGS: book")
+           :unnarrowed t)
+          ("p" "project " plain
+           (file "~/Documents/org-roam/templates/project-template.org")
+           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+TITLE: ${title}\n#+FILETAGS: project")
+           :unnarrowed t)
+          ))
+  (org-roam-db-autosync-mode))
+
+;; (use-package deft
+;;     :config
+;;     (setq deft-directory org-directory
+;;           deft-recursive t
+;;           deft-strip-summary-regexp ":PROPERTIES:\n\\(.+\n\\)+:END:\n"
+;;           deft-use-filename-as-title t)
+;;     :bind
+;;     ("C-c n d" . deft))
+
 (use-package poporg
       :bind (("C-c /" . poporg-dwim)))
-
-;; (add-to-list 'load-path "~/.emacs.d/github/ox-ipynb")
-;; (require 'ox-ipynb)
 
 (setq org-src-tab-acts-natively t
       org-src-preserve-indentation nil
       org-edit-src-content-indentation 0)
 
 (load-library "org")
-(push "/home/paul/org-mode/lisp" load-path)
+
 (define-key org-mode-map (kbd "C-c o") 'org-open-at-point)
 (define-key global-map (kbd "C-C l") 'org-store-link)
 
@@ -1590,10 +1641,11 @@ and `optipng' to reduce the file size if the program is present."
       '(("TODO" . org-warning) ("WIP" . "yellow")
         ("CANCELED" . (:foreground "blue" :weight bold))
         ("DONE" . "green")))
+
 (use-package org-bullets
   ;; :hook (org-mode org-bullets-mode)
   :init (progn
-          (setq org-ellipsis "⤵")
+          (setq org-ellipsis " ⤵")
           ;; (add-hook org-mode-hook org-bullets-mode)
           ))
 
@@ -1628,23 +1680,6 @@ and `optipng' to reduce the file size if the program is present."
 ;;                                        (forward-sexp)
 ;;                                            )))
 
-;; (setq prettify-symbols-alist
-;; (prettify-utils-generate (("\\mathbb{N}" "ℕ"))))
-;; (add-hook `org-mode-hook (lambda ()
-;; (setq prettify-symbols-alist '(("\\models" .  "⊧") ("\\vdash" .  "⊢")
-;;                                ("\\bar{a}"  . "a̅") ("\\underbrace"  . "a⃗")
-;;                                ("\\subseteq"  . "⊆")))
-;; (prettify-symbols-mode)))
-;; (add-hook 'global-prettify-symbols-mode (lambda ()
-;; (setq prettify-symbols-alist '(("\\models" .  "⊧") ("\\vdash" .  "⊢")
-;; ("\\bar{a}"  . "a̅") ("\\underbrace"  . "a⃗")
-;; ("\\subseteq"  . "⊆")))
-
-;; ))
-;; (add-hook 'org-mode-hook (org-bullets-mode))
-
-;; (add-hook 'org-mode-hook org-bullets-mode)
-
 
 ;; Org babel languages
 (org-babel-do-load-languages
@@ -1653,25 +1688,19 @@ and `optipng' to reduce the file size if the program is present."
          '(;; C calc dot
            emacs-lisp ;; gnuplot java js latex
            ;; lisp
-           python ipython
+           python
            latex
            ;; R racket  not necessary for my purposes
            ;; ruby scheme
            shell sqlite ;; haskell
            sql)))
+
 (defun my-org-confirm-babel-evaluate (lang body)
   (not (member lang '("ipython" "python" "emacs-lisp" "sh"))))
 
 (setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
-;; (use-package ox-latex
-;;   :config (push '(racket "Racket") org-latex-listings-langs))
 
-;; (push '("https" . "i.reddituploads.com") org-html-inline-image-rules)
-;;   (require 'ob-ipython)
-;; (use-package ob-ipython :ensure t)
 (require 'package)
-;; (add-to-list 'package-archives
-;;                  '("melpa" . "https://melpa.org/packages/"))
 
 (defun org--get-syntax-table-for-src () (interactive)
        (let* ((lang (first (org-babel-get-src-block-info)))
@@ -1902,6 +1931,9 @@ citecolor=blue,filecolor=blue,menucolor=blue,urlcolor=blue"
 ;; (use-package org-ref-url-utils
 ;;   :straight t)
 
+(use-package org-download
+  :straight t)
+
 (use-package scratch
   :straight t)
 
@@ -2092,70 +2124,6 @@ c  is called, for each contiguous sub-region, with METHOD as its
 ;; (modify-syntax-entry ?^ "" )
 ;; (modify-syntax-entry ?^ " " LaTeX-mode-syntax-table)
 
-;; (defun latex--filter-buffer-substring (beg end &optional delete)
-;;   "Return the buffer substring between BEG and END, after filtering.
-;; If DELETE is non-nil, delete the text between BEG and END from the buffer.
-
-;; This calls the function that `filter-buffer-substring-function' specifies
-;; \(passing the same three arguments that it received) to do the work,
-;; and returns whatever it does.  The default function does no filtering,
-;; unless a hook has been set.
-
-;; Use `filter-buffer-substring' instead of `buffer-substring',
-;; `buffer-substring-no-properties', or `delete-and-extract-region' when
-;; you want to allow filtering to take place.  For example, major or minor
-;; modes can use `filter-buffer-substring-function' to exclude text properties
-;; that are special to a buffer, and should not be copied into other buffers."
-;;   (let* ((substr (funcall filter-buffer-substring-function beg end delete)))
-;;     (if (<= (length substr) 1)
-;;         substr
-;;       (let*
-;;           ((substr-prefixed (if (and (not (string-prefix-p "$" substr))
-;;                                      (eq (get-text-property 0 'face substr) 'font-latex-math-face)
-;;                                      )
-;;                                 (concat "$" substr)
-;;                               substr))
-;;            (substr-suffixed (if (and (not (string-suffix-p "$" substr-prefixed))
-;;                                      (eq (get-text-property (length substr-prefixed)
-;;                                                             'face substr-prefixed) 'font-latex-math-face)
-;;                                      )
-;;                                 (concat  substr-prefixed "$")
-;;                               substr-prefixed))))
-;;       )
-;;     )
-;;   )
-
-
-
-
-;; (defvar latex--region-extract-function
-;;   (lambda (method)
-;;     (when (region-beginning)
-;;       (cond
-;;        ((eq method 'bounds)
-;;         (list (cons (region-beginning) (region-end))))
-;;        ((eq method 'delete-only)
-;;         (delete-region (region-beginning) (region-end)))
-;;        (t
-;;         (latex--filter-buffer-substring (region-beginning) (region-end) method)))))
-;;   "Function to get the region's content.
-;; Called with one argument METHOD which can be:
-;; - nil: return the content as a string (list of strings for
-;;   non-contiguous regions).
-;; - `delete-only': delete the region; the return value is undefined.
-;; - `bounds': return the boundaries of the region as a list of one
-;;   or more cons cells of the form (START . END).
-;; - anything else: delete the region and return its content
-;;   as a string (or list of strings for non-contiguous regions),
-;;   after filtering it with `filter-buffer-substring', which
-;;   is called, for each contiguous sub-region, with METHOD as its
-;;   3rd argument.")
-;; (require 'mode-local)
-;; (setq-mode-local latex-mode region-extract-function latex--region-extract-function)
-;; (add-hook 'latex-mode-hook
-;;           (lambda ()
-;;             (setq-mode-local latex-mode region-extract-function latex--region-extract-function)))
-
 (defun ans-copy ()
   (interactive)
   (let ((tmp-file (make-temp-file "ans_" nil nil
@@ -2172,9 +2140,6 @@ c  is called, for each contiguous sub-region, with METHOD as its
   ;;               (string-equal (substring-no-properties current (+ current 1) "$")))
   ;;          (
   ;;          )
-
-(require 'unicode-fonts)
-(unicode-fonts-setup)
 
 (require 'latex-unicode-math-mode)
 ;; Enable latex-unicode-math-mode automatically for all LaTeX files.
@@ -2207,10 +2172,11 @@ c  is called, for each contiguous sub-region, with METHOD as its
 (add-hook 'js-mode-hook (lambda ()
   (web-mode-set-content-type "jsx")))
 (require 'js-format)
-  (eval-after-load 'js-mode
+(eval-after-load 'js-mode
     (add-hook 'js-mode-hook
               (lambda()
-                (js-format-setup "prettier"))))
+                (js-format-setup "airbnb")))
+    )
 (custom-set-variables
   '(js-auto-format-command "prettier")
   '(js-auto-format-command-args "--write --single-quote --no-semi"))
@@ -2239,64 +2205,42 @@ c  is called, for each contiguous sub-region, with METHOD as its
 
 ;; (define-key dump-jump-mode-map (kbd "C-M-p") nil)
 ;; python-indent-dedent-line-backspace
-      (use-package python
-        :ensure t
-        :mode ("\\.py\\'" . python-mode)
-        :interpreter ("python" . python-mode)
-        :config
-        (setq python-shell-interpreter "ipython"
-        ;; python-shell-interpreter-args "--simple-prompt -i --colors=Linux --profile=default")
-          python-shell-interpreter-args "")
-              (push '("\\.ipynb$" . js2-mode) auto-mode-alist)
-        :hook
-        (python-mode . (lambda ()
-                         "No eldoc for remote files"
-                         (let ((name (buffer-file-name)))
-                           (when (and name
-                                      (> (length name) 5)
-                                      (string= "/ssh:" (substring name 0 5)))
-                             (eldoc-mode -1))))))
-
+(use-package python
+  :ensure t
+  :mode ("\\.py\\'" . python-mode)
+  :interpreter ("python" . python-mode)
+  :config
+  (setq python-shell-interpreter "ipython")
   (setq py-shell-name "ipython")
-
-  (setq python-shell-interpreter-args "-c exec('__import__(\\'readline\\')') -i")
-
-              ;; python-shell-interpreter-args "--simple-prompt -i")
-    ;; (defcustom py-shell-name
-    ;;   (if (eq system-type 'windows-nt)
-    ;;       "C:/Python27/python"
-    ;;     ;; "python"
-    ;;     "ipython")
-
-    ;; ;;   "A PATH/TO/EXECUTABLE or default value `py-shell' may look for.
-
-    ;; ;; If no shell is specified by command.
-
-    ;; ;; On Windows default is C:/Python27/python
-    ;; ;; --there is no garantee it exists, please check your system--
-
-    ;; ;; Else python"
-    ;; ;;   :type 'string
-    ;; ;;   :tag "py-shell-name"
-    ;; ;;   :group 'python-mode)
+  (setq python-shell-interpreter-args "-c exec('__import__(\\'readline\\')') -i --simple-prompt")
+  ;; (setq
+  ;;  python-shell-prompt-regexp "In \\[[0-9]+\\]: "
+  ;;  python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
+  ;;  python-shell-completion-setup-code "from IPython.core.completerlib import module_completion"
+  ;;  python-shell-completion-module-string-code "';'.join(module_completion('''%s'''))\n"
+  ;;  python-shell-completion-string-code "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
+  (push '("\\.ipynb$" . js2-mode) auto-mode-alist)
+  :hook
+  (python-mode . (lambda ()
+                   "No eldoc for remote files"
+                   (let ((name (buffer-file-name)))
+                     (when (and name
+                                (> (length name) 5)
+                                (string= "/ssh:" (substring name 0 5)))
+                       (eldoc-mode -1))
+                     (setq forward-sexp-function nil)))))
 
 (use-package blacken
-  :diminish)
-(setq blacken-line-length 79)
-(setq blacken-executable "/Users/jeroen/.virtualenvs/py3.8/bin/black")
-(add-hook 'python-mode-hook 'blacken-mode 'too-long-lines-mode)
+  :diminish
+  :config
+  (setq blacken-line-length 79)
+  (setq blacken-executable "/Users/jeroen/.virtualenvs/py3.8/bin/black")
+  (add-hook 'python-mode-hook 'blacken-mode 'too-long-lines-mode))
 
 (define-advice org-edit-src-exit (:before (&rest _args) format-python)
   "Run `blacken-buffer' when leaving an org-mode Python source block."
   (when (eq major-mode 'python-mode)
     (blacken-buffer)))
-
-;; (use-package blacken
-;;   :ensure t
-;;   :bind (:map python-mode-map ("C-c C-b" . blacken-buffer))
-;;   :config
-;;   (setq blacken-line-length 80)
-;;   (add-hook 'python-mode-hook 'blacken-mode))
 
 ;; (setq jedi:server-command '("pip3" "/Users/jeroen/.emacs.d/.python-environments/default/bin/jediepcserver"))
 
@@ -2334,52 +2278,45 @@ c  is called, for each contiguous sub-region, with METHOD as its
 ;; (setq elpy-eldoc-show-current-function nil)
 
 (push '("\\.xsh$" . python-mode) auto-mode-alist)
+nil
 
 (push '("/Pipfile$" . conf-mode) auto-mode-alist)
 (push '("/Pipfile.lock$" . js2-mode) auto-mode-alist)
+nil
 
 ;; Fix Python loading bug in emacs25
-(with-eval-after-load 'python
-  (defun python-shell-completion-native-try ()
-    "Return non-nil if can trigger native completion."
-    (let ((python-shell-completion-native-enable t)
-          (python-shell-completion-native-output-timeout
-           python-shell-completion-native-try-output-timeout))
-      (python-shell-completion-native-get-completions
-       (get-buffer-process (current-buffer))
-       nil "_"))))
+;; (with-eval-after-load 'python
+;;   (defun python-shell-completion-native-try ()
+;;     "Return non-nil if can trigger native completion."
+;;     (let ((python-shell-completion-native-enable t)
+;;           (python-shell-completion-native-output-timeout
+;;            python-shell-completion-native-try-output-timeout))
+;;       (python-shell-completion-native-get-completions
+;;        (get-buffer-process (current-buffer))
+;;        nil "_"))))
 
-(setq
- ;; python-shell-interpreter "python"
- ;; python-shell-interpreter-args "--colors=Linux --profile=default"
- python-shell-interpreter-interactive-arg "--simple-prompt -i"
- python-shell-prompt-regexp "In \\[[0-9]+\\]: "
- python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
- python-shell-completion-setup-code
- "from IPython.core.completerlib import module_completion"
- python-shell-completion-module-string-code
- "';'.join(module_completion('''%s'''))\n"
- python-shell-completion-string-code
- "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
-;; (setq python-shell-interpreter "ipython"
-;;       python-shell-interpreter-args "--simple-prompt"
-;;       py-python-command-args '("--matplotlib")
-;;       python-shell-prompt-regexp "In \\[[0-9]+\\]: "
-;;       python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
-;;       python-shell-completion-setup-code
-;;       "from IPython.core.completerlib import module_completion"
-;;       python-shell-completion-module-string-code
-;;       "';'.join(module_completion('''%s'''))\n"
-;;       python-shell-completion-string-code
-;;       "';'.join(get_ipython().Completer.all_completions('''%s'''))\n"
+;; (setq
+   ;; python-shell-interpreter "python"
+   ;; python-shell-interpreter-args "--colors=Linux --profile=default"
+  ;; (setq python-shell-interpreter "ipython"
+  ;;       python-shell-interpreter-args "--simple-prompt"
+  ;;       py-python-command-args '("--matplotlib")
+  ;;       python-shell-prompt-regexp "In \\[[0-9]+\\]: "
+  ;;       python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
+  ;;       python-shell-completion-setup-code
+  ;;       "from IPython.core.completerlib import module_completion"
+  ;;       python-shell-completion-module-string-code
+  ;;       "';'.join(module_completion('''%s'''))\n"
+  ;;       python-shell-completion-string-code
+  ;;       "';'.join(get_ipython().Completer.all_completions('''%s'''))\n"
 
-;;       python-check-command "pylint"
-;;       python-indent-offset 2
-;;       py-autopep8-options '("--max-line-length=80")
-;;       )
+  ;;       python-check-command "pylint"
+  ;;       python-indent-offset 2
+  ;;       py-autopep8-options '("--max-line-length=80")
+  ;;       )
 
-;; (add-hook 'python-mode-hook 'jedi:setup)
-;; (setq jedi:complete-on-dot t)
+  ;; (add-hook 'python-mode-hook 'jedi:setup)
+  ;; (setq jedi:complete-on-dot t)
 
 (use-package virtualenvwrapper
   :ensure t
@@ -2398,9 +2335,6 @@ c  is called, for each contiguous sub-region, with METHOD as its
  :regexp "[[:alnum:]_]+"
  :doc-spec '(("(python)Index" nil "")))
 
-;;     (load-file "/home/paul/.emacs.d/too-long-lines-mode/too-long-lines-mode.el")
-;; (add-hook `inferior-python-mode-hook (too-long-lines-mode))
-
 (define-key python-mode-map (kbd "DEL") nil)
 
 (fset 'ipython-cpaste
@@ -2408,16 +2342,6 @@ c  is called, for each contiguous sub-region, with METHOD as its
 
 (define-key inferior-python-mode-map (kbd "C-M-y") 'ipython-cpaste)
 (define-key shell-mode-map (kbd "C-M-y") 'ipython-cpaste)
-
-(setenv "WORKON_HOME" "/usr/local/Caskroom/miniconda/base/envs")
-
-;; (defun django-shell ()
-;;   (interactive)
-;;   (let ((python-shell-interpreter "python")
-;;     (python-shell-interpreter-args "-i /home/paul/projects/plekje/api/manage.py shell_plus"))
-;;     (run-python)))
-;; # (setq python-shell-interpreter "python"
-;; #       python-shell-interpreter-args "-i /home/paul/projects/plekje/api/manage.py shell_plus")
 
 (defun jupyter-insert-token ()
   (interactive)
@@ -2439,6 +2363,22 @@ c  is called, for each contiguous sub-region, with METHOD as its
   :straight t)
 
 (add-hook 'python-mode-hook 'python-docstring-mode)
+
+;; (use-package jupyter
+;;   :straight t)
+
+;; we need to manually load these dependencies:
+(use-package websocket
+  :straight t)
+(use-package simple-httpd
+  :straight t)
+(use-package zmq
+  :straight t)
+
+(add-to-list 'load-path "/Users/jeroen/.emacs.d/repos/emacs-jupyter")
+(require 'jupyter)
+
+nil
 
 ;; (load "~/.emacs.d/icicles-install")
 ;; (customize-variable' "icicle-download-dir" "~/.emacs.d/icicles")
@@ -2467,25 +2407,6 @@ c  is called, for each contiguous sub-region, with METHOD as its
 
 (bind-key* "C-x M-e" 'eval-and-replace)
 
-(use-package ace-window
-  :ensure t)
-(global-set-key (kbd "M-o") 'ace-window)
-(setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
-(defvar aw-dispatch-alist
-  '((?x aw-delete-window "Delete Window")
-  (?m aw-swap-window "Swap Windows")
-  (?M aw-move-window "Move Window")
-  (?c aw-copy-window "Copy Window")
-  (?j aw-switch-buffer-in-window "Select Buffer")
-  (?n aw-flip-window)
-  (?u aw-switch-buffer-other-window "Switch Buffer Other Window")
-  (?c aw-split-window-fair "Split Fair Window")
-  (?v aw-split-window-vert "Split Vert Window")
-  (?b aw-split-window-horz "Split Horz Window")
-  (?o delete-other-windows "Delete Other Windows")
-  (?? aw-show-dispatch-help))
-  "List of actions for `aw-dispatch-default'.")
-
 (defun dashboard-remember (list-size)
   (insert "remember:
     [M--] negative argument
@@ -2509,7 +2430,6 @@ c  is called, for each contiguous sub-region, with METHOD as its
       `(;; line1
         (
          (nil "shell-fxr" "open shell on fxr" (lambda (&rest _) (shell-fxr)))
-         (nil "shell-lisa" "open shell on lisa-dl" (lambda (&rest _) (shell-lisa-dl)))
         )
        )
       )
@@ -2517,6 +2437,9 @@ c  is called, for each contiguous sub-region, with METHOD as its
   :config
   (dashboard-setup-startup-hook))
 (add-to-list 'dashboard-item-generators  '(remember . dashboard-remember))
+
+(use-package focus
+  :straight t)
 
 (use-package olivetti
   :ensure t
@@ -2526,31 +2449,27 @@ c  is called, for each contiguous sub-region, with METHOD as its
   (setq olivetti-minimum-body-width 100)
   (setq olivetti-recall-visual-line-mode-entry-state t))
 
-(defun focus ()
+(defun typewrite ()
   (interactive)
   (delete-other-windows)
+  (focus-mode)
   (olivetti-mode))
 
-(defun defocus ()
+(defun untypewrite ()
   (interactive)
+  (focus-mode)
   (olivetti-mode))
 
-(defun org-copy-section-as-tex ()
+(defun list-urls-in-pdf ()
+  "Lists all URLs in pdf file in current buffer."
   (interactive)
-  (save-excursion
-    (call-interactively 'org-previous-visible-heading)
-    (call-interactively 'org-mark-element)
-    (next-line)
-    (tex2ans (buffer-substring (region-beginning)
-                               (region-end)))))
-
-(defun tex2ans (s)
-  (let ((tmp-file (make-temp-file "ans_" nil nil s)))
-    (kill-new (shell-command-to-string (format "~/.virtualenvs/py3.8/bin/python ~/.emacs.d/scripts/latex2ans.py %s"
-                                               tmp-file))
-              nil)))
-
-(define-key org-mode-map (kbd "C-c C-8") 'org-copy-section-as-tex)
+  (let* ((fpath (get-current-fpath))
+         (buffer (generate-new-buffer "*pdf-urls*"))
+         (cmd
+          (s-join ""
+                  (list "~/.virtualenvs/base/bin/pdfx -v '" fpath "' | sed -n 's/^- \\(http\\)/\\1/p'"))))
+    (shell-command cmd buffer)
+    (switch-to-buffer buffer)))
 
 (defun shell-on-windows ()
   (let ((explicit-shell-file-name "C:/Windows/System32/bash.exe"))
@@ -2777,5 +2696,10 @@ c  is called, for each contiguous sub-region, with METHOD as its
             ((kbd "C-M-r") . shell-last-python-script)
             )
 
-(fset 'fxr-restart-fxrbot
-   (kmacro-lambda-form [?c ?d return ?c ?d ?  ?k ?e ?y ?b ?a ?s ?e return ?k ?i ?l ?l ?  ?\C-a ?\C-k ?p ?s ?  ?- ?e ?f ?  ?| ?  ?g ?r ?e ?p ?  ?f ?x ?r ?b ?o ?t return ?\C-a ?\M-f ?\M-f ?\C-a ?\C-p ?\M-f ?\M-f ?\M-b ?\C-  ?\M-f ?\M-w ?\M-> ?k ?i ?l ?l ?  ?\C-y return ?c ?a ?t ?  ?s ?t ?a ?r ?t ?_ ?f ?x ?r ?b ?o ?t ?. ?s ?h return ?\C-p ?\C-p ?\C-a ?\C-  ?\C-n ?\C-e ?\M-w ?\M-> ?\C-y return ?\C-c ?\C-c ?n ?o ?h ?u ?p ?  ?p ?y ?t ?h ?o ?n ?  ?/ ?h ?o ?m ?e ?/ ?j ?e ?r ?o ?e ?n ?/ ?k ?e ?y ?b ?a ?s ?e ?/ ?f ?x ?r ?b ?o ?t ?. ?p ?y ?  ?& return return] 0 "%d"))
+(defun insert-euro ()
+  (interactive)
+  (self-insert-command "€"))
+
+(bind-keys* ((kbd "s-@") . insert-euro))
+
+
