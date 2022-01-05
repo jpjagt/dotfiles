@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: ipython
+# key: ipy
+# --
+ipython --simple-prompt -i --colors=Linux --profile=default

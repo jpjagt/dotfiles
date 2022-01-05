@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: with pd no max rows
+# key: no-max-rows
+# --
+with pd.option_context('display.max_rows', None): $0

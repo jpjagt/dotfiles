@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: execute-python-file
+# key: py
+# --
+python $0.py
