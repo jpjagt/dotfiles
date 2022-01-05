@@ -1,5 +1,13 @@
 # -*- mode: gitignore; -*-
 
+org-roam.db
+quelpa/*
+repos/*
+straight/*
+
+
+
+
 .DS_Store
 .trello/
 org-ref/
