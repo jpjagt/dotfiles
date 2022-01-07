@@ -4,7 +4,7 @@ org-roam.db
 quelpa/*
 repos/*
 straight/*
-
+jpj.el # auto-generated from jpj.org
 
 
 
