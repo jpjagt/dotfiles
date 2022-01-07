@@ -1,33 +1,23 @@
 * things to research/do
 
-look up (py) documentation:
-https://stackoverflow.com/questions/45992859/how-to-read-python-documentation-in-emacs
+- look up (py) documentation:
+  https://stackoverflow.com/questions/45992859/how-to-read-python-documentation-in-emacs
 - code nav: helm
 - save window configs/workspaces: eyebrowse
-- counsel-imenu
 - treemacs with M-p M-n recent file traversal
 - autocomplete fixen (company?)
-- initialisms for filtering (selectrum?)
 - save command line history thru sessions, and separate it per type of shell
   (python, zsh, etc)
 - bookmarks? https://www.emacswiki.org/emacs/VisibleBookmarks
 - copy code unindented
   https://emacs.stackexchange.com/questions/34966/copy-region-without-leading-indentation
-- 'occur-selection' > find pattern (current selection) in projectile dir
 
 * interesting configs?
 
 - https://github.com/gonsie/dotfiles/blob/master/emacs
 
-* keybindings that are still freeish
-
-- C-c b
-- C-x C-n (goal-column)
-- C-x j
-- C-c s
-- C-M-g
-
 * init
+
 #+BEGIN_SRC emacs-lisp
 (use-package exec-path-from-shell
   :straight t
@@ -473,7 +463,6 @@ Taken from https://stackoverflow.com/questions/2416655/file-path-to-clipboard-in
 
 #+RESULTS:
 : cfile
-
 
 * appearance
 ** font lock
@@ -1289,6 +1278,37 @@ when you are in the =Size Mode= column. Let's change this behaviour so that
     :ensure t
     :config (global-set-key (kbd "C-s") 'swiper))
 #+END_SRC
+* company (auto-completion)
+
+#+BEGIN_SRC emacs-lisp
+(use-package company
+  :straight t
+  :config
+  (setq company-minimum-prefix-length 1
+        company-idle-delay 0.0)
+  ;; (add-hook 'after-init-hook 'global-company-mode)
+  )
+#+END_SRC
+
+#+RESULTS:
+
+* lsp / eglot
+
+#+BEGIN_SRC emacs-lisp
+(use-package eglot
+  :straight t
+  :config
+  (add-hook 'python-mode-hook 'eglot-ensure)
+  (add-hook 'web-mode-hook 'eglot-ensure)
+  (bind-keys* :map eglot-mode-map
+              ("C-c e r" . eglot-rename)
+              ("C-c e o" . eglot-code-action-organize-imports)
+              ))
+#+END_SRC
+
+#+RESULTS:
+: t
+
 * counsel
 #+BEGIN_SRC emacs-lisp
   ;; (use-package counsel
@@ -1868,18 +1888,21 @@ nil
 * tramp
 
 #+BEGIN_SRC emacs-lisp
-  (autoload #'tramp-register-crypt-file-name-handler "tramp-crypt")
-  (use-package tramp
-    :straight t
-    :config
-      (setq tramp-message-show-message "show-message")
-      (setq vc-ignore-dir-regexp
-          (format "\\(%s\\)\\|\\(%s\\)"
-                  vc-ignore-dir-regexp
-                  tramp-file-name-regexp))
-      (setq tramp-verbose 1)
-      (global-set-key (kbd "C-c t") 'tramp-cleanup-this-connection)
-    )
+;; disable builtin tramp
+(tramp-unload-tramp)
+
+(autoload #'tramp-register-crypt-file-name-handler "tramp-crypt")
+(use-package tramp
+  :straight t
+  :config
+    (setq tramp-message-show-message "show-message")
+    (setq vc-ignore-dir-regexp
+        (format "\\(%s\\)\\|\\(%s\\)"
+                vc-ignore-dir-regexp
+                tramp-file-name-regexp))
+    (setq tramp-verbose 1)
+    (global-set-key (kbd "C-c t") 'tramp-cleanup-this-connection)
+  )
 #+END_SRC
 
 #+RESULTS:
@@ -1902,8 +1925,11 @@ make sure tramp works on windows:
 ** tramp-virtualenv
 
 #+BEGIN_SRC emacs-lisp
-;; (load-file "~/code/matthewlmcclure/tramp-virtualenv/tramp-virtualenv.el")
+(load-file "~/code/matthewlmcclure/tramp-virtualenv/tramp-virtualenv.el")
 #+END_SRC
+
+#+RESULTS:
+: t
 
 #+BEGIN_SRC emacs-lisp
 (use-package tramp-virtualenv
@@ -2145,13 +2171,13 @@ ESS manual:
 https://ess.r-project.org/Manual/ess.html
 
 #+BEGIN_SRC emacs-lisp
-(use-package ess
-  :straight t
-  :config
-  (add-hook `inferior-ess-mode-hook (lambda () (setq comint-input-ring-size 1500)))
-  (setq ess-eval-visibly 'nowait) ;; don't hang buffer when exec-ing code
-  (setq ess-fancy-comments nil) ;; don't indent comments
-  )
+;; (use-package ess
+;;   :straight t
+;;   :config
+;;   (add-hook `inferior-ess-mode-hook (lambda () (setq comint-input-ring-size 1500)))
+;;   (setq ess-eval-visibly 'nowait) ;; don't hang buffer when exec-ing code
+;;   (setq ess-fancy-comments nil) ;; don't indent comments
+;;   )
 
 (eval-after-load "comint"
    '(progn
@@ -2208,11 +2234,11 @@ notes about ESS:
 ** view data in ess
 
 #+BEGIN_SRC emacs-lisp
-(use-package ess-R-data-view
-  :straight t
-  :config
-  (bind-key* "C-x w" 'ess-R-dv-ctable)
-   )
+;; (use-package ess-R-data-view
+;;   :straight t
+;;   :config
+;;   (bind-key* "C-x w" 'ess-R-dv-ctable)
+;;    )
 
 
 
@@ -2231,8 +2257,8 @@ notes about ESS:
 for R:
 
 #+BEGIN_SRC emacs-lisp
-(use-package poly-R
-  :straight t)
+;; (use-package poly-R
+;;   :straight t)
 #+END_SRC
 
 #+RESULTS:
@@ -4115,3 +4141,17 @@ colours code based on indentation level.
 #+BEGIN_SRC emacs-lisp
 
 #+END_SRC
+
+* free-keys
+
+find free keys
+
+#+BEGIN_SRC emacs-lisp
+(use-package free-keys
+  :straight t
+  :config
+  (setq free-keys-modifiers '("" "C" "M" "C-M" "s")))
+#+END_SRC
+
+#+RESULTS:
+: t
