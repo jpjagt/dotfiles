@@ -1,0 +1,13 @@
+# -*- mode: snippet -*-
+# name: fire-script
+# key: <fire
+# --
+import fire
+
+
+def ${1:main}():
+    pass
+
+
+if __name__ == "__main__":
+    fire.Fire($1)

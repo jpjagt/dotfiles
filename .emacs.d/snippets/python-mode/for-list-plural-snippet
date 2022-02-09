@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: for-list-plural-snippet
+# key: <fors
+# --
+for ${1:} in $1s
