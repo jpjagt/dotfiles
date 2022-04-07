@@ -126,10 +126,11 @@ be able to dynamically create functions:
 
 #+BEGIN_SRC emacs-lisp
 (bind-key* "s-u"  'revert-buffer)
+(bind-key* "C-c j"  'join-line)
 #+END_SRC
 
 #+RESULTS:
-: revert-buffer
+: join-line
 
 ** set/pop marks for navigation
 
@@ -325,11 +326,49 @@ from its README:
 | `crux-other-window-or-switch-buffer`                | M-o                     | Select other window, or switch to most recent buffer if only one windows.  |
 
 #+BEGIN_SRC emacs-lisp
+;; (defun get-crux-key (key)
+;;   (s-join " " (list "C-c r" key)))
+
 (use-package crux
-  :straight t)
+  :straight t
+  :bind (
+         ("C-c r C-o" . crux-open-with)
+         ;; ("C-c r ?" . crux-smart-kill-line)
+         ("C-c r o" . crux-smart-open-line-above)
+         ;; ("C-c r ?" . crux-smart-open-line)
+         ;; ("C-c r ?" . crux-cleanup-buffer-or-region)
+         ;; ("C-c r ?" . crux-recentf-find-file)
+         ;; ("C-c r ?" . crux-recentf-find-directory)
+         ;; ("C-c r ?" . crux-view-url)
+         ("C-c r e" . crux-eval-and-replace)
+         ("C-c r t" . crux-transpose-windows)
+         ("C-c r C-d" . crux-delete-file-and-buffer)
+         ;; ("C-c r ?" . crux-copy-file-preserve-attributes)
+         ("C-c d" . crux-duplicate-current-line-or-region)
+         ("C-c M-d" . crux-duplicate-and-comment-current-line-or-region)
+         ("C-c r C-r" . crux-rename-file-and-buffer)
+         ;; ("C-c r ?" . crux-visit-term-buffer)
+         ;; ("C-c r ?" . crux-kill-other-buffers)
+         ;; ("C-c r ?" . crux-indent-defun)
+         ("C-c r TAB" . crux-indent-rigidly-and-copy-to-clipboard)
+         ;; ("C-c r ?" . crux-find-user-init-file)
+         ;; ("C-c r ?" . crux-find-user-custom-file)
+         ;; ("C-c r ?" . crux-find-shell-init-file)
+         ("C-c r j" . crux-top-join-line)
+         ;; ("C-c r ?" . crux-kill-whole-line)
+         ;; ("C-c r ?" . crux-kill-line-backwards)
+         ;; ("C-c r ?" . crux-kill-and-join-forward)
+         ("C-c r p" . crux-kill-buffer-truename)
+         ;; ("C-c r ?" . crux-ispell-word-then-abbrev)
+         ("C-c r u" . crux-upcase-region)
+         ("C-c r d" . crux-downcase-region)
+         ("C-c r c" . crux-capitalize-region)
+         ;; ("C-c r ?" . crux-other-window-or-switch-buffer)
+         ))
 #+END_SRC
 
 #+RESULTS:
+: crux-capitalize-region
 
 importantly, crux also provides some augmentations to existing commands
 (below is adapted from its README):
@@ -738,37 +777,38 @@ nil
   #+RESULTS:
 
 * selection candidates and search
-** orderless
+
+** orderless (replaced by prescient)
 
 #+BEGIN_SRC emacs-lisp
-(use-package prot-orderless
-  :demand
-  :config
-  (setq prot-orderless-default-styles
-        '(orderless-prefixes
-          orderless-literal
-          orderless-strict-leading-initialism
-          orderless-regexp
-          orderless-flex))
-  (setq prot-orderless-alternative-styles
-        '(orderless-literal
-          orderless-prefixes
-          orderless-strict-leading-initialism
-          orderless-regexp)))
+;; (use-package prot-orderless
+;;   :demand
+;;   :config
+;;   (setq prot-orderless-default-styles
+;;         '(orderless-prefixes
+;;           orderless-literal
+;;           orderless-strict-leading-initialism
+;;           orderless-regexp
+;;           orderless-flex))
+;;   (setq prot-orderless-alternative-styles
+;;         '(orderless-literal
+;;           orderless-prefixes
+;;           orderless-strict-leading-initialism
+;;           orderless-regexp)))
 
-(use-package orderless
-  :ensure t
-  :demand
-  :after prot-orderless
-  :config
-  (setq orderless-component-separator " +")
-  (setq orderless-matching-styles prot-orderless-default-styles)
-  (setq orderless-style-dispatchers
-        '(prot-orderless-literal-dispatcher
-          prot-orderless-initialism-dispatcher))
-  ;; SPC should never complete: use it for `orderless' groups.
-  :bind (:map minibuffer-local-completion-map
-              ("SPC" . nil)))
+;; (use-package orderless
+;;   :ensure t
+;;   :demand
+;;   :after prot-orderless
+;;   :config
+;;   (setq orderless-component-separator " +")
+;;   (setq orderless-matching-styles prot-orderless-default-styles)
+;;   (setq orderless-style-dispatchers
+;;         '(prot-orderless-literal-dispatcher
+;;           prot-orderless-initialism-dispatcher))
+;;   ;; SPC should never complete: use it for `orderless' groups.
+;;   :bind (:map minibuffer-local-completion-map
+;;               ("SPC" . nil)))
 #+END_SRC
 
 #+RESULTS:
@@ -794,6 +834,7 @@ selectrum provides no smart sorting OOTB, for which we use =prescient.el=:
 ;; to make sorting and filtering more intelligent
 (straight-use-package 'selectrum-prescient)
 (selectrum-prescient-mode +1)
+(prescient-persist-mode +1)
 #+END_SRC
 
 #+RESULTS:
@@ -1057,7 +1098,21 @@ selectrum provides no smart sorting OOTB, for which we use =prescient.el=:
 #+RESULTS:
 : previous-completion
 
-* configuring windows
+* window/buffer management
+** perspective
+
+#+BEGIN_SRC emacs-lisp
+(use-package perspective
+  :straight t
+  :bind (("C-x k" . persp-kill-buffer*))
+  :init
+  (persp-mode))
+
+;; persp-counsel-switch-buffer
+;; persp-ibuffer
+;; persp-switch-to-buffer (see ALL buffers and switch to perspective correctly)
+#+END_SRC
+
 ** manage window view
 
 #+BEGIN_SRC emacs-lisp
@@ -1295,15 +1350,24 @@ when you are in the =Size Mode= column. Let's change this behaviour so that
 * lsp / eglot
 
 #+BEGIN_SRC emacs-lisp
-(use-package eglot
-  :straight t
-  :config
-  (add-hook 'python-mode-hook 'eglot-ensure)
-  (add-hook 'web-mode-hook 'eglot-ensure)
-  (bind-keys* :map eglot-mode-map
-              ("C-c e r" . eglot-rename)
-              ("C-c e o" . eglot-code-action-organize-imports)
-              ))
+  (define-derived-mode jpj-js-mode web-mode "jpj-js"
+    "A major mode derived from web-mode, for editing .(j|t)s(x) files with eglot support.")
+  (add-to-list 'auto-mode-alist '("\\.[jt]sx?\\'" . jpj-js-mode))
+
+  (use-package eglot
+    :straight t
+    :config
+    (add-hook 'python-mode-hook 'eglot-ensure)
+    ;; (add-hook 'web-mode-hook 'eglot-ensure)
+    (add-hook 'jpj-js-mode-hook 'eglot-ensure)
+    (add-to-list 'eglot-server-programs
+             '(
+               jpj-js-mode . ("typescript-language-server" "--stdio")
+                           ))
+    (bind-keys* :map eglot-mode-map
+                ("C-c e r" . eglot-rename)
+                ("C-c e o" . eglot-code-action-organize-imports)
+                ))
 #+END_SRC
 
 #+RESULTS:
@@ -3319,6 +3383,15 @@ enable command substitution
 ;; (use-package vterm
 ;;   :straight t)
 #+END_SRC
+
+** shx
+
+#+BEGIN_SRC emacs-lisp
+(use-package shx
+  :straight t)
+#+END_SRC
+
+#+RESULTS:
 
 * javascript
 ** auto-format
