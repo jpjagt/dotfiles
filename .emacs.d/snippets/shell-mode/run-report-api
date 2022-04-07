@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: run-report-api
+# key: run_report_api
+# --
+source /srv/.venv/api/bin/activate
+cd /srv/repos/report_api
+nohup sh /srv/repos/report_api/run.sh &

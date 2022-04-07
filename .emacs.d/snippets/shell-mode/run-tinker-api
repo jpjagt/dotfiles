@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: run-tinker-api
+# key: run_tinker_api
+# --
+source /srv/.venv/api/bin/activate
+cd /srv/repos/tinker_api
+sh /srv/repos/tinker_api/run.sh
+# nohup sh /srv/repos/tinker_api/run.sh &

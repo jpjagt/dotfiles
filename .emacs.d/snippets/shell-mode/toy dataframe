@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: toy dataframe
+# key: <toydf
+# --
+df = pd.DataFrame({ "a": [1, 2, 2], "b": ['c', 'd', 'e']})

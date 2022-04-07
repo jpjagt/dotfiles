@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: svelte-lib-import
+# key: svli
+# --
+import ${1:Div} from "./lib/$1.svelte"
