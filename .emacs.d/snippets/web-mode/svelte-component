@@ -1,0 +1,13 @@
+# -*- mode: snippet -*-
+# name: svelte-component
+# key: svc
+# --
+<script lang="ts">
+</script>
+
+<${1:div}></$1>
+
+<style lang="scss">
+  $1 {
+  }
+</style>

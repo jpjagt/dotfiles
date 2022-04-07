@@ -11,7 +11,7 @@
 
 [core]
   pager = less -FRSX
-	editor = emacs -nw
+  editor = emacs -nw
 
 [alias]
   co = checkout
@@ -42,15 +42,19 @@
   autocorrect = 1
 
 [push]
-	default = simple
+  default = simple
 
 [branch "master"]
   mergeoptions = --no-edit
 [user]
-	email = jeroenpjagt@gmail.com
-	name = jeroen
-	name = jeroen
+  email = jpjagt@pm.me
+  name = jeroen
+  name = jeroen
 [credential]
-	helper = osxkeychain
+  helper = osxkeychain
 [http]
-	postBuffer = 524288000
+  postBuffer = 524288000
+[pull]
+  rebase = false
+[init]
+  defaultBranch = main
