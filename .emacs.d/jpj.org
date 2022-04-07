@@ -241,20 +241,15 @@ Taken from https://emacs.stackexchange.com/questions/10786/remove-parentheses-ar
         (delete-char 1))))
 
 (defun my-move-region-inwards ()
-  (interactive)
-  ;; save where region begins & ends
-  (let ((beginning (region-beginning))
-        (end (region-end)))
-    (save-excursion
-      (goto-char (+ beginning 1))
-      (set-mark)
-      (goto-char (- end 1))
-      (goto-char (+ beginning 1))
-          ;; (delete-char -1)
-
-          ;; (goto-char beginning)
-          ;; (delete-char 1)
-          )))
+   (interactive)
+   ;; save where region begins & ends
+   (let ((beginning (region-beginning))
+         (end (region-end)))
+     (progn
+       (exchange-point-and-mark)
+       (backward-char)
+       (exchange-point-and-mark)
+       (forward-char))))
 
 (global-set-key (kbd "C-M-<backspace>") `my-delete-surrounded-delimiters)
 (global-set-key (kbd "C-M-r") `my-move-region-inwards)
