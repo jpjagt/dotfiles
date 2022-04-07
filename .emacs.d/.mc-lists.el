@@ -68,6 +68,7 @@
         py-hungry-delete-backwards
         py-indent-or-complete
         transpose-words
+        upcase-region
         yaml-electric-backspace
         yas-expand
         ))
@@ -115,4 +116,5 @@
         swiper
         switch-to-buffer-other-window
         text-scale-decrease
+        undefined
         ))

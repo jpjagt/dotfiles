@@ -1852,7 +1852,7 @@ web-mode ensures syntax highlighting for a bunch of web code files (html), inclu
 (use-package web-mode
   :ensure t
   :mode
-  ("\\.ejs\\'" "\\.hbs\\'" "\\.html\\'" "\\.php\\'" "\\.[jt]sx?\\'")
+  ("\\.ejs\\'" "\\.hbs\\'" "\\.html\\'" "\\.php\\'" "\\.[jt]sx?\\'" "\\.svelte\\'")
   :config
   (setq web-mode-content-types-alist '(("jsx" . "\\.[jt]sx?\\'")))
   (setq web-mode-markup-indent-offset 2)
@@ -1875,6 +1875,8 @@ web-mode ensures syntax highlighting for a bunch of web code files (html), inclu
 
 nil
 #+END_SRC
+
+#+RESULTS:
 
 * restclient
 
@@ -1938,11 +1940,26 @@ make sure tramp works on windows:
   (setq tramp-virtualenv-venvs-dir "~/.virtualenvs")
   )
 
+(load-file "~/.emacs.d/straight/repos/tramp-virtualenv/tramp-virtualenv.el")
 
 #+END_SRC
 
 #+RESULTS:
 : t
+
+** quick-find
+
+#+BEGIN_SRC emacs-lisp
+(use-package quick-find
+  :straight (:host github :repo "paulodder/quick-find-el" :branch "master")
+  )
+
+(setq quick-find-name2dir '(("home" . "~/")
+                            ("fxr" . "/ssh:jeroen@168.119.165.84:/home/jeroen/")))
+#+END_SRC
+
+#+RESULTS:
+: ((home . ~/) (fxr . /ssh:jeroen@168.119.165.84:/home/jeroen/))
 
 * poly-mode
 
@@ -2031,14 +2048,16 @@ add-node-modules-path
 (setq prettier-js-args (list "--no-semi" "--single-quote"))
 
 (defun web-mode-init-prettier-hook ()
-  (add-node-modules-path)
   (prettier-js-mode))
 
-(add-hook 'web-mode-hook  'web-mode-init-prettier-hook)
+(eval-after-load 'web-mode
+    '(progn
+       (add-hook 'web-mode-hook #'add-node-modules-path)
+       (add-hook 'web-mode-hook #'web-mode-init-prettier-hook)))
 #+END_SRC
 
 #+RESULTS:
-| web-mode-init-prettier-hook | web-mode-init-hook | my/activate-tide-mode | prettier-js-mode |
+| add-node-modules-path | prettier-js-mode | web-mode-init-prettier-hook | web-mode-init-hook | web-mode-init-emmet-hook | eglot-ensure |
 
 then, flymake-eslint, which does eslint:
 
@@ -2089,7 +2108,7 @@ then, flymake-eslint, which does eslint:
 (use-package deft
          :straight t
          :commands (deft)
-         :config (setq deft-directory "~/notes"
+         :config (setq deft-directory "~/Documents/notes"
                        deft-extensions '("org" "md" "txt")
                        deft-default-extension "org"
                        deft-auto-save-interval 300
