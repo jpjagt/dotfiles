@@ -54,3 +54,7 @@
 	helper = osxkeychain
 [http]
 	postBuffer = 524288000
+[pull]
+	rebase = false
+[init]
+	defaultBranch = main
