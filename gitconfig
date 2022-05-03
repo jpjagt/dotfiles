@@ -12,6 +12,7 @@
 [core]
   pager = less -FRSX
   editor = emacs -nw
+	excludesfile = /Users/jeroen/.gitignore_global
 
 [alias]
   co = checkout
