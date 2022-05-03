@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: useState
+# key: useState
+# --
+const [${1:thing}, ${1:$(s-concat "set" (s-upcase (s-left 1 yas-text)) (s-right (- (length yas-text) 1) yas-text))}] = useState(${0:null})

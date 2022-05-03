@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: get-from-request-body
+# key: fxrgfrb
+# --
+try:
+    ${1:} = get_from_request_body(
+        ${1:$(s-wrap (s-join "', '" (s-split ", " yas-text)) "'")}
+    )
+except KeysNotInRequestBodyError as e:
+    return e.api_response

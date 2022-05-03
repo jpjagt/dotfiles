@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: api-venv
+# key: apivenv
+# --
+source /srv/.venv/api/bin/activate

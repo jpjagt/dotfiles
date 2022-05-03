@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: rtdbpersistor
+# key: rtdbp
+# --
+from fxr_pipeline.persistors import RTDBPersistor; persistor = RTDBPersistor("$0")
