@@ -1207,7 +1207,8 @@ add remote endpoints
 
 #+BEGIN_SRC emacs-lisp
 (setq ssh-config '(
-                   ("fxr" "/ssh:jeroen@168.119.165.84:")
+                   ;; ("fxr" "/ssh:jeroen@168.119.165.84:")
+                   ("fxr" "/ssh:jeroen@fxr:")
                    ("lisa-dl" "/ssh:lgpu0348@lisa.surfsara.nl:")
                   ))
 
@@ -1632,12 +1633,20 @@ Let's write a function that replaces a string only in current defun definition
 ** functions to add stuff to gitignores
 
 #+BEGIN_SRC emacs-lisp
+(defun macos-gitignore  ()
+  (interactive)
+  (let ((fullpath (string-join (list default-directory ".gitignore"))))
+    (if (file-exists-p fullpath)
+        (progn
+          (shell-command-to-string "curl 'https://raw.githubusercontent.com/github/gitignore/main/Global/macOS.gitignore' >> .gitignore")
+          (message (format "Added macos-gitignore in %s" default-directory))))))
+
 (defun python-gitignore  ()
   (interactive)
   (let ((fullpath (string-join (list default-directory ".gitignore"))))
     (if (file-exists-p fullpath)
         (progn
-          (shell-command-to-string "curl 'https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore' >> .gitignore")
+          (shell-command-to-string "curl 'https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore' >> .gitignore")
           (message (format "Added python-gitignore in %s" default-directory))))))
 
 (defun emacs-gitignore  ()
@@ -1645,7 +1654,7 @@ Let's write a function that replaces a string only in current defun definition
   (let ((fullpath (string-join (list default-directory ".gitignore"))))
     (if (file-exists-p fullpath)
         (progn
-          (shell-command-to-string "curl 'https://raw.githubusercontent.com/github/gitignore/master/Global/Emacs.gitignore' >> .gitignore")
+          (shell-command-to-string "curl 'https://raw.githubusercontent.com/github/gitignore/main/Global/Emacs.gitignore' >> .gitignore")
           (message (format "Added emacs-gitignore in %s" default-directory))))))
 #+END_SRC
 
@@ -2607,6 +2616,8 @@ nil
 
 #+BEGIN_SRC emacs-lisp
 (load-library "magit-section")
+(setq org-roam-directory (file-truename "~/Documents/org-roam"))
+
 (use-package org-roam
   :straight t
   :bind (("C-c n l" . org-roam-buffer-toggle)
@@ -2614,7 +2625,6 @@ nil
          ("C-c n i" . org-roam-node-insert)
          ("C-c n a" . org-roam-alias-add))
   :config
-  (setq org-roam-directory (file-truename "~/Documents/org-roam"))
   (setq org-roam-completion-everywhere t)
   (setq org-roam-capture-templates
         '(
@@ -2632,10 +2642,12 @@ nil
            :unnarrowed t)
           ))
   (org-roam-db-autosync-mode))
+
+(setq org-roam-directory (file-truename "~/Documents/org-roam"))
 #+END_SRC
 
 #+RESULTS:
-: org-roam-alias-add
+: /Users/jeroen/Documents/org-roam
 
 using deft for org-roam note searching:
 
