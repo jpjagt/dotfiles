@@ -89,6 +89,7 @@
         eval-expression
         find-file
         find-file-other-window
+        ibuffer-do-kill-lines
         ibuffer-update
         ivy-switch-buffer
         keyboard-escape-quit

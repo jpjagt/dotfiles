@@ -4,17 +4,15 @@ org-roam.db
 quelpa/*
 repos/*
 straight/*
-jpj.el # auto-generated from jpj.org
-
-
-
-.DS_Store
+jpj.el
 .trello/
 org-ref/
 places
 recentf
 request/curl-cookie-jar
 projectile-bookmarks
+projectile-bookmarks.eld
+var/pcache/unicode-fonts
 
 *~
 \#*\#
