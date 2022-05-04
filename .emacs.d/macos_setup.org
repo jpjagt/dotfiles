@@ -1,0 +1,46 @@
+#+TITLE: macos: setup tips
+#+BIND: org-export-use-babel nil
+#+AUTHOR: jeroen jagt
+#+EMAIL: <jpjagt@pm.me>
+#+DATE: May 4, 2022
+#+LATEX: \setlength\parindent{0pt}
+#+LATEX_HEADER: \usepackage{minted}
+#+LATEX_HEADER: \usepackage[margin=1.2in]{geometry}
+#+LATEX_HEADER: \usepackage{mathpazo}
+#+LATEX_HEADER: \usepackage{adjustbox}
+#+LATEX_HEADER_EXTRA:  \usepackage{mdframed}
+#+LATEX_HEADER_EXTRA: \BeforeBeginEnvironment{minted}{\begin{mdframed}}
+#+LATEX_HEADER_EXTRA: \AfterEndEnvironment{minted}{\end{mdframed}}
+#+LATEX_HEADER_EXTRA: \BeforeBeginEnvironment{tabular}{\begin{adjustbox}{center}}
+#+LATEX_HEADER_EXTRA: \AfterEndEnvironment{tabular}{\end{adjustbox}}
+#+MACRO: NEWLINE @@latex:\\@@ @@html:<br>@@
+#+PROPERTY: header-args :exports both :session macos :cache :results value
+#+OPTIONS: ^:nil
+#+LATEX_COMPILER: pdflatex
+
+* installation source
+
+i installed from brew: =brew cask install emacs=
+
+* system preferences
+
+** switching ctrl with caps-lock
+
+can be configured at =System Preferences > Keyboard > Modifier Keys=.
+
+** allow full disk access and stuff
+
+=System Preferences > Security & Privacy > Privacy > Full Disk Access= and
+check the Emacs app.
+
+* launching as application (Emacs.app) instead of from shell cmd
+
+the following code needs to be included in =init.el= in order to have the
+correct environment set:
+
+#+BEGIN_SRC emacs-lisp
+;; set environment from shell
+;; you'll need to install this package: M-x package-install RET exec-path-from-shell RET
+(when (memq window-system '(mac ns x))
+  (exec-path-from-shell-initialize))
+#+END_SRC
