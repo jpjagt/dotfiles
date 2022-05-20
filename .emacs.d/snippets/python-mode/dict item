@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: dict item
+# key: <:
+# --
+    "$1": ${1:},

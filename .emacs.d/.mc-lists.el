@@ -80,6 +80,7 @@
         comint-send-input
         consult-buffer
         counsel-find-file
+        counsel-rg
         deft
         describe-key
         dired-display-file

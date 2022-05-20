@@ -1,3 +1,6 @@
+# when using an emacs' tramp shell
+# [[ $TERM == "dumb" ]] && unsetopt zle && PS1='$ '
+
 ZSH=$HOME/.oh-my-zsh
 
 # You can change the theme with another one:
@@ -7,8 +10,8 @@ ZSH_THEME="robbyrussell"
 # Useful plugins for Rails development with Sublime Text
 plugins=(gitfast last-working-dir common-aliases sublime zsh-syntax-highlighting history-substring-search)
 
-# Prevent Homebrew from reporting - https://github.com/Homebrew/brew/blob/master/share/doc/homebrew/Analytics.md
-export HOMEBREW_NO_ANALYTICS=1
+# bit
+PATH=$HOME/bin:$PATH
 
 # Prevent Homebrew from reporting - https://github.com/Homebrew/brew/blob/master/share/doc/homebrew/Analytics.md
 export HOMEBREW_NO_ANALYTICS=1
@@ -32,14 +35,6 @@ export PATH="./bin:./node_modules/.bin:${PATH}:/usr/local/sbin"
 # Encoding stuff for the terminal
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
-export BUNDLER_EDITOR="'/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl'"
-export BUNDLER_EDITOR="'/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl'"
-
-# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
-export PATH="$PATH:$HOME/.rvm/bin"
-
-# make rvm work in emacs
-[[ "${TERM}" == "dumb" ]] && source $(rvm default do rvm env --path)
 
 # nvm
 export NVM_DIR="$HOME/.nvm"
@@ -72,8 +67,6 @@ conda deactivate
 # for rake tasks like rake tweet:send[username] to not fail
 unsetopt nomatch
 export PATH="/usr/local/opt/gnu-getopt/bin:$PATH"
-export PATH="/usr/local/opt/gnu-getopt/bin:$PATH"
-export BUNDLER_EDITOR="'/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl' -a"
 export BUNDLER_EDITOR="'/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl' -a"
 
 # use venv and wrapper shell tools
@@ -82,3 +75,6 @@ export VIRTUALENVWRAPPER_PYTHON=$WORKON_HOME/base/bin/python
 mkdir -p $WORKON_HOME
 source $WORKON_HOME/base/bin/virtualenvwrapper.sh
 workon base
+
+# replace sed with gnu-sed
+alias sed='gsed'
