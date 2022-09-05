@@ -54,6 +54,15 @@ suppress noise on start up
 
 #+RESULTS:
 
+** clipboard
+
+this command makes sure that OS X clipboard is saved to the kill-ring in the
+case that you kill something within emacs.
+
+#+BEGIN_SRC emacs-lisp
+(setq save-interprogram-paste-before-kill t)
+#+END_SRC
+
 ** put custom-set variables in =custom.el=, not =init.el=
 #+BEGIN_SRC emacs-lisp
 ;; File for custom-set variables
@@ -223,6 +232,42 @@ With argument ARG, do this that many times."
 
 #+RESULTS:
 : kill-word
+
+** global text scale / font size
+
+#+BEGIN_SRC emacs-lisp
+(define-globalized-minor-mode
+  global-text-scale-mode
+  text-scale-mode
+  (lambda () (text-scale-mode 1)))
+
+(defun global-text-scale-adjust (inc) (interactive)
+       (text-scale-set 1)
+       (kill-local-variable 'text-scale-mode-amount)
+       (setq-default text-scale-mode-amount (+ text-scale-mode-amount inc))
+       (global-text-scale-mode 1)
+       )
+
+(defun global-text-scale-increase () (interactive)
+       (global-text-scale-adjust 1))
+
+(defun global-text-scale-decrease () (interactive)
+       (global-text-scale-adjust -1))
+
+(defun global-text-scale-reset () (interactive)
+       (global-text-scale-adjust (- text-scale-mode-amount))
+       (global-text-scale-mode -1))
+
+
+(bind-keys*
+ ("C-x C-M-=" . global-text-scale-increase)
+ ("C-x C-M--" . global-text-scale-decrease)
+ ("C-x C-M-0" . global-text-scale-reset)
+ )
+#+END_SRC
+
+#+RESULTS:
+: global-text-scale-reset
 
 ** [paul] removing brackets around region
 
@@ -1490,6 +1535,7 @@ show filesize as kb, mb, etc:
   :bind ("C-=" . er/expand-region))
 #+END_SRC
 * etc
+
 ** keybindings
 
 #+BEGIN_SRC emacs-lisp
@@ -1922,7 +1968,10 @@ web-mode ensures syntax highlighting for a bunch of web code files (html), inclu
   :mode
   ("\\.ejs\\'" "\\.hbs\\'" "\\.html\\'" "\\.php\\'" "\\.[jt]sx?\\'" "\\.svelte\\'")
   :config
-  (setq web-mode-content-types-alist '(("jsx" . "\\.[jt]sx?\\'")))
+  (setq web-mode-content-types-alist '(
+                                       ("jsx" . "\\.[jt]sx?\\'")
+                                       ("html" . "\\.svelte\\'")
+                                       ))
   (setq web-mode-markup-indent-offset 2)
   (setq web-mode-css-indent-offset 2)
   (setq web-mode-code-indent-offset 2)
@@ -1934,6 +1983,7 @@ web-mode ensures syntax highlighting for a bunch of web code files (html), inclu
   (setq web-mode-enable-current-element-highlight t))
 
 (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.svelte\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
@@ -2372,11 +2422,14 @@ run: =git clone https://github.com/paulodder/keybase-chat=
 * avy
 #+BEGIN_SRC emacs-lisp
 (global-set-key (kbd "C-;") 'avy-goto-char-2)
+(global-set-key (kbd "M-g M-g") 'avy-goto-line)
 #+END_SRC
 
 #+RESULTS:
-: avy-goto-char-2
+: avy-goto-line
 * org-mode
+
+** change size of latex equations
 
 Change the size of inline latex eqs (=C-x C-c C-l=).
 
@@ -2389,6 +2442,19 @@ Change the size of inline latex eqs (=C-x C-c C-l=).
 
 In order to create those images when opening org file, insert this:
 =#+STARTUP: latexpreview=.
+
+** speed commands
+
+when point is at the beginning of headers, use keys to quickly navigate etc:
+
+#+BEGIN_SRC emacs-lisp
+(setq org-use-speed-commands t)
+
+;; adding to these commands is possible:
+;; (add-to-list 'org-speed-commands (cons "S" 'widen))
+#+END_SRC
+
+the key =?= lists an overview of the commands
 
 ** keybindings
 
@@ -4027,11 +4093,11 @@ to blacklist all i /don't/ want. for that, there exists =rich-minority=:
        (propertize " %m" 'face 'font-lock-comment-face)
        " "
        ;; org timer
-       '(:eval (propertize
-                (if org-timer-start-time
-                    org-timer-mode-line-string
-                  nil)
-                'face 'font-lock-comment-face))
+       ;; '(:eval (propertize
+       ;;          (if org-timer-start-time
+       ;;              org-timer-mode-line-string
+       ;;            nil)
+       ;;          'face 'font-lock-comment-face))
        ;; rich-minority minor modes
        rm--mode-line-construct
        "  "
@@ -4260,3 +4326,25 @@ find free keys
 
 #+RESULTS:
 : t
+
+* pandoc-mode
+
+a mode of interacting with pandoc in emacs.
+
+#+BEGIN_SRC emacs-lisp
+(use-package pandoc-mode
+  :straight t)
+#+END_SRC
+
+#+RESULTS:
+
+* terraform-mode
+
+major mode for editing .tf files
+
+#+BEGIN_SRC emacs-lisp
+(use-package terraform-mode
+  :straight t)
+#+END_SRC
+
+#+RESULTS:

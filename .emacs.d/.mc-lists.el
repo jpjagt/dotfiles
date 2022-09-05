@@ -18,8 +18,10 @@
         comment-dwim-or-line
         counsel-M-x
         counsel-yank-pop
+        crux-rename-file-and-buffer
         dabbrev-expand
         default-indent-new-line
+        dired-flag-file-deletion
         dired-next-line
         downcase-region
         drag-stuff-down
@@ -53,6 +55,7 @@
         my-delete-surrounded-delimiters
         org-beginning-of-line
         org-delete-char
+        org-demote-subtree
         org-edit-special
         org-end-of-line
         org-fill-paragraph
@@ -84,6 +87,8 @@
         deft
         describe-key
         dired-display-file
+        dired-do-kill-lines
+        dired-toggle-marks
         dired-unmark-backward
         elpy-shell-send-statement-and-step
         end-of-buffer
@@ -119,4 +124,5 @@
         switch-to-buffer-other-window
         text-scale-decrease
         undefined
+        wdired-finish-edit
         ))
