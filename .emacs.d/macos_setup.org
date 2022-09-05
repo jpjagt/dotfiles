@@ -33,6 +33,22 @@ can be configured at =System Preferences > Keyboard > Modifier Keys=.
 =System Preferences > Security & Privacy > Privacy > Full Disk Access= and
 check the Emacs app.
 
+* make dock hide/show more quickly
+
+#+BEGIN_SRC sh
+defaults write com.apple.dock autohide-delay -float 0; defaults write com.apple.dock autohide-time-modifier -int 0;killall Dock
+#+END_SRC
+
+* install packages
+
+=package-install= the following:
+- =exec-path-from-shell=
+- =use-package=
+
+* font
+
+using DM Mono as font. ya gots to install it: https://fonts.google.com/specimen/DM+Mono
+
 * launching as application (Emacs.app) instead of from shell cmd
 
 the following code needs to be included in =init.el= in order to have the
