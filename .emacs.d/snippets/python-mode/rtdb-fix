@@ -1,0 +1,15 @@
+# -*- mode: snippet -*-
+# name: rtdb-fix
+# key: rtdb-fix
+# --
+from fxr_pipeline.persistors import RTDBPersistor
+
+p = RTDBPersistor("$0", _enable_top_level_write=True)
+objs = p.read()
+
+def fix(obj):
+    pass
+
+[fix(obj) for obj in objs.values()]
+
+p.write(objs)

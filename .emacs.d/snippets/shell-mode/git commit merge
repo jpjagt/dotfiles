@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: git commit merge
+# key: gcmerge
+# --
+gcm "Merge from ${1:origin} into $0"

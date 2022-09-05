@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: run-dev-api
+# key: run-dev-api
+# --
+source /srv/.venv/api-dev/bin/activate
+cd /srv/dev/repos/$1_api
+sh /srv/dev/repos/${1:app}_api/run.sh

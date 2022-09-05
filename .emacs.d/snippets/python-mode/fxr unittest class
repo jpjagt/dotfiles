@@ -1,0 +1,19 @@
+# key: fxrtest_class
+# name: fxr unittest class
+# --
+import unittest
+from fxr_pipeline.test_cases import FXRTestCase
+
+class Test$1(FXRTestCase):
+    def fxr_setup(self):
+        pass
+
+    def fxr_cleanup(self):
+        pass
+
+    def test_$0(self):
+        pass
+
+
+if __name__ == "__main__":
+    unittest.main()
