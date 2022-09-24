@@ -20,7 +20,7 @@
 
 * installation source
 
-i installed from brew: =brew cask install emacs=
+i installed from brew: =brew install --cask emacs=
 
 * system preferences
 
@@ -32,12 +32,6 @@ can be configured at =System Preferences > Keyboard > Modifier Keys=.
 
 =System Preferences > Security & Privacy > Privacy > Full Disk Access= and
 check the Emacs app.
-
-* make dock hide/show more quickly
-
-#+BEGIN_SRC sh
-defaults write com.apple.dock autohide-delay -float 0; defaults write com.apple.dock autohide-time-modifier -int 0;killall Dock
-#+END_SRC
 
 * install packages
 

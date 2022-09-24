@@ -1,0 +1,71 @@
+#+TITLE: macos_setup
+#+BIND: org-export-use-babel nil
+#+AUTHOR: jeroen jagt
+#+EMAIL: <jpjagt@pm.me>
+#+DATE: September 14, 2022
+#+LATEX: \setlength\parindent{0pt}
+#+LATEX_HEADER: \usepackage{minted}
+#+LATEX_HEADER: \usepackage[margin=1.2in]{geometry}
+#+LATEX_HEADER: \usepackage{mathpazo}
+#+LATEX_HEADER: \usepackage{adjustbox}
+#+LATEX_HEADER_EXTRA:  \usepackage{mdframed}
+#+LATEX_HEADER_EXTRA: \BeforeBeginEnvironment{minted}{\begin{mdframed}}
+#+LATEX_HEADER_EXTRA: \AfterEndEnvironment{minted}{\end{mdframed}}
+#+LATEX_HEADER_EXTRA: \BeforeBeginEnvironment{tabular}{\begin{adjustbox}{center}}
+#+LATEX_HEADER_EXTRA: \AfterEndEnvironment{tabular}{\end{adjustbox}}
+#+MACRO: NEWLINE @@latex:\\@@ @@html:<br>@@
+#+PROPERTY: header-args :exports both :session macos_setup :cache :results value
+#+OPTIONS: ^:nil
+#+LATEX_COMPILER: pdflatex
+
+here are some of the things i use in my macos setup.
+
+* make dock hide/show more quickly
+
+#+BEGIN_SRC sh
+defaults write com.apple.dock autohide-delay -float 0; defaults write com.apple.dock autohide-time-modifier -int 0;killall Dock
+#+END_SRC
+
+* emacs
+
+there is a specific =macos_setup.org= in this dotfiles' .emacs.d.
+
+* raycast
+
+#+BEGIN_SRC sh
+brew install --cask raycast
+open /Applications/Raycast.app
+#+END_SRC
+
+* protonmail
+
+#+BEGIN_SRC sh
+brew install --cask protonmail-bridge
+#+END_SRC
+
+* shottr
+
+#+BEGIN_SRC sh
+brew install --cask shottr
+open /Applications/Shottr.app
+#+END_SRC
+
+follow the instructions in "keyboard shortcuts"
+
+* hidden bar
+
+an app to hide part of your toolbar.
+
+#+BEGIN_SRC sh
+brew install --cask hiddenbar
+open '/Applications/Hidden Bar.app'
+#+END_SRC
+
+* imageoptim
+
+a utility programme which can minify (or compress lossily) images
+
+#+BEGIN_SRC sh
+brew install --cask imageoptim
+open /Applications/ImageOptim.app
+#+END_SRC
