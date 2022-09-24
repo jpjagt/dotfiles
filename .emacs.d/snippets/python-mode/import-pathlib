@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: import-pathlib
+# key: pathlib
+# --
+from pathlib import Path

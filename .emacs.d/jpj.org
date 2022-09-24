@@ -1324,6 +1324,9 @@ open shell with =s-s=:
 * which-key
 
 #+BEGIN_SRC emacs-lisp
+(use-package which-key
+  :straight t)
+
 (which-key-mode 1)
 #+END_SRC
 
@@ -1610,6 +1613,7 @@ Let's write a function that replaces a string only in current defun definition
 
 #+BEGIN_SRC emacs-lisp
 (use-package wrap-region
+  :straight t
   :diminish)
 (wrap-region-global-mode)
 (wrap-region-add-wrapper "`" "`")
@@ -1873,20 +1877,20 @@ even beep.)"
 
 https://stackoverflow.com/questions/16270105/why-are-some-unicode-characters-invisible-in-emacs
 #+BEGIN_SRC emacs-lisp
-(require 'unicode-fonts)
+(use-package unicode-fonts
+  :straight t)
 (unicode-fonts-setup)
 #+END_SRC
 
-
 * magit
 #+BEGIN_SRC emacs-lisp
-(use-package magit
-  :ensure t
-  :bind (
-         ("C-x g" . magit-status)
-         :map magit-mode-map
-         ("C-j" . consult-buffer))
-  :diminish magit-minor-mode)
+  (use-package magit
+    :ensure t
+    :bind (
+           ("C-x g" . magit-status)
+           :map magit-mode-map
+           ("C-j" . consult-buffer))
+    :diminish magit-minor-mode)
 #+END_SRC
 
 #+RESULTS:
@@ -2681,7 +2685,7 @@ nil
 ** org-roam
 
 #+BEGIN_SRC emacs-lisp
-(load-library "magit-section")
+;; (load-library "magit-section")
 (setq org-roam-directory (file-truename "~/Documents/org-roam"))
 
 (use-package org-roam
@@ -3826,7 +3830,6 @@ nil
 
 #+RESULTS:
 
-
 * icicles
 
 #+BEGIN_SRC emacs-lisp
@@ -3961,7 +3964,6 @@ some functions which combine various focused editing packages.
 
 #+RESULTS:
 : untypewrite
-
 
 * list all URLs in a pdf
 
@@ -4348,3 +4350,12 @@ major mode for editing .tf files
 #+END_SRC
 
 #+RESULTS:
+
+* magit-section
+
+gonna try load this at the end, org-roam doesn't work if it's not properly
+loaded:
+
+#+BEGIN_SRC emacs-lisp
+(load-library "magit-section")
+#+END_SRC

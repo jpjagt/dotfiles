@@ -70,9 +70,12 @@
         py-electric-colon
         py-hungry-delete-backwards
         py-indent-or-complete
+        sql-magic-go
+        sql-magic-semicolon
         transpose-words
         upcase-region
         yaml-electric-backspace
+        yaml-electric-dash-and-dot
         yas-expand
         ))
 

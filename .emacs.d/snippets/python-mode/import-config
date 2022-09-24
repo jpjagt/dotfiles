@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: import-config
+# key: config
+# --
+from decouple import config
