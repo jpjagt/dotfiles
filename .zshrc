@@ -78,3 +78,10 @@ workon base
 
 # replace sed with gnu-sed
 alias sed='gsed'
+
+# terraform
+autoload -U +X bashcompinit && bashcompinit
+complete -o nospace -C /usr/local/bin/terraform terraform
+
+# show timestamp in front of prompt
+RPROMPT='%{$fg[yellow]%}[%D{%H:%M}] '$RPROMPT
