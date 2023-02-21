@@ -16,6 +16,7 @@
         comint-magic-space
         comint-previous-input
         comment-dwim-or-line
+        copilot-complete
         counsel-M-x
         counsel-yank-pop
         crux-rename-file-and-buffer
@@ -26,6 +27,7 @@
         downcase-region
         drag-stuff-down
         drag-stuff-up
+        embark-act
         embark-export
         end-of-visual-line
         ess-indent-or-complete
@@ -38,6 +40,7 @@
         eval-and-replace
         fill-paragraph
         forward-sexp
+        ibuffer-do-kill-on-deletion-marks
         ibuffer-mark-for-delete
         indent-for-tab-command
         indent-rigidly
@@ -82,9 +85,11 @@
 (setq mc/cmds-to-run-once
       '(
         ace-window
+        apropos-documentation
         beginning-of-buffer
         comint-send-input
         consult-buffer
+        copilot-accept-completion
         counsel-find-file
         counsel-rg
         deft

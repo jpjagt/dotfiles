@@ -11,6 +11,7 @@
 (require 'package)
 ;; configure package sources
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                         ("gnu-devel" . "https://elpa.gnu.org/devel/")
                          ("gnu"          . "https://elpa.gnu.org/packages/")
                          ;; ("melpa"     . "https://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
                          ;; melpa.org/packages hangs (see https://emacs.stackexchange.com/questions/37353/can-not-access-melpa-packages-hung-up-at-contacting-host-elpa-gnu-org80)

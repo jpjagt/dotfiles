@@ -133,6 +133,33 @@ be able to dynamically create functions:
 
 ** basic keybindings
 
+*** backspace
+
+i don't like having to move my hands so much for backspace. so, following
+https://www.emacswiki.org/emacs/BackspaceKey:
+
+#+BEGIN_SRC emacs-lisp
+(define-key key-translation-map [?\C-?] [?\C-h])
+
+;; map M-backspace [backward-kill-word] to M-h
+(define-key key-translation-map [?\M-\d] [?\M-h])
+
+;; map C-h to backspace
+(define-key key-translation-map [?\C-h] [?\C-?])
+
+;; map M-h [mark-paragraph] to M-backspace
+(define-key key-translation-map [?\M-h] [?\M-\d])
+
+;; tip: Tab is available as C-i
+;;      RET is available as C-j or C-m
+;;      ESC is available as C-[
+#+END_SRC
+
+#+RESULTS:
+: [134217855]
+
+*** other
+
 #+BEGIN_SRC emacs-lisp
 (bind-key* "s-u"  'revert-buffer)
 (bind-key* "C-c j"  'join-line)
@@ -325,6 +352,16 @@ Taken from https://emacs.stackexchange.com/questions/10786/remove-parentheses-ar
 #+RESULTS:
 : s
 
+** dash (list manipulation)
+
+#+BEGIN_SRC emacs-lisp
+(use-package dash
+  :straight t)
+#+END_SRC
+
+#+RESULTS:
+
+
 ** crux
 
 crux are a set of useful basic utility functions. here's an overview pulled
@@ -501,6 +538,11 @@ current line, rather than the whole line, in the absence of a region:
 Taken from https://stackoverflow.com/questions/2416655/file-path-to-clipboard-in-emacs
 
 #+BEGIN_SRC emacs-lisp
+(defun remove-ssh-prefix (filename)
+    "Removes ssh-prefix of filenames taken from remote locations"
+    (first (last (split-string filename ":")))
+    )
+
 (defun get-current-fpath ()
   (let* ((filename-raw (if (equal major-mode 'dired-mode)
                       default-directory
@@ -543,6 +585,27 @@ Taken from https://stackoverflow.com/questions/2416655/file-path-to-clipboard-in
 #+RESULTS:
 : cfile
 
+** god-mode
+
+#+BEGIN_SRC emacs-lisp
+(defun god-mode-update-cursor-type ()
+  (setq cursor-type (if (or god-local-mode buffer-read-only) 'bar 'box)))
+
+(use-package god-mode
+  :straight t
+  :config
+  (global-set-key (kbd "<escape>") #'god-mode-all)
+  (setq god-exempt-major-modes nil)
+  (setq god-exempt-predicates nil)
+  (add-hook 'post-command-hook #'god-mode-update-cursor-type)
+  (define-key god-local-mode-map (kbd "z") #'repeat)
+  (define-key god-local-mode-map (kbd "i") #'god-local-mode)
+  )
+#+END_SRC
+
+#+RESULTS:
+: t
+
 * appearance
 ** font lock
 #+BEGIN_SRC emacs-lisp
@@ -556,7 +619,7 @@ Taken from https://stackoverflow.com/questions/2416655/file-path-to-clipboard-in
   :ensure t
   :init (setq-default indicate-empty-lines t)
   :config
-  (setq whitespace-line-column 80
+  (setq whitespace-line-column 120
         whitespace-style '(face trailing lines-tail empty
                                 indentation::space space-before-tab::tab))
   (global-whitespace-mode -1))
@@ -649,17 +712,24 @@ themes i like:
 
 
 #+BEGIN_SRC emacs-lisp
+(defun load-theme-and-disable-all-others (theme)
+  ;; (load-theme theme t)
+  (mapc (lambda (th) (unless (eq th theme) (disable-theme th)))
+        custom-enabled-themes)
+  (load-theme theme t)
+  )
+
 (defun light ()
   (interactive)
-  (load-theme 'doom-opera-light t))
+  (load-theme-and-disable-all-others 'doom-opera-light))
 
 (defun gray ()
   (interactive)
-  (load-theme 'doom-nova t))
+  (load-theme-and-disable-all-others 'doom-nova))
 
 (defun dark ()
   (interactive)
-  (load-theme 'doom-palenight t))
+  (load-theme-and-disable-all-others 'doom-palenight))
 
 (dark)
 #+END_SRC
@@ -1324,10 +1394,11 @@ open shell with =s-s=:
 * which-key
 
 #+BEGIN_SRC emacs-lisp
-(use-package which-key
-  :straight t)
+  ;; (use-package which-key
+  ;;   :straight t)
+  (require 'which-key)
 
-(which-key-mode 1)
+  (which-key-mode 1)
 #+END_SRC
 
 #+RESULTS:
@@ -1394,15 +1465,39 @@ when you are in the =Size Mode= column. Let's change this behaviour so that
 * lsp / eglot
 
 #+BEGIN_SRC emacs-lisp
-  (define-derived-mode jpj-js-mode web-mode "jpj-js"
-    "A major mode derived from web-mode, for editing .(j|t)s(x) files with eglot support.")
-  (add-to-list 'auto-mode-alist '("\\.[jt]sx?\\'" . jpj-js-mode))
+(define-derived-mode jpj-js-mode web-mode "jpj-js"
+  "A major mode derived from web-mode, for editing .(j|t)s(x) files with eglot support.")
+(add-to-list 'auto-mode-alist '("\\.[jt]sx?\\'" . jpj-js-mode))
 
-  (use-package eglot
+(defun maybe-set-pylsp-path-on-ssh ()
+    (if (s-starts-with? "/ssh:jeroen@fxr" (buffer-file-name))
+        (setq-local eglot-server-programs
+                    '(
+                      (python-mode . ("/home/jeroen/.virtualenvs/base/bin/pylsp"))
+                      ))
+      (setq-local eglot-autoreconnect nil)
+))
+
+(defun eglot-ensure-if-not-ssh ()
+    (if (not (s-starts-with? "/ssh:jeroen@fxr" (buffer-file-name)))
+        (eglot-ensure)))
+
+(defun set-eglot-server-program-in-typescript-buffer ()
+  (when (string-equal "tsx" (file-name-extension buffer-file-name))
+    (setq-local eglot-server-programs '(
+                                        (web-mode . ("typescript-language-server" "--stdio"))
+                                        ))
+    (eglot-ensure)
+    ))
+
+(use-package eglot
     :straight t
     :config
-    (add-hook 'python-mode-hook 'eglot-ensure)
-    ;; (add-hook 'web-mode-hook 'eglot-ensure)
+    ;; this one should go before eglot-ensure
+    ;; (add-hook 'python-mode-hook 'maybe-set-pylsp-path-on-ssh)
+    ;; (add-hook 'python-mode-hook 'eglot-ensure)
+    (add-hook 'python-mode-hook 'eglot-ensure-if-not-ssh)
+    (add-hook 'web-mode-hook 'set-eglot-server-program-in-typescript-buffer)
     (add-hook 'jpj-js-mode-hook 'eglot-ensure)
     (add-to-list 'eglot-server-programs
              '(
@@ -1410,6 +1505,10 @@ when you are in the =Size Mode= column. Let's change this behaviour so that
                            ))
     (bind-keys* :map eglot-mode-map
                 ("C-c e r" . eglot-rename)
+                ("C-c e a" . eglot-code-actions)
+                ("C-c e i" . eglot-code-action-inline)
+                ("C-c e q" . eglot-code-action-quickfix)
+                ("C-c e x" . eglot-code-action-extract)
                 ("C-c e o" . eglot-code-action-organize-imports)
                 ))
 #+END_SRC
@@ -1877,23 +1976,33 @@ even beep.)"
 
 https://stackoverflow.com/questions/16270105/why-are-some-unicode-characters-invisible-in-emacs
 #+BEGIN_SRC emacs-lisp
-(use-package unicode-fonts
-  :straight t)
-(unicode-fonts-setup)
+  ;; (use-package unicode-fonts
+  ;;   :straight t)
+  (require 'unicode-fonts)
+  (unicode-fonts-setup)
 #+END_SRC
 
 * magit
 #+BEGIN_SRC emacs-lisp
-  (use-package magit
-    :ensure t
-    :bind (
-           ("C-x g" . magit-status)
-           :map magit-mode-map
-           ("C-j" . consult-buffer))
-    :diminish magit-minor-mode)
+(use-package magit
+  :straight t
+  :bind (
+         ("C-x g" . magit-status)
+         :map magit-mode-map
+         ("C-j" . consult-buffer))
+  :diminish magit-minor-mode)
 #+END_SRC
 
 #+RESULTS:
+
+** magit-section
+
+this is a standalone package which we want/need (also for org-roam)
+
+#+BEGIN_SRC emacs-lisp
+(use-package magit-section
+  :straight t)
+#+END_SRC
 
 * yasnippet
 
@@ -1935,6 +2044,21 @@ https://stackoverflow.com/questions/16270105/why-are-some-unicode-characters-inv
   :straight t)
 (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
 (projectile-mode +1)
+
+(defun projectile-replace-multiple (old2new)
+  (let* ((directory (projectile-acquire-root))
+         (old-text (read-string
+                    (projectile-prepend-project-name "Replace: ")
+                    (projectile-symbol-or-selection-at-point)))
+         (new-text (read-string
+                    (projectile-prepend-project-name
+                     (format "Replace %s with: " old-text))))
+         (files (projectile-files-with-string old-text directory)))
+    (cl-mapcar (lambda () (
+                           (progn (fileloop-initialize-replace old-text new-text files 'default)
+                                  (fileloop-continue))
+                           ) old2new))
+  ))
 #+END_SRC
 
 #+RESULTS:
@@ -1970,10 +2094,11 @@ web-mode ensures syntax highlighting for a bunch of web code files (html), inclu
 (use-package web-mode
   :ensure t
   :mode
-  ("\\.ejs\\'" "\\.hbs\\'" "\\.html\\'" "\\.php\\'" "\\.[jt]sx?\\'" "\\.svelte\\'")
+  ;; ("\\.ejs\\'" "\\.hbs\\'" "\\.html\\'" "\\.php\\'" "\\.[jt]sx?\\'" "\\.svelte\\'")
+  ("\\.ejs\\'" "\\.hbs\\'" "\\.html\\'" "\\.php\\'" "\\.svelte\\'")
   :config
   (setq web-mode-content-types-alist '(
-                                       ("jsx" . "\\.[jt]sx?\\'")
+                                       ;; ("jsx" . "\\.[jt]sx?\\'")
                                        ("html" . "\\.svelte\\'")
                                        ))
   (setq web-mode-markup-indent-offset 2)
@@ -2045,6 +2170,13 @@ make sure tramp works on windows:
 #+END_SRC
 
 #+RESULTS:
+
+#+BEGIN_SRC emacs-lisp
+(setq epa-file-cache-passphrase-for-symmetric-encryption t)
+#+END_SRC
+
+#+RESULTS:
+: t
 
 ** tramp-virtualenv
 
@@ -2634,6 +2766,15 @@ c= execute the regular =org-ctrl-c-ctrl-c= function.
 #+RESULTS:
 : copy-source-block
 
+** set correct python interpreter
+
+#+BEGIN_SRC emacs-lisp
+(setq org-babel-python-command "ipython -i --simple-prompt")
+#+END_SRC
+
+#+RESULTS:
+: ipython -i --simple-prompt
+
 ** enable org-mode auto-fill-mode and org-indent-mode automatically
 
 #+BEGIN_SRC emacs-lisp
@@ -2659,7 +2800,7 @@ nil
     (insert
      (format  "#+TITLE: %s
 ,#+BIND: org-export-use-babel nil
-,#+AUTHOR: jeroen jagt
+,#+AUTHOR: July Jagt
 ,#+EMAIL: <jpjagt@pm.me>
 ,#+DATE: %s
 ,#+LATEX: \\setlength\\parindent{0pt}
@@ -2685,7 +2826,6 @@ nil
 ** org-roam
 
 #+BEGIN_SRC emacs-lisp
-;; (load-library "magit-section")
 (setq org-roam-directory (file-truename "~/Documents/org-roam"))
 
 (use-package org-roam
@@ -2693,6 +2833,7 @@ nil
   :bind (("C-c n l" . org-roam-buffer-toggle)
          ("C-c n f" . org-roam-node-find)
          ("C-c n i" . org-roam-node-insert)
+         ("C-c n t" . org-roam-tag-add)
          ("C-c n a" . org-roam-alias-add))
   :config
   (setq org-roam-completion-everywhere t)
@@ -2705,6 +2846,10 @@ nil
           ("b" "book notes" plain
            (file "~/Documents/org-roam/templates/book-notes-template.org")
            :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+TITLE: ${title}\n#+FILETAGS: book")
+           :unnarrowed t)
+          ("r" "paper" plain
+           (file "~/Documents/org-roam/templates/paper-notes-template.org")
+           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+TITLE: ${title}\n#+FILETAGS: paper")
            :unnarrowed t)
           ("p" "project " plain
            (file "~/Documents/org-roam/templates/project-template.org")
@@ -2941,60 +3086,13 @@ Usage:
 #+RESULTS:
 : org-babel-execute:latex-macros
 *** venv functions
+
 To use virtualenv python (needed for keras), you can use
+
 https://emacs.stackexchange.com/questions/24453/weird-shell-output-when-using-ipython-5
 https://github.com/jorgenschaefer/elpy/issues/992#issuecomment-249165923
 #+BEGIN_SRC emacs-lisp
 (setenv "IPY_TEST_SIMPLE_PROMPT" "1")
-;; (setq python-shell-interpreter "ipython"
-;;       python-shell-interpreter-args "--simple-prompt -i --colors=Linux --profile=default")
-;; python-shell-interpreter-args "--simple-prompt -i")
-;; "--colors=Linux --profile=default"
-(setq org-babel-python-command "ipython")
-(defun org-py3.6 ()
-  (interactive)
-  ;; (setq python-shell-virtualenv-root
-  (setq org-babel-python-command "python3.6"))
-;; (concat default-directory "~/.envs/py3.6")))
-(defun org-quanti ()
-  (interactive)
-  ;; (setq python-shell-virtualenv-root
-  (setq org-babel-python-command "/home/paul/.virtualenvs/quanti/bin/python"))
-;; (concat default-directory "~/.envs/py3.6"))
-(defun org-nhbc-poc ()
-  (interactive)
-  (setq org-babel-python-command "/home/paul/.virtualenvs/nhbc-poc/bin/python"))
-
-(defun org-ogi_products ()
-  (interactive)
-  (setq org-babel-python-command "/home/paul/.virtualenvs/ogi_products/bin/python")
-  (setq python-shell-interpreter "/home/paul/.virtualenvs/ogi_products/bin/ipython"))
-
-(defun org-ogi-db ()
-  (interactive)
-  ;; (setq python-shell-virtualenv-root
-  (setq org-babel-python-command "/home/paul/.virtualenvs/ogi-database/bin/python"))
-
-(defun org-ogi-quotes ()
-  (interactive)
-  ;; (setq python-shell-virtualenv-root
-  (setq org-babel-python-command "/home/paul/.virtualenvs/ogi-quotes/bin/python"))
-
-(defun org-local-py3.7 ()
-  (interactive)
-  ;; (setq python-shell-virtualenv-root
-  (setq org-babel-python-command "/usr/bin/python3.7"))
-;; (concat default-directory "~/.envs/py3.6")))
-
-
-
-(defun py-nhbc-poc ()
-  (interactive)
-  ;; (setq python-shell-virtualenv-root
-  (setq python-shell-interpreter "/home/paul/.virtualenvs/nhbc-poc/bin/python"))
-;; (concat default-directory "~/.envs/py3.6")))
-
-
 #+END_SRC
 
 #+RESULTS:
@@ -3057,6 +3155,15 @@ the shell, instead of executing it and having to wait for it to finish.
 
 #+RESULTS:
 : ((file . \.\(pdf\|jpeg\|jpg\|png\|ps\|eps\|tikz\|pgf\|svg\|gif\)\'))
+
+*** ox-extras
+
+#+BEGIN_SRC emacs-lisp
+(require 'ox-extra)
+(ox-extras-activate '(ignore-headlines))
+#+END_SRC
+
+#+RESULTS:
 
 ** org-ref
 
@@ -3153,7 +3260,8 @@ citecolor=blue,filecolor=blue,menucolor=blue,urlcolor=blue"
 
 #+BEGIN_SRC emacs-lisp
 (use-package org-download
-  :straight t)
+  :straight t
+)
 #+END_SRC
 
 #+RESULTS:
@@ -3540,7 +3648,7 @@ Add node modules bin folder to exec-path
   :mode ("\\.py\\'" . python-mode)
   :interpreter ("python" . python-mode)
   :config
-  (setq python-shell-interpreter "ipython")
+  (setq python-shell-interpreter "/Users/jeroen/.virtualenvs/base/bin/ipython -i --simple-prompt")
   (setq py-shell-name "ipython")
   (setq python-shell-interpreter-args "-c exec('__import__(\\'readline\\')') -i --simple-prompt")
   ;; (setq
@@ -3703,7 +3811,7 @@ nil
 
 #+BEGIN_SRC emacs-lisp
 (use-package virtualenvwrapper
-  :ensure t
+  :straight t
   :config
   (venv-initialize-interactive-shells) ;; if you want interactive shell support
   (venv-initialize-eshell)             ;; if you want eshell support
@@ -4151,7 +4259,7 @@ to blacklist all i /don't/ want. for that, there exists =rich-minority=:
 built on top of dabbrev. let's try it out
 
 #+BEGIN_SRC emacs-lisp
-(bind-key* "M-/" 'hippie-expand)
+;; (bind-key* "M-/" 'hippie-expand)
 #+END_SRC
 
 #+RESULTS:
@@ -4309,10 +4417,10 @@ colours code based on indentation level.
 #+RESULTS:
 : insert-euro
 
-** fxr
+* fxr
 
 #+BEGIN_SRC emacs-lisp
-
+(bind-key* "s-f" 'shell-fxr)
 #+END_SRC
 
 * free-keys
@@ -4351,11 +4459,209 @@ major mode for editing .tf files
 
 #+RESULTS:
 
-* magit-section
-
-gonna try load this at the end, org-roam doesn't work if it's not properly
-loaded:
+* devdocs
 
 #+BEGIN_SRC emacs-lisp
-(load-library "magit-section")
+(use-package devdocs
+  :straight t
+  :config
+  (bind-key* "C-<backspace> d" 'devdocs-lookup)
+  (add-hook 'python-mode-hook
+          (lambda () (setq-local devdocs-current-docs '("python~3.9" "pandas~1" "scikit_learn")))))
+#+END_SRC
+
+#+RESULTS:
+: t
+
+* xref and tags
+
+** xref
+
+#+BEGIN_SRC emacs-lisp
+;; turn off the prompting for tags file
+(setq xref-prompt-for-identifier nil)
+#+END_SRC
+
+** automatically update TAGS table
+
+#+BEGIN_SRC emacs-lisp
+(defun jpj/create-tags-if-needed (SRC-DIR &optional FORCE)
+  "Return the full path of tags file."
+  (let ((dir (file-name-as-directory (file-truename SRC-DIR)) )
+       file)
+    (setq file (concat dir "TAGS"))
+    (when (or FORCE (not (file-exists-p file)))
+      (message "Creating TAGS in %s ..." dir)
+      (shell-command
+       (format "ctags -f %s -e -R %s" file dir)))
+    file))
+
+(defvar jpj/tags-updated-time nil)
+
+(defun jpj/update-tags ()
+  "Check the tags in tags-table-list and re-create it."
+  (interactive)
+  (let ((root-dir (projectile-project-root)))
+    (if (not (eq root-dir nil))
+        (dolist (tag tags-table-list)
+          (jpj/create-tags-if-needed (root-dir tag) t)))))
+
+(defun jpj/auto-update-tags-when-save ()
+  (interactive)
+  (cond
+   ((not jpj/tags-updated-time)
+    (setq jpj/tags-updated-time (current-time)))
+   ((< (- (float-time (current-time)) (float-time jpj/tags-updated-time)) 300)
+    ;; do nothing
+    )
+   (t
+    (setq jpj/tags-updated-time (current-time))
+    (jpj/update-tags)
+    (message "updated tags after %d seconds."
+             (- (float-time (current-time))
+                (float-time jpj/tags-updated-time))))))
+
+(add-hook 'after-save-hook 'jpj/auto-update-tags-when-save)
+#+END_SRC
+
+#+RESULTS:
+| jpj/auto-update-tags-when-save | rmail-after-save-hook |
+
+** ctags-update
+
+#+BEGIN_SRC emacs-lisp
+;; (use-package ctags-update
+;;   :straight t
+;;   :config
+;;   (autoload 'turn-on-ctags-auto-update-mode "ctags-update" "turn on 'ctags-auto-update-mode'." t)
+;;   (add-hook 'python-mode-hook  'turn-on-ctags-auto-update-mode)
+;;   (add-hook 'web-mode-hook  'turn-on-ctags-auto-update-mode)
+;;   )
+#+END_SRC
+
+#+RESULTS:
+: t
+
+** counsel-etags
+
+#+BEGIN_SRC emacs-lisp
+;; (use-package counsel-etags
+;;   :straight t
+;;   ;; :bind (("M-." . counsel-etags-find-tag-at-point))
+;;   :init
+;;   (add-hook 'prog-mode-hook
+;;         (lambda ()
+;;           (add-hook 'after-save-hook
+;;             'counsel-etags-virtual-update-tags 'append 'local)))
+;;   :config
+;;   (setq counsel-etags-update-interval 60)
+;;   ;; (push "build" counsel-etags-ignore-directories)
+;; )
+#+END_SRC
+
+#+RESULTS:
+: counsel-etags-find-tag-at-point
+
+* copilot
+
+#+BEGIN_SRC emacs-lisp
+(use-package copilot
+  :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
+  :ensure t
+  :config
+  (add-hook 'python-mode-hook 'copilot-mode)
+  (add-hook 'web-mode-hook 'copilot-mode)
+  (bind-key* "M-/" 'copilot-accept-completion)
+  )
+#+END_SRC
+
+#+RESULTS:
+
+* vdirel
+
+contact manager in emacs. requires =vdirsyncer= to be set up.
+
+#+BEGIN_SRC emacs-lisp
+(use-package vdirel
+  :straight t
+  :config
+  (setq vdirel-repository "~/.contacts")
+  )
+#+END_SRC
+
+#+RESULTS:
+: t
+
+* mu4e
+
+#+BEGIN_SRC emacs-lisp
+(straight-use-package
+ '(mu4e :files (:defaults "mu4e/*.el")))
+
+(setq mail-user-agent 'mu4e-user-agent)
+
+(setq mu4e-maildir "~/.mail"
+mu4e-attachment-dir "~/Downloads")
+
+;; relative to maildir
+(setq mu4e-sent-folder   "/sent"
+      mu4e-drafts-folder "/drafts"
+      mu4e-trash-folder  "/trash")
+
+;; the maildirs you use frequently; access them with 'j' ('jump')
+;; (setq   mu4e-maildir-shortcuts
+;;     '((:maildir "/archive" :key ?a)
+;;       (:maildir "/inbox"   :key ?i)
+;;       (:maildir "/work"    :key ?w)
+;;       (:maildir "/sent"    :key ?s)))
+
+;; the headers to show in the headers list -- a pair of a field
+;; and its width, with `nil' meaning 'unlimited'
+;; (better only use that for the last field.
+;; These are the defaults:
+;; (setq mu4e-headers-fields
+;;     '( (:date          .  25)    ;; alternatively, use :human-date
+;;        (:flags         .   6)
+;;        (:from          .  22)
+;;        (:subject       .  nil))) ;; alternatively, use :thread-subject
+
+;; program to get mail; alternatives are 'fetchmail', 'getmail'
+;; isync or your own shellscript. called when 'U' is pressed in
+;; main view.
+
+;; If you get your mail without an explicit command,
+;; use "true" for the command (this is the default)
+(setq mu4e-get-mail-command "mbsync protonmail"
+mu4e-change-filenames-when-moving t   ; needed for mbsync
+mu4e-update-interval 120)             ; update every 2 minutes
+)
+
+;; general emacs mail settings; used when composing e-mail
+;; the non-mu4e-* stuff is inherited from emacs/message-mode
+(setq mu4e-compose-reply-to-address "July Jagt <jpjagt@pm.me>"
+      user-mail-address "jpjagt@pm.me"
+      user-full-name  "July Jagt")
+(setq mu4e-compose-signature
+   "july")
+
+(setq message-send-mail-function 'smtpmail-send-it
+smtpmail-auth-credentials "~/.authinfo.gpg"
+smtpmail-smtp-server "127.0.0.1"
+smtpmail-stream-type 'starttls
+smtpmail-smtp-service 1025)
+
+(add-to-list 'gnutls-trustfiles (expand-file-name "~/.config/protonmail/bridge/cert.pem"))
+
+;; don't keep message buffers around
+;; (setq message-kill-buffer-on-exit t)
+#+END_SRC
+
+#+RESULTS:
+: 120
+
+you might need to run the following shell command once:
+
+#+BEGIN_SRC sh
+mu init --maildir=~/.mail
+mu index
 #+END_SRC
