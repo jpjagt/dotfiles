@@ -26,6 +26,27 @@ here are some of the things i use in my macos setup.
 defaults write com.apple.dock autohide-delay -float 0; defaults write com.apple.dock autohide-time-modifier -int 0;killall Dock
 #+END_SRC
 
+* keybindings
+
+put the following in =~/Library/KeyBindings/DefaultKeyBinding.dict=
+
+#+BEGIN_SRC
+{
+    "~d" = "deleteWordForward:";
+    "^w" = "deleteWordBackward:";
+    "~f" = "moveWordForward:";
+    "~b" = "moveWordBackward:";
+    "^h" = "deleteBackward:";
+}
+#+END_SRC
+
+** keyboard shortcuts
+
+*** enable M-? in emacs
+
+1. =System Preferences= -> =Keyboard= -> =Shortcuts= -> =App Shortcuts=
+2. uncheck the =Show help menu= option
+
 * emacs
 
 there is a specific =macos_setup.org= in this dotfiles' .emacs.d.
@@ -69,3 +90,114 @@ a utility programme which can minify (or compress lossily) images
 brew install --cask imageoptim
 open /Applications/ImageOptim.app
 #+END_SRC
+
+* managing contacts with vdirsyncer
+
+we install vdirsyncer, a tool to sync calendar + contacts to and fro various
+repos. we will set this up to be used/manager with =vdirel= in emacs, and to
+sync to the icloud service.
+
+#+BEGIN_SRC sh
+brew install vdirsyncer
+#+END_SRC
+
+then, we make a file =~/.vdirsyncer/config= and add the following config:
+
+#+BEGIN_EXAMPLE
+[general]
+status_path = "~/.vdirsyncer/status/"
+
+[pair contacts]
+a = "contacts_local"
+b = "contacts_icloud"
+collections = ["from a", "from b"]
+
+[storage contacts_local]
+type = "filesystem"
+path = "~/.contacts/"
+fileext = ".vcf"
+
+[storage contacts_icloud]
+type = "carddav"
+url = "https://contacts.icloud.com/"
+username = "..."
+password = "..."
+
+# don't need this because i just use icloud calendar, but maybe useful for future
+# [storage calendar_icloud]
+# type = "caldav"
+# url = "https://caldav.icloud.com/"
+# username = "..."
+# password = "..."
+#+END_EXAMPLE
+
+now, running
+- =vdirsyncer discover= will index all the repos (you rarely need to do
+  this)
+- =vdirsyncer sync= will sync the contacts.
+
+i use =vdirel= to interact with this local store at =~/.contacts/=, which is
+configured in my =.emacs.d= config.
+
+* mu4e + protonmail bridge
+
+following this gist: https://gist.github.com/A6GibKm/238b754a4a90051f60906b9efa3e8000
+
+install the following dependencies:
+
+#+BEGIN_SRC sh
+brew install isync gnupg mu
+brew services start isync
+#+END_SRC
+
+first, we create =~/.mbsyncrc= and enter the following config. you can find
+BRIDGE_PASSWORD within the Bridge app.
+
+#+BEGIN_EXAMPLE
+IMAPAccount protonmail
+Host 127.0.0.1
+Port 1143
+User USERNAME@pm.me
+Pass BRIDGE_PASSWORD
+# PassCmd "gpg -q --for-your-eyes-only --no-tty -d ~/.authinfo.gpg | awk 'FNR == 1 {print $8}'"
+SSLType STARTTLS
+SSLVersions TLSv1.2
+CertificateFile ~/Library/Application\ Support/protonmail/bridge/cert.pem
+
+IMAPStore remote
+Account protonmail
+
+# You can change .mail to something else
+MaildirStore local
+Path ~/.mail/
+Inbox ~/.mail/INBOX/
+SubFolders Verbatim
+
+Channel inbox
+Far :remote:
+Near :local:
+Patterns *
+Create Both
+Expunge Both
+SyncState *
+
+Group protonmail
+Channel inbox
+#+END_EXAMPLE
+
+then, we create (or append to) =~/.authinfo= with the following, replacing the
+relevant info.
+
+#+BEGIN_EXAMPLE
+machine 127.0.0.1 port 1143 login USERNAME@pm.me password BRIDGE_PASSWORD
+machine 127.0.0.1 port 1025 login USERNAME@pm.me password BRIDGE_PASSWORD
+#+END_EXAMPLE
+
+then, encrypt this file with with =cd ~ && gpg --symmetric .authinfo=. (run in
+terminal, not emacs shell). you might need to install gnupg: =brew install
+gnupg=.
+
+then, delete (this info from) =~/.authinfo=.
+
+then, run =mbsync protonmail= to get the mail. for mu4e configuration, check
+the .emacs.d files.
