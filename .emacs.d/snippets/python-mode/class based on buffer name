@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: class based on buffer name
+# key: <class
+# --
+class ${1:`(s-upper-camel-case (car (s-split "\\." (buffer-name))))`}(object):
+    def __init__(self):
+        pass

@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: dev-api venv
+# key: dev-api
+# --
+source ~/.virtualenvs/${0:dev-api}/bin/activate

@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: import from fxr common utils
+# key: fimu
+# --
+import { $0 } from '@fxr/common/utils'

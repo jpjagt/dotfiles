@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: import-ppk
+# key: ppk
+# --
+import pypika as ppk

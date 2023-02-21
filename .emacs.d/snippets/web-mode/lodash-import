@@ -1,5 +1,0 @@
-# -*- mode: snippet -*-
-# name: lodash-import
-# key: <lim
-# --
-import { $0 } from 'lodash'

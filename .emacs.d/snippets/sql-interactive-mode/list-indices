@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: list-indices
+# key: indices
+# --
+select tablename, indexname, indexdef from pg_indexes where tablename not like 'pg%' and schemaname = 'public';

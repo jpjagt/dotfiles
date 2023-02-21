@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: pass eponymous variable
+# key: =
+# --
+$1=${1:}

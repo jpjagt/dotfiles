@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: indexslice
+# key: idx
+# --
+idx = pd.IndexSlice

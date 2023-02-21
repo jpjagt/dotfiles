@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: from fxr_pipeline import
+# key: fxri
+# --
+from fxr_pipeline.$1 import $0

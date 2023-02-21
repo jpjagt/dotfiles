@@ -1,5 +1,5 @@
 # -*- mode: snippet -*-
 # name: import from types
-# key: imtypes
+# key: fimt
 # --
 import type { $0 } from '@fxr/types'
