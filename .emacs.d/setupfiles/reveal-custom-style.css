@@ -1,0 +1,24 @@
+.reveal section h1.title {
+    font-size: 3rem;
+}
+
+.reveal section h2 {
+    font-size: 2.4rem;
+}
+
+.reveal section h3 {
+    font-size: 2.2rem;
+}
+
+.reveal section p, .reveal section ul, .reveal section ol, .reveal section a {
+    font-size: 1.8rem;
+    text-align: left;
+}
+
+.reveal section div.figure p {
+    text-align: center;
+}
+
+.reveal section[no-header=""] h3 {
+    display: none;
+}
