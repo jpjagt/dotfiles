@@ -1,0 +1,13 @@
+# -*- mode: snippet -*-
+# name: daily-reflection
+# key: reflect
+# --
+* `(format-time-string "%Y-%m-%d")`
+
+** whom did i meet today
+
+- $0
+
+** how did my social interactions go today
+
+** thoughts

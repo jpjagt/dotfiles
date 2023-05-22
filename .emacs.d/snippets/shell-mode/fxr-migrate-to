@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: fxr-migrate-to
+# key: migrate_to
+# --
+python scripts/rtdb_migrations.py migrate_to_$0

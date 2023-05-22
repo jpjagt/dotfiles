@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: reveal-new-page
+# key: reveal-new-page
+# --
+#+REVEAL: split
