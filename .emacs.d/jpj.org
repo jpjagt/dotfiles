@@ -27,13 +27,26 @@
   (exec-path-from-shell-initialize))
 #+END_SRC
 
+
 * basic emacs
+
+** keymap fns
+
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'load-path "~/.emacs.d/lisp")
+(require 'keymap)
+#+END_SRC
+
+#+RESULTS:
+: keymap
 
 ** no debug
 
 #+BEGIN_SRC emacs-lisp
 (setq debug-on-error nil)
 #+END_SRC
+
+#+RESULTS:
 
 ** startup
 
@@ -44,6 +57,8 @@ suppress noise on start up
               inhibit-splash-screen t
               initial-scratch-message "")
 #+END_SRC
+
+#+RESULTS:
 
 ** fullscreen
 
@@ -74,17 +89,22 @@ case that you kill something within emacs.
 #+RESULTS:
 : t
 
-** open this file
+** open specific files
 
 #+BEGIN_SRC emacs-lisp
 (defun jpj ()
   (interactive)
   (find-file "~/.emacs.d/jpj.org")
   )
+
+(defun thesis ()
+  (interactive)
+  (find-file "~/Documents/uni/made-msc/thesis/deliverables/thesis.org")
+  )
 #+END_SRC
 
 #+RESULTS:
-: jpj
+: thesis
 
 ** random
 
@@ -140,6 +160,7 @@ https://www.emacswiki.org/emacs/BackspaceKey:
 
 #+BEGIN_SRC emacs-lisp
 (define-key key-translation-map [?\C-?] [?\C-h])
+(bind-key* "C-ч" 'org-delete-backward-char)
 
 ;; map M-backspace [backward-kill-word] to M-h
 (define-key key-translation-map [?\M-\d] [?\M-h])
@@ -167,6 +188,34 @@ https://www.emacswiki.org/emacs/BackspaceKey:
 
 #+RESULTS:
 : join-line
+
+*** mongolian keyboard
+
+#+BEGIN_SRC emacs-lisp
+(defun insert-mongolian-alternative-y ()
+  (interactive)
+  (insert "ү"))
+
+(defun insert-mongolian-capital-alternative-y ()
+  (interactive)
+  (insert "Ү"))
+
+(defun insert-mongolian-alternative-o ()
+  (interactive)
+  (insert "ө"))
+
+(defun insert-mongolian-capital-alternative-o ()
+  (interactive)
+  (insert "Ө"))
+
+(bind-key* "s-у" 'insert-mongolian-alternative-y)
+(bind-key* "s-У" 'insert-mongolian-capital-alternative-y)
+(bind-key* "s-о" 'insert-mongolian-alternative-o)
+(bind-key* "s-О" 'insert-mongolian-capital-alternative-o)
+#+END_SRC
+
+#+RESULTS:
+: insert-mongolian-capital-alternative-o
 
 ** set/pop marks for navigation
 
@@ -285,6 +334,9 @@ With argument ARG, do this that many times."
        (global-text-scale-adjust (- text-scale-mode-amount))
        (global-text-scale-mode -1))
 
+
+;; increase default text scale by one
+(global-text-scale-increase)
 
 (bind-keys*
  ("C-x C-M-=" . global-text-scale-increase)
@@ -826,6 +878,21 @@ of the syntax class ')'."
 
 #+RESULTS:
 : show-paren-function
+** sticky function definition
+
+this stickies the current function definition at the top of the buffer.
+
+not used because it uses the header :(
+
+#+BEGIN_SRC emacs-lisp
+;; (use-package topsy
+;;   ;; :quelpa (topsy :fetcher github :repo "alphapapa/topsy.el")
+;;   :straight t
+;;   :hook
+;;   (prog-mode . topsy-mode)
+;;   (magit-section-mode . topsy-mode))
+#+END_SRC
+
 * text manipulation
 
 ** wrap region in things
@@ -950,110 +1017,6 @@ selectrum provides no smart sorting OOTB, for which we use =prescient.el=:
 #+RESULTS:
 : t
 
-** embark
-
-#+BEGIN_SRC emacs-lisp
-(use-package embark
-  ;; Note that this gets only the main library.  That repo contains
-  ;; other packages as well (which are small *.el files that are
-  ;; distributed separately).
-  :straight (embark :host github
-                    :repo "oantolin/embark"
-                    :branch "master"
-                    :files ("embark.el"))
-  :demand
-  :diminish embark-collect-zebra-minor-mode
-  :after prot-minibuffer
-  :config
-  (setq embark-collect-initial-view-alist
-        '((file . list)
-          (buffer . list)
-          (symbol . list)
-          (line . list)
-          (xref-location . list)
-          (kill-ring . zebra)
-          (t . list)))
-  (setq embark-collect-live-update-delay 0.5)
-  (setq embark-collect-live-initial-delay 0.8)
-
-  ;; Please don't read too much into the names of those faces.  Just
-  ;; green and yellow.
-  (setq embark-action-indicator (propertize "Act" 'face 'success))
-  (setq embark-become-indicator (propertize "Become" 'face 'warning))
-
-  ;; ;; NOTE: I keep this around for when I do videos, otherwise I do not
-  ;; ;; use it.  It requires `which-key' to display key hints.
-  ;; (setq embark-action-indicator
-  ;;       (lambda (map)
-  ;;         (which-key--show-keymap "Embark" map nil nil 'no-paging)
-  ;;         #'which-key--hide-popup-ignore-command)
-  ;;       embark-become-indicator embark-action-indicator)
-  :hook ((minibuffer-setup-hook . embark-collect-completions-after-input)
-         (embark-post-action-hook . embark-collect--update-linked)
-         (embark-collect-mode-hook . prot-embark-completions-cursor))
-  :bind (("C-r" . embark-act)
-         :map minibuffer-local-completion-map
-         ("C-r" . embark-act)
-         ("C-." . embark-act-noexit)
-         ("C->" . embark-become)
-         ("M-q" . embark-collect-toggle-view) ; parallel of `fill-paragraph'
-         :map embark-collect-mode-map
-         ("C-r" . embark-act)
-         ("C-." . embark-act-noexit)
-         ("r" . embark-act)
-         ("." . embark-act-noexit)
-         ("M-q" . embark-collect-toggle-view)
-         :map embark-symbol-map
-         ("." . embark-find-definition)
-         ("k" . describe-keymap)))
-
-;; Integration with Consult.  Note that the package is `embark-consult',
-;; but because it comes from the same repo as Embark I prefer to use
-;; this straight.el directive (check the main embark package above).
-(use-package embark-consult
-  :straight (embark-consult :host github
-                            :repo "oantolin/embark"
-                            :branch "master"
-                            :files ("embark-consult.el"))
-  :demand
-  :after (embark consult)
-  ;; ;; Use the hook, or check `prot-embark-consult-preview-toggle'.
-  ;; :hook (embark-collect-mode-hook . embark-consult-preview-minor-mode)
-  :bind (:map embark-collect-mode-map
-         ("C-j" . embark-consult-preview-at-point)))
-
-(use-package prot-embark
-  :straight (:type built-in)
-  :demand
-  :after embark
-  :hook ((minibuffer-exit-hook . prot-embark-clear-live-buffers)
-         (embark-collect-post-revert-hook . prot-embark-collect-fit-window)
-         (embark-collect-mode-hook . prot-embark-hl-line)
-         (embark-collect-mode-hook . prot-embark-display-line-numbers))
-  ;; NOTE: to switch to the live collection buffer, I also use
-  ;; `prot-minibuffer-focus-mini-or-completions' which is bound to
-  ;; "s-v".
-  :bind (:map embark-collect-mode-map
-         ("h" . prot-simple-describe-symbol)  ; from `prot-simple.el'
-         ("C-g" . prot-embark-keyboard-quit)
-         ("C-k" . prot-embark-collection-kill-line)
-         ("C-M-n" . prot-embark-completions-act-next)
-         ("C-M-p" . prot-embark-completions-act-previous)
-         ("C-M-j" . prot-embark-completions-act-current)
-         ("C-M-v" . prot-embark-consult-preview-toggle) ; "view", "visualise" mnemonic
-         ("C-n" . prot-embark-next-line-or-mini)
-         ("C-p" . prot-embark-previous-line-or-mini)
-         ("M-F" . prot-embark-collection-flush-lines) ; M-S-f like M-S-5 (M-%)
-         ("M-K" . prot-embark-collection-keep-lines)  ; same principle as right above
-         :map minibuffer-local-completion-map
-         ("C-n" . prot-embark-switch-to-completions-top)
-         ("C-p" . prot-embark-switch-to-completions-bottom)
-         ("C-l" . prot-embark-completions-toggle)))
-#+END_SRC
-
-#+RESULTS:
-: prot-embark-completions-toggle
-
 ** marginalia
 
 #+BEGIN_SRC emacs-lisp
@@ -1064,7 +1027,7 @@ selectrum provides no smart sorting OOTB, for which we use =prescient.el=:
   (setq marginalia-annotators
         '(marginalia-annotators-heavy
           marginalia-annotators-light))
-  (marginalia-mode 1))
+  (marginalia-mode 0))
 #+END_SRC
 
 #+RESULTS:
@@ -1132,6 +1095,46 @@ selectrum provides no smart sorting OOTB, for which we use =prescient.el=:
 
 #+RESULTS:
 : prot-consult-line
+
+** embark
+
+#+BEGIN_SRC emacs-lisp
+(use-package embark
+  :straight t
+
+  :bind
+  (("s-r" . embark-act)         ;; pick some comfortable binding
+   ("C-s-r" . embark-dwim)        ;; good alternative: M-.
+   ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+
+  :init
+
+  ;; Optionally replace the key help with a completing-read interface
+  (setq prefix-help-command #'embark-prefix-help-command)
+
+  ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
+  ;; strategy, if you want to see the documentation from multiple providers.
+  (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
+  ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
+
+  :config
+
+  ;; Hide the mode line of the Embark live/completions buffers
+  ;; (add-to-list 'display-buffer-alist
+  ;;              '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+  ;;                nil
+  ;;                (window-parameters (mode-line-format . none))))
+)
+
+;; Consult users will also want the embark-consult package.
+(use-package embark-consult
+  :straight t ; only need to install it, embark loads it after consult if found
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
+#+END_SRC
+
+#+RESULTS:
+| consult-preview-at-point-mode |
 
 * minibuffer
 
@@ -1638,6 +1641,31 @@ show filesize as kb, mb, etc:
 #+END_SRC
 * etc
 
+** ffap
+
+#+BEGIN_SRC emacs-lisp
+(defun my-find-file-at-point ()
+  (interactive)
+  (let ((file-path-and-line (thing-at-point 'filename t)))
+    (if (and file-path-and-line (string-match-p "\\S-" file-path-and-line))
+        (let* ((split-path-and-line (split-string file-path-and-line ":"))
+               (file-path (car split-path-and-line))
+               (line-number (when (cadr split-path-and-line)
+                              (string-to-number (cadr split-path-and-line)))))
+          (if (file-exists-p file-path)
+              (progn
+                (find-file file-path)
+                (when line-number
+                  (goto-line line-number)))
+            (message "File does not exist: %s" file-path)))
+      (message "No valid file path found at point."))))
+
+(global-set-key (kbd "C-M-o") 'my-find-file-at-point)
+#+END_SRC
+
+#+RESULTS:
+: my-find-file-at-point
+
 ** keybindings
 
 #+BEGIN_SRC emacs-lisp
@@ -1649,8 +1677,6 @@ show filesize as kb, mb, etc:
 (global-set-key (kbd "C-+") 'text-scale-increase)
 (global-set-key (kbd "C--") 'text-scale-decrease)
 
-;; find the file which is referenced at point
-(global-set-key (kbd "C-M-o") 'ffap)
 (add-hook 'emacs-lisp-mode-hook
           (lambda ()
             (local-set-key (kbd "C-c C-c") 'eval-buffer)))
@@ -2565,6 +2591,21 @@ run: =git clone https://github.com/paulodder/keybase-chat=
 : avy-goto-line
 * org-mode
 
+** alphabetic lists are a-okay!
+
+#+BEGIN_SRC emacs-lisp
+(setq org-list-allow-alphabetical t)
+#+END_SRC
+
+** more italic lines
+
+#+BEGIN_SRC emacs-lisp
+(setf (nth 4 org-emphasis-regexp-components) 5)
+#+END_SRC
+
+#+RESULTS:
+: 5
+
 ** change size of latex equations
 
 Change the size of inline latex eqs (=C-x C-c C-l=).
@@ -3021,7 +3062,6 @@ Code beautifier (see https://www.emacswiki.org/emacs/SqlBeautify)
  (sql-beautify-region (point-min) (point-max)))
 
 (define-advice org-edit-src-exit (:before (&rest _args) format-sql)
-  "Run `blacken-buffer' when leaving an org-mode Python source block."
   (when (eq major-mode 'sql-mode)
     (sql-beautify-buffer)))
 
@@ -3256,12 +3296,49 @@ citecolor=blue,filecolor=blue,menucolor=blue,urlcolor=blue"
 #+RESULTS:
 | lambda | (thekey) | (let ((bibtex-completion-bibliography (org-ref-find-bibliography))) (bibtex-completion-edit-notes (list (car (org-ref-get-bibtex-key-and-file thekey))))) |
 
+*** biblio.el
+
+#+BEGIN_SRC emacs-lisp
+(use-package biblio
+  :straight t)
+#+END_SRC
+
+#+RESULTS:
+: t
+
 ** org-download: insert screenshots/imgs into org files
 
 #+BEGIN_SRC emacs-lisp
+(defun get-image-directory (fpath)
+  (let* ((dir (file-name-directory fpath))
+         (base (file-name-base fpath)))
+    (concat dir "images/" base)))
+
+(defun jpj/set-org-download-image-dir ()
+  (let* ((fpath (get-current-fpath))
+         (image-dir (if fpath (get-image-directory fpath) nil)))
+    (when image-dir
+      (setq-local org-download-image-dir image-dir
+                  org-download-heading-lvl nil))))
+
 (use-package org-download
   :straight t
+  :config
+  (setq org-download-image-dir nil
+        org-download-heading-lvl nil
+        org-download-method 'directory)
+  (add-hook 'org-mode-hook 'jpj/set-org-download-image-dir)
 )
+#+END_SRC
+
+#+RESULTS:
+: t
+
+** org-reveal: export org to reveal.js slides
+
+#+BEGIN_SRC emacs-lisp
+(use-package ox-reveal
+  :straight t)
 #+END_SRC
 
 #+RESULTS:
@@ -3592,8 +3669,8 @@ Add node modules bin folder to exec-path
 
 
 
-(add-hook 'js-mode-hook (lambda ()
-  (web-mode-set-content-type "jsx")))
+;; (add-hook 'js-mode-hook (lambda ()
+;;   (web-mode-set-content-type "jsx")))
 (require 'js-format)
 (eval-after-load 'js-mode
     (add-hook 'js-mode-hook
@@ -3603,11 +3680,12 @@ Add node modules bin folder to exec-path
 (custom-set-variables
   '(js-auto-format-command "prettier")
   '(js-auto-format-command-args "--write --single-quote --no-semi"))
-  ;; using "jsbeautify-css" as css formatter
-  (eval-after-load 'css-mode
-    (add-hook 'css-mode-hook
-              (lambda()
-                (js-format-setup "jsb-css"))))
+
+;; using "jsbeautify-css" as css formatter
+;; (eval-after-load 'css-mode
+;;   (add-hook 'css-mode-hook
+;;             (lambda()
+;;               (js-format-setup "jsb-css"))))
 
 
 (add-hook `js2-mode-hook (lambda ()
@@ -3672,8 +3750,7 @@ Add node modules bin folder to exec-path
 #+RESULTS:
 : -c exec('__import__(\'readline\')') -i
 
-** blacken
-use-package doesn't seem to work with blacken
+** autoformatting using black
 
 #+BEGIN_SRC emacs-lisp
 (use-package blacken
@@ -3690,7 +3767,7 @@ use-package doesn't seem to work with blacken
 #+END_SRC
 
 #+RESULTS:
-: org-edit-src-exit@format-python
+| python-black-on-save-mode-enable-dwim | copilot-mode | (lambda nil (set (make-local-variable 'devdocs-current-docs) '(python~3.9 pandas~1 scikit_learn))) | python-docstring-mode | (lambda nil No eldoc for remote files (let ((name (buffer-file-name))) (if (and name (> (length name) 5) (string= /ssh: (substring name 0 5))) (progn (eldoc-mode -1))) (setq forward-sexp-function nil))) | eglot-ensure-if-not-ssh | blacken-mode |
 
 ** python jedi (unused)
 
@@ -4271,7 +4348,19 @@ built on top of dabbrev. let's try it out
 (use-package powerthesaurus
   :straight t
   :config
-  (bind-key* "s-p" 'powerthesaurus-lookup-word-dwim)
+  (defhydra hydra-powerthesaurus (:color blue :hint nil)
+    "
+    Powerthesaurus:
+    ^Synonyms^ ^Related^ ^Antonyms^ ^Definitions^
+    ----------------------------------------------
+    s: r: a: d:
+    "
+    ("s" powerthesaurus-lookup-synonyms-dwim)
+    ("r" powerthesaurus-lookup-related-dwim)
+    ("a" powerthesaurus-lookup-antonyms-dwim)
+    ("d" powerthesaurus-lookup-definitions-dwim))
+
+  (bind-key* "s-p" 'hydra-powerthesaurus/body)
   )
 #+END_SRC
 
@@ -4576,6 +4665,7 @@ major mode for editing .tf files
 #+END_SRC
 
 #+RESULTS:
+: t
 
 * vdirel
 
@@ -4634,7 +4724,7 @@ mu4e-attachment-dir "~/Downloads")
 (setq mu4e-get-mail-command "mbsync protonmail"
 mu4e-change-filenames-when-moving t   ; needed for mbsync
 mu4e-update-interval 120)             ; update every 2 minutes
-)
+
 
 ;; general emacs mail settings; used when composing e-mail
 ;; the non-mu4e-* stuff is inherited from emacs/message-mode
@@ -4650,7 +4740,7 @@ smtpmail-smtp-server "127.0.0.1"
 smtpmail-stream-type 'starttls
 smtpmail-smtp-service 1025)
 
-(add-to-list 'gnutls-trustfiles (expand-file-name "~/.config/protonmail/bridge/cert.pem"))
+;; (add-to-list 'gnutls-trustfiles (expand-file-name "~/.config/protonmail/bridge/cert.pem"))
 
 ;; don't keep message buffers around
 ;; (setq message-kill-buffer-on-exit t)
@@ -4665,3 +4755,15 @@ you might need to run the following shell command once:
 mu init --maildir=~/.mail
 mu index
 #+END_SRC
+
+* edit-line-mode
+
+#+BEGIN_SRC emacs-lisp
+;; local .el file
+;; (add-to-list 'load-path "~/.emacs.d")
+;; (require 'edit-line-mode)
+;; (global-set-key (kbd "C-c v") 'edit-line-start)
+#+END_SRC
+
+#+RESULTS:
+: edit-line-start

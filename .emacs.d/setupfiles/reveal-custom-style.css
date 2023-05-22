@@ -10,8 +10,12 @@
     font-size: 2.2rem;
 }
 
+.reveal section h4 {
+    font-size: 2rem;
+}
+
 .reveal section p, .reveal section ul, .reveal section ol, .reveal section a {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     text-align: left;
 }
 

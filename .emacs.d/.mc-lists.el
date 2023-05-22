@@ -42,7 +42,9 @@
         forward-sexp
         ibuffer-do-kill-on-deletion-marks
         ibuffer-mark-for-delete
+        ibuffer-unmark-backward
         indent-for-tab-command
+        indent-region
         indent-rigidly
         indent-rigidly-left
         indent-rigidly-right
@@ -77,6 +79,7 @@
         sql-magic-semicolon
         transpose-words
         upcase-region
+        wdired-next-line
         yaml-electric-backspace
         yaml-electric-dash-and-dot
         yas-expand
@@ -95,8 +98,10 @@
         deft
         describe-key
         dired-display-file
+        dired-do-flagged-delete
         dired-do-kill-lines
         dired-toggle-marks
+        dired-toggle-read-only
         dired-unmark-backward
         elpy-shell-send-statement-and-step
         end-of-buffer

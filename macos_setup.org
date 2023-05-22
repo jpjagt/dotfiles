@@ -201,3 +201,8 @@ then, delete (this info from) =~/.authinfo=.
 
 then, run =mbsync protonmail= to get the mail. for mu4e configuration, check
 the .emacs.d files.
+
+* pure paste
+
+automatically clears formatting and such from things you copy/paste. not
+available via brew, so follow instructions here: https://sindresorhus.com/pure-paste
