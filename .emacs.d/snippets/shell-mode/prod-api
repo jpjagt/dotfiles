@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: prod-api
+# key: prod-api
+# --
+source ~/.virtualenvs/prod-api/bin/activate

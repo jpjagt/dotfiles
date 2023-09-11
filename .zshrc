@@ -85,3 +85,7 @@ complete -o nospace -C /usr/local/bin/terraform terraform
 
 # show timestamp in front of prompt
 RPROMPT='%{$fg[yellow]%}[%D{%H:%M}] '$RPROMPT
+
+# jenv - java version manager
+export PATH="$HOME/.jenv/bin:$PATH"
+eval "$(jenv init -)"

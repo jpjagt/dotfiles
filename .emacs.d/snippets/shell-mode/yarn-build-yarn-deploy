@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: yarn-build-yarn-deploy
+# key: ybyd
+# --
+yarn build && yarn deploy

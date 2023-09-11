@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: git pull origin develop
+# key: gpld
+# --
+git pull origin ${1:develop}

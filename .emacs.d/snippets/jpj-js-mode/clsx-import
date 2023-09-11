@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: clsx-import
+# key: clsx
+# --
+import clsx from 'clsx'

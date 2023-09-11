@@ -1,0 +1,4 @@
+# key: srestart
+# name: supervisor-restart
+# --
+supervisorctl restart ${1:dev}:$1-${2:tinker}

@@ -206,3 +206,10 @@ the .emacs.d files.
 
 automatically clears formatting and such from things you copy/paste. not
 available via brew, so follow instructions here: https://sindresorhus.com/pure-paste
+
+* disable hide window shortcut
+
+needs to be done per app. for emacs:
+- go to Keyboard Shortcuts -> App Shortcut -> Add Shortcut (for emacs)
+- name: "Hide Emacs" (as it appears in menu bar)
+- shortcut: something you will never press.

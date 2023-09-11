@@ -136,6 +136,7 @@
         swiper
         switch-to-buffer-other-window
         text-scale-decrease
+        toggle-input-method
         undefined
         wdired-finish-edit
         ))
