@@ -19,6 +19,10 @@
     text-align: left;
 }
 
+.reveal section table {
+    font-size: 1.2rem;
+}
+
 .reveal section div.figure p {
     text-align: center;
 }

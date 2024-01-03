@@ -258,21 +258,56 @@ from https://www.masteringemacs.org/article/fixing-mark-commands-transient-mark-
 
 ** unfill paragraph/region
 #+BEGIN_SRC emacs-lisp
-(defun unfill-paragraph ()
-  (interactive)
-  (let ((fill-column (point-max)))
-    (fill-paragraph nil)))
+;; (defun unfill-paragraph ()
+;;   (interactive)
+;;   (let ((fill-column (point-max)))
+;;     (fill-paragraph nil)))
+
+;;; Stefan Monnier <foo at acm.org>. It is the opposite of fill-paragraph
+(defun unfill-paragraph (&optional region)
+  "Takes a multi-line paragraph and makes it into a single line of text."
+  (interactive (progn (barf-if-buffer-read-only) '(t)))
+  (let ((fill-column (point-max))
+        ;; This would override `fill-column' if it's an integer.
+        (emacs-lisp-docstring-fill-column t))
+    (fill-paragraph nil region)))
 
 (defun unfill-region ()
   (interactive)
   (let ((fill-column (point-max)))
     (fill-region (region-beginning) (region-end) nil)))
 
+;; (defun copy-unfilled-region ()
+;;   (interactive)
+;;   (let ((fill-column (point-max)))
+;;     (copy-region-as-kill (region-beginning) (region-end))
+;;     (with-temp-buffer
+;;       (yank)
+;;       (fill-region (point-min) (point-max) nil)
+;;       (kill-new (buffer-string)))))
+(defun copy-unfilled-region ()
+  "Copy the region to a temporary buffer, unfill each line from bottom to top, then copy back to the kill-ring."
+  (interactive)
+  (when (use-region-p)  ; Ensure there is an active region
+    (let ((region-text (buffer-substring-no-properties (region-beginning) (region-end))))
+      (with-temp-buffer
+        (org-mode)
+        (insert region-text)
+        (goto-char (point-max))  ; Start from the end of the buffer
+        (while (> (point) (point-min))
+          (unfill-paragraph)  ; Call your unfill-paragraph function
+          (forward-line -1))  ; Move up one line
+        (kill-new (buffer-string)))  ; Copy the result to the kill-ring
+      (deactivate-mark)
+      (message "Region unfilled and copied"))))
+
+
+
 (global-set-key "\C-ceu" 'unfill-paragraph)
 #+END_SRC
 
 #+RESULTS:
-: unfill-region
+: unfill-paragraph
 
 ** kill-word
 
@@ -644,19 +679,19 @@ Taken from https://stackoverflow.com/questions/2416655/file-path-to-clipboard-in
 ** god-mode
 
 #+BEGIN_SRC emacs-lisp
-(defun god-mode-update-cursor-type ()
-  (setq cursor-type (if (or god-local-mode buffer-read-only) 'bar 'box)))
+;; (defun god-mode-update-cursor-type ()
+;;   (setq cursor-type (if (or god-local-mode buffer-read-only) 'bar 'box)))
 
-(use-package god-mode
-  :straight t
-  :config
-  (global-set-key (kbd "<escape>") #'god-mode-all)
-  (setq god-exempt-major-modes nil)
-  (setq god-exempt-predicates nil)
-  (add-hook 'post-command-hook #'god-mode-update-cursor-type)
-  (define-key god-local-mode-map (kbd "z") #'repeat)
-  (define-key god-local-mode-map (kbd "i") #'god-local-mode)
-  )
+;; (use-package god-mode
+;;   :straight t
+;;   :config
+;;   (global-set-key (kbd "<escape>") #'god-mode-all)
+;;   (setq god-exempt-major-modes nil)
+;;   (setq god-exempt-predicates nil)
+;;   (add-hook 'post-command-hook #'god-mode-update-cursor-type)
+;;   (define-key god-local-mode-map (kbd "z") #'repeat)
+;;   (define-key god-local-mode-map (kbd "i") #'god-local-mode)
+;;   )
 #+END_SRC
 
 #+RESULTS:
@@ -763,6 +798,16 @@ Taken from https://stackoverflow.com/questions/2416655/file-path-to-clipboard-in
 #+END_SRC
 
 #+RESULTS:
+
+** gpg-agent stuff
+
+#+BEGIN_SRC emacs-lisp
+(setq epa-pinentry-mode 'loopback)
+(pinentry-start)
+#+END_SRC
+
+#+RESULTS:
+| :server-file | /var/folders/97/htw849gj5bq8x8l5306kmdfm0000gn/T/emacs501/pinentry |
 
 * appearance
 ** font lock
@@ -1431,6 +1476,7 @@ add remote endpoints
 (setq ssh-config '(
                    ;; ("fxr" "/ssh:jeroen@168.119.165.84:")
                    ("fxr" "/ssh:jeroen@fxr:")
+                   ("lodder" "/ssh:paul@www.lodder.dev:")
                    ("lisa-dl" "/ssh:lgpu0348@lisa.surfsara.nl:")
                   ))
 
@@ -3141,6 +3187,9 @@ Setting this variable causes auto-indentation inside org-mode src blocks
            shell sqlite ;; haskell
            sql)))
 
+(org-babel-do-load-languages
+ 'org-babel-load-languages '((python . t)))
+
 (defun my-org-confirm-babel-evaluate (lang body)
   (not (member lang '("ipython" "python" "emacs-lisp" "sh"))))
 
@@ -3304,11 +3353,6 @@ the shell, instead of executing it and having to wait for it to finish.
 (add-to-list 'org-latex-packages-alist '("" "minted"))
 (setq org-latex-listings 'minted)
 
-(setq org-latex-pdf-process
-      '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
-
 (setq org-src-fontify-natively t)
 
 ;; (org-babel-do-load-languages
@@ -3342,42 +3386,39 @@ the shell, instead of executing it and having to wait for it to finish.
 bibliography/citations
 
 #+BEGIN_SRC emacs-lisp
-;; installation
-;; (let ((packages (list 'org-plus-contrib 'org-ref)))
-;;   ; refresh if needed.
-;;   (unless (cl-every #'package-installed-p packages)
-;;     (package-refresh-contents))
+(use-package org-ref
+  :straight t
+  )
 
-;;   (dolist (package packages)
-;;     (unless (package-installed-p package)
-;;       (package-install package))))
+(setq bibtex-completion-bibliography '(
+                                       "~/Documents/literature/references.bib"
+                                       )
+  bibtex-completion-library-path '("~/Documents/literature/bibtex-pdfs/")
+  bibtex-completion-notes-path "~/Documents/literature/notes"
+  bibtex-completion-notes-template-multiple-files "* ${author-or-editor}, ${title}, ${journal}, (${year}) :${=type=}:\n"
+  ;; bibtex-completion-notes-template-multiple-files "* ${author-or-editor}, ${title}, ${journal}, (${year}) :${=type=}: \n\nSee [[cite:&${=key=}]]\n"
 
-(setq org-ref-notes-directory "~/Documents/literature/notes"
-      org-ref-pdf-directory "~/Documents/literature/bibtex-pdfs/"
-      org-ref-default-bibliography '("~/Documents/literature/references.bib")
-      )
-
-(setq bibtex-completion-bibliography
-      '(org-ref-default-bibliography
-        ))
-(setq bibtex-completion-notes-path org-ref-notes-directory)
-
-(unless (file-exists-p org-ref-pdf-directory)
-  (make-directory org-ref-pdf-directory t))
+  bibtex-completion-additional-search-fields '(keywords)
+  bibtex-completion-display-formats
+  '((article       . "${=has-pdf=:1}${=has-note=:1} ${year:4} ${author:36} ${title:*} ${journal:40}")
+    (inbook        . "${=has-pdf=:1}${=has-note=:1} ${year:4} ${author:36} ${title:*} Chapter ${chapter:32}")
+    (incollection  . "${=has-pdf=:1}${=has-note=:1} ${year:4} ${author:36} ${title:*} ${booktitle:40}")
+    (inproceedings . "${=has-pdf=:1}${=has-note=:1} ${year:4} ${author:36} ${title:*} ${booktitle:40}")
+    (t             . "${=has-pdf=:1}${=has-note=:1} ${year:4} ${author:36} ${title:*}"))
+  bibtex-completion-pdf-open-function
+  (lambda (fpath)
+    (call-process "open" nil 0 nil fpath)))
 
 ;; Some org-mode customization
 (setq org-src-fontify-natively t
       org-confirm-babel-evaluate nil
       org-src-preserve-indentation t)
 
-(org-babel-do-load-languages
- 'org-babel-load-languages '((python . t)))
-
 (setq org-latex-pdf-process
-      '("pdflatex -interaction nonstopmode -output-directory %o %f"
-  "bibtex %b"
-  "pdflatex -interaction nonstopmode -output-directory %o %f"
-  "pdflatex -interaction nonstopmode -output-directory %o %f"))
+      '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "bibtex %b"
+        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
 
 (setq bibtex-autokey-year-length 4
       bibtex-autokey-name-year-separator "-"
@@ -3387,6 +3428,9 @@ bibliography/citations
       bibtex-autokey-titlewords-stretch 1
       bibtex-autokey-titleword-length 5)
 
+(define-key bibtex-mode-map (kbd "s-b") 'org-ref-bibtex-hydra/body)
+(define-key org-mode-map (kbd "C-c ]") 'org-ref-insert-link)
+
 (use-package dash)
 (setq org-latex-default-packages-alist
       (-remove-item
@@ -3395,6 +3439,7 @@ bibliography/citations
 
 ;; Append new packages
 (add-to-list 'org-latex-default-packages-alist '("" "natbib" "") t)
+;; (add-to-list 'org-latex-default-packages-alist '("" "apacite" "") t)
 (add-to-list 'org-latex-default-packages-alist
        '("linktocpage,pdfstartview=FitH,colorlinks,
 linkcolor=blue,anchorcolor=blue,
@@ -3405,6 +3450,7 @@ citecolor=blue,filecolor=blue,menucolor=blue,urlcolor=blue"
 ;; some requires for basic org-ref usage
 ;; (require 'org-plus-contrib)
 (require 'org-ref)
+(require 'org-ref-helm)
 (require 'org-ref-pdf)
 (require 'org-ref-url-utils)
 
@@ -3429,7 +3475,16 @@ citecolor=blue,filecolor=blue,menucolor=blue,urlcolor=blue"
 #+END_SRC
 
 #+RESULTS:
-: t
+
+*** org-ref glossary
+
+#+BEGIN_SRC emacs-lisp
+(add-hook 'org-export-before-parsing-hook 'org-ref-glossary-before-parsing)
+(add-hook 'org-export-before-parsing-hook 'org-ref-acronyms-before-parsing)
+#+END_SRC
+
+#+RESULTS:
+| org-ref-acronyms-before-parsing | org-ref-glossary-before-parsing | org-attach-expand-links |
 
 ** org-download: insert screenshots/imgs into org files
 
@@ -3517,13 +3572,13 @@ citecolor=blue,filecolor=blue,menucolor=blue,urlcolor=blue"
         TeX-source-correlate-start-server t
         LaTeX-electric-left-right-brace t)
 
-  (setq bibtex-completion-bibliography
-        (mapcar (lambda (f)
-                  (concat
-                   "/path/to/media/data/tie/path/to/media/writing/bib/"
-                   f
-                   ".bib"))
-                '("bon" "counting" "dsls" "etc")))
+  ;; (setq bibtex-completion-bibliography
+  ;;       (mapcar (lambda (f)
+  ;;                 (concat
+  ;;                  "/path/to/media/data/tie/path/to/media/writing/bib/"
+  ;;                  f
+  ;;                  ".bib"))
+  ;;               '("bon" "counting" "dsls" "etc")))
 
   ;; Update PDF buffers after successful LaTeX runs
   (add-hook 'TeX-after-compilation-finished-functions
@@ -4917,3 +4972,107 @@ mu index
 #+END_SRC
 
 #+RESULTS:
+
+* my personal lil hydra
+
+#+BEGIN_SRC emacs-lisp
+(defun org-define-nyt-link (&optional complete-file)
+  "Prompt for a link, then insert it with 'nyt' as the visible text."
+  (interactive "P")
+  (let ((url (read-string "Enter URL: ")))
+    (org-insert-link complete-file url "nyt")))
+
+(defhydra hydra-personal (:color blue :hint nil)
+  "
+^Personal Macros/Things^
+-------------------------------
+_n_ : org-define-nyt-link
+_x_ : copy-unfilled-region
+"
+  ("n" org-define-nyt-link)
+  ("x" copy-unfilled-region)
+)
+
+(bind-key* "s-g o" 'hydra-personal/body)
+#+END_SRC
+
+#+RESULTS:
+: hydra-personal/body
+
+* pytest
+
+#+BEGIN_SRC emacs-lisp
+(defun my-python-pytest-setup ()
+    (when (and (boundp 'tramp-virtualenv-dir)
+               tramp-virtualenv-dir)
+      ;; Set python-pytest-executable to use the pytest in the virtual environment
+      (setq-local python-pytest-executable
+                  (concat tramp-virtualenv-dir "/bin/pytest"))))
+
+(use-package python-pytest
+  :straight t
+  :config
+  (add-hook 'python-mode-hook #'my-python-pytest-setup)
+  (bind-keys* :map python-mode-map
+            ((kbd "C-c y") . python-pytest-dispatch)
+            )
+  )
+#+END_SRC
+
+#+RESULTS:
+: t
+
+* gptel
+
+#+BEGIN_SRC emacs-lisp
+(use-package gptel
+  :straight (:host github :repo "karthink/gptel")
+)
+
+(defvar gptel-api-key-alist nil
+  "Association list of mode names and their corresponding GPT-EL API keys.")
+
+(defun gptel-set-api-key (mode-name)
+  "Interactively set the GPT-EL API key for a given MODE-NAME."
+  (interactive
+   (list (completing-read "Choose mode: " (mapcar #'car gptel-api-key-alist))))
+  (progn
+    ;; (setq gptel-default-mode 'org-mode)
+    (setq gptel-model "gpt-4-1106-preview")
+    (let ((key-pair (assoc mode-name gptel-api-key-alist)))
+    (if key-pair
+        (setq gptel-api-key (cdr key-pair))
+      (error "No API key found for mode: %s" mode-name)))))
+
+;; Example API key pairs (replace these with real keys)
+(setq gptel-api-key-alist
+      '(("fxr-mode" . "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")
+        ("private-mode" . "")))
+
+
+(defun chat ()
+  "Run gptel and then set the GPT-EL API key, both interactively."
+  (interactive)
+  (call-interactively 'gptel)
+  (auto-fill-mode 0)
+  (visual-line-mode)
+  ;; Wait for the gptel process to complete or initialize.
+  (run-with-idle-timer
+   0.3 nil ;; Adjust the delay time as needed.
+   (lambda ()
+     (call-interactively 'gptel-set-api-key)
+     (visual-line-mode)
+     (auto-fill-mode)
+     (setq default-directory "/Users/jeroen/gptel"))))
+#+END_SRC
+
+#+RESULTS:
+: chat
+
+to authenticate, add this to your .authinfo(.gpg):
+
+#+BEGIN_EXAMPLE
+machine api.openai.com login apikey password <key>
+#+END_EXAMPLE
+
+key from: https://platform.openai.com/api-keys

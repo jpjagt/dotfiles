@@ -22,6 +22,7 @@
         crux-rename-file-and-buffer
         dabbrev-expand
         default-indent-new-line
+        dired-clean-directory
         dired-flag-file-deletion
         dired-next-line
         downcase-region
@@ -65,6 +66,7 @@
         org-end-of-line
         org-fill-paragraph
         org-kill-line
+        org-open-at-point
         org-open-line
         org-promote-subtree
         org-return
@@ -100,6 +102,7 @@
         dired-display-file
         dired-do-flagged-delete
         dired-do-kill-lines
+        dired-find-alternate-file
         dired-toggle-marks
         dired-toggle-read-only
         dired-unmark-backward
@@ -119,6 +122,7 @@
         mark-whole-buffer
         mouse-drag-secondary
         mouse-set-region
+        mouse-start-secondary
         move-windows
         org-ctrl-c-ctrl-c
         org-cycle
@@ -138,5 +142,6 @@
         text-scale-decrease
         toggle-input-method
         undefined
+        wdired-exit
         wdired-finish-edit
         ))
