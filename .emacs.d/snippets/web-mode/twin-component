@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
 # name: twin-component
-# key: <twc
+# key: twc
 # --
 import React from 'react'
 import tw from 'twin.macro'

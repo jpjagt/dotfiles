@@ -1,5 +1,5 @@
 # -*- mode: snippet -*-
 # name: import-twin-macro-no-tw
-# key: <twi
+# key: twi
 # --
 import 'twin.macro'

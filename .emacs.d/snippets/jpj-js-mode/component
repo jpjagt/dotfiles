@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: component
+# key: com
+# --
+const ${1:`(file-name-sans-extension (file-name-nondirectory (buffer-file-name)))`} = () => {
+  return ${0:null}
+}
+
+export default $1

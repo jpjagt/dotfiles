@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: poetry-command
+# key: poe
+# --
+poetry --no-ansi ${1:install}

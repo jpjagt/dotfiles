@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: import from relative types
+# key: rimt
+# --
+import { $1 } from './types'

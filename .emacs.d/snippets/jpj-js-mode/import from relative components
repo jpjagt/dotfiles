@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: import from relative components
+# key: rimc
+# --
+import { $1 } from './components'

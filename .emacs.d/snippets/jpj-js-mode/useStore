@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: useStore
+# key: useStore
+# --
+const ${1:} = useStore((state) => state.$0$1)

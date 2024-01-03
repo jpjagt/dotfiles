@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: from rs import
+# key: rsi
+# --
+from rs.$1 import $0
