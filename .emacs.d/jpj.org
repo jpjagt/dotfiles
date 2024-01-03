@@ -5046,7 +5046,7 @@ _x_ : copy-unfilled-region
 
 ;; Example API key pairs (replace these with real keys)
 (setq gptel-api-key-alist
-      '(("fxr-mode" . "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")
+      '(("fxr-mode" . "")
         ("private-mode" . "")))
 
 
