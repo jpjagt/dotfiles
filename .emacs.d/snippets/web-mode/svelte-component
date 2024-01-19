@@ -3,11 +3,7 @@
 # key: svc
 # --
 <script lang="ts">
+  import { tw } from 'twind'
 </script>
 
 <${1:div}></$1>
-
-<style lang="scss">
-  $1 {
-  }
-</style>

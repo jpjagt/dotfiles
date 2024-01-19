@@ -6,7 +6,7 @@
  '(ac-ispell-fuzzy-limit 4)
  '(ac-ispell-requires 4)
  '(custom-safe-themes
-   '("3c2f28c6ba2ad7373ea4c43f28fcf2eed14818ec9f0659b1c97d4e89c99e091e" "c83c095dd01cde64b631fb0fe5980587deec3834dc55144a6e78ff91ebc80b19" "3f5f69bfa958dcf04066ab2661eb2698252c0e40b8e61104e3162e341cee1eb9" "672bb062b9c92e62d7c370897b131729c3f7fd8e8de71fc00d70c5081c80048c" "00445e6f15d31e9afaa23ed0d765850e9cd5e929be5e8e63b114a3346236c44c" "13a8eaddb003fd0d561096e11e1a91b029d3c9d64554f8e897b2513dbf14b277" "7f1d414afda803f3244c6fb4c2c64bea44dac040ed3731ec9d75275b9e831fe5" "51ec7bfa54adf5fff5d466248ea6431097f5a18224788d0bd7eb1257a4f7b773" "830877f4aab227556548dc0a28bf395d0abe0e3a0ab95455731c9ea5ab5fe4e1" "2809bcb77ad21312897b541134981282dc455ccd7c14d74cc333b6e549b824f3" default))
+   '("c433c87bd4b64b8ba9890e8ed64597ea0f8eb0396f4c9a9e01bd20a04d15d358" "9b59e147dbbde5e638ea1cde5ec0a358d5f269d27bd2b893a0947c4a867e14c1" "3c2f28c6ba2ad7373ea4c43f28fcf2eed14818ec9f0659b1c97d4e89c99e091e" "c83c095dd01cde64b631fb0fe5980587deec3834dc55144a6e78ff91ebc80b19" "3f5f69bfa958dcf04066ab2661eb2698252c0e40b8e61104e3162e341cee1eb9" "672bb062b9c92e62d7c370897b131729c3f7fd8e8de71fc00d70c5081c80048c" "00445e6f15d31e9afaa23ed0d765850e9cd5e929be5e8e63b114a3346236c44c" "13a8eaddb003fd0d561096e11e1a91b029d3c9d64554f8e897b2513dbf14b277" "7f1d414afda803f3244c6fb4c2c64bea44dac040ed3731ec9d75275b9e831fe5" "51ec7bfa54adf5fff5d466248ea6431097f5a18224788d0bd7eb1257a4f7b773" "830877f4aab227556548dc0a28bf395d0abe0e3a0ab95455731c9ea5ab5fe4e1" "2809bcb77ad21312897b541134981282dc455ccd7c14d74cc333b6e549b824f3" default))
  '(doc-view-resolution 300)
  '(ess-indent-with-fancy-comments nil)
  '(help-at-pt-display-when-idle '(flymake-overlay) nil (help-at-pt))
@@ -17,8 +17,10 @@
  '(jdee-db-spec-breakpoint-face-colors (cons "#1c1f2b" "#676E95"))
  '(js-auto-format-command "prettier")
  '(js-auto-format-command-args "--write --single-quote --no-semi")
+ '(marginalia-mode nil)
  '(objed-cursor-color "#ff5370")
- '(org-agenda-files '("~/Documents/uni/made-msc/y1/p2/mi/essay/essay.org"))
+ '(org-agenda-files
+   '("/Users/jeroen/Documents/uni/made-msc/y2/ll/reflection.org" "/Users/jeroen/Documents/uni/made-msc/y1/p2/mi/essay/essay.org"))
  '(package-selected-packages
    '(consult use-package quelpa orderless expand-region exwm tide rjsx-mode scss-mode js-format htmlize smooth-scroll smooth-scrolling slack neotree ts org-mime oauth2 auctex-lua request auctex srefactor emojify-logos call-graph indium wiki-summary simple-call-tree google-this undo-tree smartparens swoop tree-mode magit swiper-helm counsel-tramp tramp-term))
  '(pdf-view-midnight-colors (cons "#EEFFFF" "#292D3E"))

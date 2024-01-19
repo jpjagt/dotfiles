@@ -142,6 +142,7 @@
         text-scale-decrease
         toggle-input-method
         undefined
+        wdired-abort-changes
         wdired-exit
         wdired-finish-edit
         ))

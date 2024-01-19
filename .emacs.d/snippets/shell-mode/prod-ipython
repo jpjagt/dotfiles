@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: prod-ipython
+# key: prodipy
+# --
+FXRENV=prod ipython --simple-prompt -i --colors=Linux --profile=default

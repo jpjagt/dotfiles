@@ -1802,6 +1802,14 @@ show filesize as kb, mb, etc:
                (file-path (car split-path-and-line))
                (line-number (when (cadr split-path-and-line)
                               (string-to-number (cadr split-path-and-line)))))
+          ;; Check if current buffer is using tramp
+          (when (tramp-tramp-file-p default-directory)
+            ;; Extract tramp prefix from current buffer's default directory
+            (let* ((tramp-prefix (tramp-dissect-file-name default-directory))
+                   ;; Correctly format user and host
+                   (tramp-user-host (concat (tramp-file-name-user tramp-prefix) "@" (tramp-file-name-host tramp-prefix))))
+              ;; Prepend tramp prefix to file path
+              (setq file-path (concat "/ssh:" tramp-user-host ":" file-path))))
           (if (file-exists-p file-path)
               (progn
                 (find-file file-path)
@@ -2480,7 +2488,15 @@ second package: prettier-js, which autoformats js files on save. for this, i als
 add-node-modules-path
 
 #+BEGIN_SRC emacs-lisp
-(setq prettier-js-args (list "--no-semi" "--single-quote"))
+(use-package prettier-js
+  :straight t
+  :config
+  (add-hook 'js-mode-hook 'prettier-js-mode)
+  (add-hook 'web-mode-hook 'prettier-js-mode)
+  (eval-after-load 'js-mode (lambda ()
+                              (define-key js-mode-map (kbd "C-c C-c")  'indium-reload)))
+  (setq prettier-js-args (list "--no-semi" "--single-quote"))
+  )
 
 (defun web-mode-init-prettier-hook ()
   (prettier-js-mode))
@@ -2492,7 +2508,7 @@ add-node-modules-path
 #+END_SRC
 
 #+RESULTS:
-| add-node-modules-path | prettier-js-mode | web-mode-init-prettier-hook | web-mode-init-hook | web-mode-init-emmet-hook | eglot-ensure |
+| web-mode-init-prettier-hook | add-node-modules-path | copilot-mode | prettier-js-mode | web-mode-init-hook | web-mode-init-emmet-hook | set-eglot-server-program-in-typescript-buffer |
 
 then, flymake-eslint, which does eslint:
 
@@ -3095,7 +3111,27 @@ ease, use this:
 #+RESULTS:
 : poporg-dwim
 
-** org export to (github) markdown
+
+** org exporting
+*** html: export images embedded in html file
+
+#+BEGIN_SRC emacs-lisp
+(with-eval-after-load 'ol
+  (org-link-set-parameters
+   "img"
+   :follow (lambda (path arg) (org-link-open-as-file path arg))
+   :export (lambda (path desc backend cchannel)
+             (cond ((eq backend 'html)
+                    (format "<img style=\"max-width:80%%;margin:2em\" src=\"data:image/jpg;base64,%s\">"
+                            (base64-encode-string
+                              (with-temp-buffer
+                                (insert-file-contents path)
+                                  (buffer-string)))))))))
+#+END_SRC
+
+#+RESULTS:
+
+*** enable export to (github) markdown
 
 #+BEGIN_SRC emacs-lisp
 (use-package ox-gfm
@@ -3837,35 +3873,17 @@ enable command substitution
 
 * javascript
 ** auto-format
-Add node modules bin folder to exec-path
 
 #+BEGIN_SRC emacs-lisp
-(push "~/.node_modules_global/bin" exec-path)
-(load-file "~/.emacs.d/prettier-emacs/prettier-js.el")
-(add-hook 'js-mode-hook 'prettier-js-mode)
-(add-hook 'web-mode-hook 'prettier-js-mode)
-(eval-after-load 'js-mode (lambda ()
-                            (define-key js-mode-map (kbd "C-c C-c")  'indium-reload)))
-
-
-
-;; (add-hook 'js-mode-hook (lambda ()
-;;   (web-mode-set-content-type "jsx")))
 (require 'js-format)
 (eval-after-load 'js-mode
-    (add-hook 'js-mode-hook
-              (lambda()
-                (js-format-setup "airbnb")))
-    )
+  (add-hook 'js-mode-hook
+            (lambda()
+              (js-format-setup "airbnb")))
+  )
 (custom-set-variables
-  '(js-auto-format-command "prettier")
-  '(js-auto-format-command-args "--write --single-quote --no-semi"))
-
-;; using "jsbeautify-css" as css formatter
-;; (eval-after-load 'css-mode
-;;   (add-hook 'css-mode-hook
-;;             (lambda()
-;;               (js-format-setup "jsb-css"))))
+ '(js-auto-format-command "prettier")
+ '(js-auto-format-command-args "--write --single-quote --no-semi"))
 
 
 (add-hook `js2-mode-hook (lambda ()
@@ -3873,13 +3891,13 @@ Add node modules bin folder to exec-path
 #+END_SRC
 
 #+RESULTS:
+| lambda | nil | (global-set-key (kbd C-c C-v) #'js-format-buffer) |
 
 #+RESULTS:
 : scss-mode
 
 #+RESULTS:
 #+BEGIN_SRC emacs-lisp
-(load-file "~/.emacs.d/prettier-emacs/prettier-js.el")
 (defun my/activate-tide-mode ()
   "Use hl-identifier-mode only on js or ts buffers."
   (when (and (stringp buffer-file-name)
@@ -3916,36 +3934,59 @@ Add node modules bin folder to exec-path
 * python
 
 #+BEGIN_SRC emacs-lisp
-;; (define-key dump-jump-mode-map (kbd "C-M-p") nil)
-;; python-indent-dedent-line-backspace
 (use-package python
-  :ensure t
+  :straight t
   :mode ("\\.py\\'" . python-mode)
-  :interpreter ("python" . python-mode)
+  :interpreter ("python" . python-mode))
+
+(use-package virtualenvwrapper
+  :straight t
   :config
-  (setq python-shell-interpreter "/Users/jeroen/.virtualenvs/base/bin/ipython -i --simple-prompt")
-  (setq py-shell-name "ipython")
-  (setq python-shell-interpreter-args "-c exec('__import__(\\'readline\\')') -i --simple-prompt")
-  ;; (setq
-  ;;  python-shell-prompt-regexp "In \\[[0-9]+\\]: "
-  ;;  python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
-  ;;  python-shell-completion-setup-code "from IPython.core.completerlib import module_completion"
-  ;;  python-shell-completion-module-string-code "';'.join(module_completion('''%s'''))\n"
-  ;;  python-shell-completion-string-code "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
-  (push '("\\.ipynb$" . js2-mode) auto-mode-alist)
-  :hook
-  (python-mode . (lambda ()
-                   "No eldoc for remote files"
-                   (let ((name (buffer-file-name)))
-                     (when (and name
-                                (> (length name) 5)
-                                (string= "/ssh:" (substring name 0 5)))
-                       (eldoc-mode -1))
-                     (setq forward-sexp-function nil)))))
+  (venv-initialize-interactive-shells) ;; if you want interactive shell support
+  (venv-initialize-eshell) ;; if you want eshell support
+  :hook (python-mode . venv-projectile-auto-workon))
+
+(defun my/python-mode-hook ()
+  (setq python-shell-interpreter "ipython"
+        python-shell-interpreter-args "--simple-prompt -i"))
+
+(add-hook 'python-mode-hook 'my/python-mode-hook)
+
+;; (use-package venv-projectile
+;;   :straight t
+;;   :after (projectile virtualenvwrapper))
+
+
+;; ;; (define-key dump-jump-mode-map (kbd "C-M-p") nil)
+;; ;; python-indent-dedent-line-backspace
+;; (use-package python
+;;   :ensure t
+;;   :mode ("\\.py\\'" . python-mode)
+;;   :interpreter ("python" . python-mode)
+;;   :config
+;;   (setq python-shell-interpreter "/Users/jeroen/.virtualenvs/base/bin/ipython -i --simple-prompt")
+;;   (setq py-shell-name "ipython")
+;;   (setq python-shell-interpreter-args "-c exec('__import__(\\'readline\\')') -i --simple-prompt")
+;;   ;; (setq
+;;   ;;  python-shell-prompt-regexp "In \\[[0-9]+\\]: "
+;;   ;;  python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
+;;   ;;  python-shell-completion-setup-code "from IPython.core.completerlib import module_completion"
+;;   ;;  python-shell-completion-module-string-code "';'.join(module_completion('''%s'''))\n"
+;;   ;;  python-shell-completion-string-code "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
+;;   (push '("\\.ipynb$" . js2-mode) auto-mode-alist)
+;;   :hook
+;;   (python-mode . (lambda ()
+;;                    "No eldoc for remote files"
+;;                    (let ((name (buffer-file-name)))
+;;                      (when (and name
+;;                                 (> (length name) 5)
+;;                                 (string= "/ssh:" (substring name 0 5)))
+;;                        (eldoc-mode -1))
+;;                      (setq forward-sexp-function nil)))))
 #+END_SRC
 
 #+RESULTS:
-: -c exec('__import__(\'readline\')') -i
+| my/python-mode-hook | venv-projectile-auto-workon | (lambda nil No eldoc for remote files (let ((name (buffer-file-name))) (when (and name (> (length name) 5) (string= /ssh: (substring name 0 5))) (eldoc-mode -1)) (setq forward-sexp-function nil))) | my-python-pytest-setup | copilot-mode | (lambda nil (set (make-local-variable 'devdocs-current-docs) '(python~3.9 pandas~1 scikit_learn))) | python-docstring-mode | (lambda nil No eldoc for remote files (let ((name (buffer-file-name))) (if (and name (> (length name) 5) (string= /ssh: (substring name 0 5))) (progn (eldoc-mode -1))) (setq forward-sexp-function nil))) | eglot-ensure-if-not-ssh | blacken-mode |
 
 ** autoformatting using black
 
@@ -5044,11 +5085,13 @@ _x_ : copy-unfilled-region
         (setq gptel-api-key (cdr key-pair))
       (error "No API key found for mode: %s" mode-name)))))
 
-;; Example API key pairs (replace these with real keys)
-(setq gptel-api-key-alist
-      '(("fxr-mode" . "")
-        ("private-mode" . "")))
+;; Example API key pairs (replace these with real keys):
+;; (setq gptel-api-key-alist
+;;       '(("fxr-mode" . "")
+;;         ("private-mode" . "")))
 
+;; set api keys in ./env.el
+(load-file "./env.el")
 
 (defun chat ()
   "Run gptel and then set the GPT-EL API key, both interactively."

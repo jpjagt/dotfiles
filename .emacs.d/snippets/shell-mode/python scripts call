@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: python scripts call
+# key: pscr
+# --
+python scripts/$1.py $0
