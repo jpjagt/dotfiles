@@ -18,9 +18,10 @@
 #+OPTIONS: ^:nil
 #+LATEX_COMPILER: pdflatex
 
-* installation source
+* installating emacs
 
-i installed from brew: =brew install --cask emacs=
+i installed a version of emacs optimized for mac, check installation
+instructions at https://github.com/railwaycat/homebrew-emacsmacport.
 
 * system preferences
 

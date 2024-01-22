@@ -20,18 +20,6 @@
 
 - C-q (never used)
 
-* init
-
-#+BEGIN_SRC emacs-lisp
-(use-package exec-path-from-shell
-  :straight t
-  )
-
-(when (memq window-system '(mac ns x))
-  (exec-path-from-shell-initialize))
-#+END_SRC
-
-
 * basic emacs
 
 ** keymap fns
@@ -52,6 +40,15 @@
 
 #+RESULTS:
 
+** suppress warnings
+
+#+BEGIN_SRC emacs-lisp
+(setq warning-minimum-level :error)
+#+END_SRC
+
+#+RESULTS:
+: :error
+
 ** startup
 
 suppress noise on start up
@@ -67,8 +64,16 @@ suppress noise on start up
 ** fullscreen
 
 #+BEGIN_SRC emacs-lisp
-(toggle-frame-fullscreen)
-(toggle-frame-fullscreen)
+(defun toggle-fullscreen ()
+  "Toggle full screen on Emacs mac."
+  (interactive)
+  (set-frame-parameter
+   nil 'fullscreen
+   (when (not (frame-parameter nil 'fullscreen)) 'fullscreen)))
+
+(global-set-key [f11] 'toggle-fullscreen) ; Bind F11 key to toggle fullscreen
+
+(toggle-fullscreen)
 #+END_SRC
 
 #+RESULTS:
@@ -99,11 +104,6 @@ case that you kill something within emacs.
 (defun jpj ()
   (interactive)
   (find-file "~/.emacs.d/jpj.org")
-  )
-
-(defun thesis ()
-  (interactive)
-  (find-file "~/Documents/uni/made-msc/thesis/deliverables/thesis.org")
   )
 #+END_SRC
 
@@ -186,8 +186,22 @@ https://www.emacswiki.org/emacs/BackspaceKey:
 *** other
 
 #+BEGIN_SRC emacs-lisp
+(bind-key* "s-s" 'shell)
 (bind-key* "s-u"  'revert-buffer)
 (bind-key* "C-c j"  'join-line)
+
+;; buffer management
+(global-set-key (kbd "C-c b") 'bury-buffer)
+(global-set-key (kbd "C-x C-b") 'ibuffer)
+
+;; zoom in/out
+(global-set-key (kbd "C-+") 'text-scale-increase)
+(global-set-key (kbd "C--") 'text-scale-decrease)
+
+(add-hook 'emacs-lisp-mode-hook
+          (lambda ()
+            (local-set-key (kbd "C-c C-c") 'eval-buffer)))
+nil
 #+END_SRC
 
 #+RESULTS:
@@ -243,7 +257,7 @@ from https://www.masteringemacs.org/article/fixing-mark-commands-transient-mark-
   This is the same as using \\[set-mark-command] with the prefix argument."
   (interactive)
   (set-mark-command 1))
-(global-set-key (kbd "M-`") 'jump-to-mark)
+(global-set-key (kbd "s-`") 'jump-to-mark)
 
 ;; (defun exchange-point-and-mark-no-activate ()
 ;;   "Identical to \\[exchange-point-and-mark] but will not activate the region."
@@ -254,15 +268,10 @@ from https://www.masteringemacs.org/article/fixing-mark-commands-transient-mark-
 #+END_SRC
 
 #+RESULTS:
-: exchange-point-and-mark-no-activate
+: jump-to-mark
 
 ** unfill paragraph/region
 #+BEGIN_SRC emacs-lisp
-;; (defun unfill-paragraph ()
-;;   (interactive)
-;;   (let ((fill-column (point-max)))
-;;     (fill-paragraph nil)))
-
 ;;; Stefan Monnier <foo at acm.org>. It is the opposite of fill-paragraph
 (defun unfill-paragraph (&optional region)
   "Takes a multi-line paragraph and makes it into a single line of text."
@@ -277,14 +286,6 @@ from https://www.masteringemacs.org/article/fixing-mark-commands-transient-mark-
   (let ((fill-column (point-max)))
     (fill-region (region-beginning) (region-end) nil)))
 
-;; (defun copy-unfilled-region ()
-;;   (interactive)
-;;   (let ((fill-column (point-max)))
-;;     (copy-region-as-kill (region-beginning) (region-end))
-;;     (with-temp-buffer
-;;       (yank)
-;;       (fill-region (point-min) (point-max) nil)
-;;       (kill-new (buffer-string)))))
 (defun copy-unfilled-region ()
   "Copy the region to a temporary buffer, unfill each line from bottom to top, then copy back to the kill-ring."
   (interactive)
@@ -300,8 +301,6 @@ from https://www.masteringemacs.org/article/fixing-mark-commands-transient-mark-
         (kill-new (buffer-string)))  ; Copy the result to the kill-ring
       (deactivate-mark)
       (message "Region unfilled and copied"))))
-
-
 
 (global-set-key "\C-ceu" 'unfill-paragraph)
 #+END_SRC
@@ -420,18 +419,8 @@ Taken from https://emacs.stackexchange.com/questions/10786/remove-parentheses-ar
 
 #+RESULTS:
 : my-move-region-inwards
-* vital functions/libraries
-** [paul] regexp-orrify
 
-#+BEGIN_SRC emacs-lisp
-(defun regexp-orrify (&rest disjuncts)
-  "Return the regexp disjunction of the given regexps"
-  (cond ((null disjuncts) "")
-        ((null (cdr disjuncts)) (car disjuncts))
-        (t (concat (car disjuncts)
-                   "\\|"
-                   (apply #'regexp-orrify (cdr disjuncts))))))
-#+END_SRC
+* vital functions/libraries
 
 ** s (string manipulation)
 
@@ -451,7 +440,6 @@ Taken from https://emacs.stackexchange.com/questions/10786/remove-parentheses-ar
 #+END_SRC
 
 #+RESULTS:
-
 
 ** crux
 
@@ -563,21 +551,7 @@ current line, rather than the whole line, in the absence of a region:
 
 =(crux-with-region-or-point-to-eol kill-ring-save)=
 
-** jeroen fns
-
-*** execute region lisp and put in current buffer
-
-#+BEGIN_SRC emacs-lisp
-(defun eval-region-and-insert ()
-  (interactive)
-  (let ((currbuf (get-buffer (or (buffer-file-name) (buffer-name)))))
-    (eval-region (region-beginning) (region-end) currbuf)
-                        ))
-
-#+END_SRC
-
-#+RESULTS:
-: eval-region-and-insert
+** jpj fns
 
 *** find-and-replace-in-git-repo
 
@@ -671,31 +645,14 @@ Taken from https://stackoverflow.com/questions/2416655/file-path-to-clipboard-in
     (when filename
       (kill-new filename)
       (message "Copied buffer file name '%s' to the clipboard." filename))))
+
+(defun cname ()
+  (interactive)
+  (cfile))
 #+END_SRC
 
 #+RESULTS:
 : cfile
-
-** god-mode
-
-#+BEGIN_SRC emacs-lisp
-;; (defun god-mode-update-cursor-type ()
-;;   (setq cursor-type (if (or god-local-mode buffer-read-only) 'bar 'box)))
-
-;; (use-package god-mode
-;;   :straight t
-;;   :config
-;;   (global-set-key (kbd "<escape>") #'god-mode-all)
-;;   (setq god-exempt-major-modes nil)
-;;   (setq god-exempt-predicates nil)
-;;   (add-hook 'post-command-hook #'god-mode-update-cursor-type)
-;;   (define-key god-local-mode-map (kbd "z") #'repeat)
-;;   (define-key god-local-mode-map (kbd "i") #'god-local-mode)
-;;   )
-#+END_SRC
-
-#+RESULTS:
-: t
 
 ** meow (modal editing)
 
@@ -802,12 +759,26 @@ Taken from https://stackoverflow.com/questions/2416655/file-path-to-clipboard-in
 ** gpg-agent stuff
 
 #+BEGIN_SRC emacs-lisp
-(setq epa-pinentry-mode 'loopback)
-(pinentry-start)
+  (use-package pinentry
+        :straight t)
+
+  (setq epa-pinentry-mode 'loopback)
+  (pinentry-start)
 #+END_SRC
 
 #+RESULTS:
 | :server-file | /var/folders/97/htw849gj5bq8x8l5306kmdfm0000gn/T/emacs501/pinentry |
+
+
+* compat
+
+#+BEGIN_SRC emacs-lisp
+(use-package compat
+  :straight t
+  :config
+  (require 'compat)
+)
+#+END_SRC
 
 * appearance
 ** font lock
@@ -878,14 +849,6 @@ Turn off all windows decoration.
 
 #+RESULTS:
 : t
-
-** prettify
-#+BEGIN_SRC emacs-lisp
-(load-org "prettify.org")
-#+END_SRC
-
-#+RESULTS:
-: Loaded ~/.emacs.d/prettify.el
 
 ** theming
 
@@ -1081,20 +1044,6 @@ not used because it uses the header :(
 #+RESULTS:
 : wrap-region-in-trans
 
-* prot
-https://gitlab.com/protesilaos/dotfiles
-
-to clone to the proper path:
-=cd ~/.emacs.d && mkdir repos && cd repos && mkdir protesilaos && cd protesilaos && git clone https://gitlab.com/protesilaos/dotfiles.git=
-
-add his prot-.el files to load-path:
-
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'load-path "~/.emacs.d/repos/protesilaos/dotfiles/emacs/.emacs.d/straight/repos/prot-lisp/")
-
-nil
-#+END_SRC
-
 * bug-hunter
 
   #+BEGIN_SRC emacs-lisp
@@ -1106,49 +1055,15 @@ nil
 
 * selection candidates and search
 
-** orderless (replaced by prescient)
+** vertico
 
 #+BEGIN_SRC emacs-lisp
-;; (use-package prot-orderless
-;;   :demand
-;;   :config
-;;   (setq prot-orderless-default-styles
-;;         '(orderless-prefixes
-;;           orderless-literal
-;;           orderless-strict-leading-initialism
-;;           orderless-regexp
-;;           orderless-flex))
-;;   (setq prot-orderless-alternative-styles
-;;         '(orderless-literal
-;;           orderless-prefixes
-;;           orderless-strict-leading-initialism
-;;           orderless-regexp)))
-
-;; (use-package orderless
-;;   :ensure t
-;;   :demand
-;;   :after prot-orderless
-;;   :config
-;;   (setq orderless-component-separator " +")
-;;   (setq orderless-matching-styles prot-orderless-default-styles)
-;;   (setq orderless-style-dispatchers
-;;         '(prot-orderless-literal-dispatcher
-;;           prot-orderless-initialism-dispatcher))
-;;   ;; SPC should never complete: use it for `orderless' groups.
-;;   :bind (:map minibuffer-local-completion-map
-;;               ("SPC" . nil)))
-#+END_SRC
-
-#+RESULTS:
-** selectrum
-
-#+BEGIN_SRC emacs-lisp
-(use-package selectrum
-  :straight t
+(use-package vertico
+  :straight (:files (:defaults "extensions/*"))
   :config
-  (set-face-attribute 'selectrum-current-candidate nil :background (doom-darken "#c792ea" 0.6))
-  (selectrum-mode +1)
-)
+  (set-face-attribute 'vertico-current nil :background (doom-darken "#c792ea" 0.6))
+  :init
+  (vertico-mode))
 #+END_SRC
 
 #+RESULTS:
@@ -1156,17 +1071,17 @@ nil
 
 *** prescient
 
-selectrum provides no smart sorting OOTB, for which we use =prescient.el=:
+prescient makes sorting and filtering more intelligent.
 
 #+BEGIN_SRC emacs-lisp
-;; to make sorting and filtering more intelligent
-(straight-use-package 'selectrum-prescient)
-(selectrum-prescient-mode +1)
-(prescient-persist-mode +1)
+(use-package vertico-prescient
+  :straight t
+  :init
+  (vertico-prescient-mode 1)
+  (prescient-persist-mode 1))
 #+END_SRC
 
 #+RESULTS:
-: t
 
 ** marginalia
 
@@ -1216,36 +1131,19 @@ selectrum provides no smart sorting OOTB, for which we use =prescient.el=:
          ("M-s m" . consult-mark)
          ("C-j" . consult-buffer)
          ("C-x b" . consult-buffer)
+         ("M-s i" . consult-imenu)
+         ("M-s s" . consult-outline)    ; M-s o is `occur'
+         ("M-y" . consult-yank-from-kill-ring)
+         ("M-s l" . consult-line)
          :map consult-narrow-map
          ("?" . consult-narrow-help)))
 
 ;; enforce the switch-buffer binding
 (bind-key* "C-j" 'consult-buffer)
-
-(use-package prot-consult
-  ;; :after (consult prot-pulse)
-  :after (consult)
-  :config
-  (setq consult-project-root-function #'prot-consult-project-root)
-  (setq prot-consult-add-advice-set-hooks t)
-  (setq prot-consult-command-centre-list
-        '(consult-line
-          prot-consult-line
-          consult-mark))
-  (setq prot-consult-command-top-list
-        '(consult-outline
-          consult-imenu
-          prot-consult-outline
-          prot-consult-imenu))
-  (prot-consult-set-up-hooks-mode 1)
-  :bind (("M-s i" . prot-consult-imenu)
-         ("M-s s" . prot-consult-outline)    ; M-s o is `occur'
-         ("M-y" . prot-consult-yank)
-         ("M-s l" . prot-consult-line)))
 #+END_SRC
 
 #+RESULTS:
-: prot-consult-line
+: consult-buffer
 
 ** embark
 
@@ -1290,23 +1188,7 @@ selectrum provides no smart sorting OOTB, for which we use =prescient.el=:
 * minibuffer
 
 #+BEGIN_SRC emacs-lisp
-(use-package prot-minibuffer
-  :demand
-  :bind (("s-v" . prot-minibuffer-focus-mini-or-completions)
-         :map completion-list-mode-map
-         ("M-v" . prot-minibuffer-focus-mini)
-         ("h" . prot-simple-describe-symbol) ; from `prot-simple.el'
-         ;; Those are DE FACTO DEPRECATED generic actions for the
-         ;; "*Completions*" buffer.  I normally use `embark' and its own
-         ;; buffers.
-         ("w" . prot-minibuffer-completions-kill-symbol-at-point)
-         ("i" . prot-minibuffer-completions-insert-symbol-at-point)
-         ("j" . prot-minibuffer-completions-insert-symbol-at-point-exit))
-  :hook (minibuffer-setup-hook . prot-minibuffer-mini-cursor))
-
 (use-package minibuffer
-  :demand
-  :after prot-minibuffer
   :config
   (setq completion-styles '(orderless partial-completion))
   (setq completion-category-defaults nil)
@@ -1360,89 +1242,6 @@ selectrum provides no smart sorting OOTB, for which we use =prescient.el=:
 #+RESULTS:
 : previous-completion
 
-* window/buffer management
-** perspective
-
-#+BEGIN_SRC emacs-lisp
-(use-package perspective
-  :straight t
-  :bind (("C-x k" . persp-kill-buffer*))
-  :init
-  (persp-mode))
-
-;; persp-counsel-switch-buffer
-;; persp-ibuffer
-;; persp-switch-to-buffer (see ALL buffers and switch to perspective correctly)
-#+END_SRC
-
-** manage window view
-
-#+BEGIN_SRC emacs-lisp
-(defvar ctl-x-map-transient nil
-  "Transient keymap for C-x commands.
-The normal global definition of the character C-x indirects to this keymap.")
-;; (define-prefix-command  (kbd "C-x")  ctl-x-map-transient)
-
-
-
-(setq ctl-x-map-transient (let ((map (make-sparse-keymap)))
-                            (define-key map "p" `move-windows)
-                            (define-key map "n" `move-windows)
-                            (define-key map "g" `move-windows)
-                            (define-key map "0" 'delete-window)
-                            (define-key map "q" 'delete-window)
-                            (define-key map "1" 'delete-other-windows)
-                            (define-key map "2" 'split-window-below)
-                            (define-key map "3" 'split-window-right)
-                            map))
-
-
-(defun move-windows ()
-  (interactive)
-  (let* ((base (event-basic-type last-command-event))
-         (step (pcase base
-                 (?p -1)
-                 (?n 1)
-                 (?g 0))))
-    (if (not (= step 0))
-        (progn
-          (message "Use p and n to move back and forwards between windows, g to quit")
-          (other-window step)
-          (set-transient-map ctl-x-map-transient)
-          ))))
-(global-set-key (kbd "C-x p")  `move-windows)
-(global-set-key (kbd "C-x n")  `move-windows)
-
-
-#+END_SRC
-
-#+RESULTS:
-: move-windows
-** changing size
-#+BEGIN_SRC emacs-lisp
-(defun resize-window (inc)
-  (interactive "p")
-  (let* ((base (event-basic-type last-command-event))
-           (step (pcase base
-                   ((or ?f ?n) inc)
-                   ((or ?b ?p) (- inc))))
-           (horizontal (pcase base
-                         ((or ?f ?b) t))))
-      (enlarge-window step horizontal))
-    (message "Use f,b,n,p to adjust window size")
-    (set-transient-map (let ((map (make-sparse-keymap)))
-    (define-key map "f" 'resize-window);;(lambda () (interactive "p") (resize-window 1)))
-    (define-key map "b" 'resize-window)
-    (define-key map "n" 'resize-window)
-    (define-key map "p" 'resize-window)
-    map)))
-
-(global-set-key (kbd "C-x w f") (lambda () (interactive) (resize-window 1)))
-(global-set-key (kbd "C-x w b") (lambda () (interactive) (resize-window 1)))
-(global-set-key (kbd "C-x w n") (lambda () (interactive) (resize-window 1)))
-(global-set-key (kbd "C-x w p") (lambda () (interactive) (resize-window 1)))
-#+END_SRC
-
 * ssh shortcuts
 
 fns to reset directories to local:
@@ -1474,10 +1273,8 @@ add remote endpoints
 
 #+BEGIN_SRC emacs-lisp
 (setq ssh-config '(
-                   ;; ("fxr" "/ssh:jeroen@168.119.165.84:")
                    ("fxr" "/ssh:jeroen@fxr:")
                    ("lodder" "/ssh:paul@www.lodder.dev:")
-                   ("lisa-dl" "/ssh:lgpu0348@lisa.surfsara.nl:")
                   ))
 
 (dolist (elt ssh-config)
@@ -1500,41 +1297,6 @@ add remote endpoints
 
 #+RESULTS:
 
-* better keybindings
-
-# bind § key to emulate _
-
-#+BEGIN_SRC emacs-lisp
-;; (global-set-key (kbd "C-§") (kbd "_"))
-;; (defun exec-underscore () (interactive) (execute-kbd-macro (kbd "C-§")))
-;; (defun exec-hyphen () (interactive) (execute-kbd-macro (kbd "-")))
-;; (global-set-key (kbd "-") 'exec-underscore)
-;; (global-set-key (kbd "_") 'exec-hyphen)
-#+END_SRC
-
-#+RESULTS:
-
-move windows with arrow keys (i know...)
-
-#+BEGIN_SRC emacs-lisp
-(bind-key* "M-<left>"  'windmove-left)
-(bind-key* "M-<right>" 'windmove-right)
-(bind-key* "M-<up>"    'windmove-up)
-(bind-key* "M-<down>"  'windmove-down)
-#+END_SRC
-
-#+RESULTS:
-: windmove-down
-
-open shell with =s-s=:
-
-#+BEGIN_SRC emacs-lisp
-(bind-key* "s-s" 'shell)
-#+END_SRC
-
-#+RESULTS:
-: shell
-
 * auto-fill-mode
 
 #+BEGIN_SRC emacs-lisp
@@ -1547,11 +1309,10 @@ open shell with =s-s=:
 * which-key
 
 #+BEGIN_SRC emacs-lisp
-  ;; (use-package which-key
-  ;;   :straight t)
-  (require 'which-key)
-
-  (which-key-mode 1)
+  (use-package which-key
+    :straight t
+  :init
+  (which-key-mode 1))
 #+END_SRC
 
 #+RESULTS:
@@ -1570,9 +1331,8 @@ Let's try to get the ibuffer bound to =C-x C-b=, and have it open in the same
 window, instead of a new window.
 
 #+BEGIN_SRC emacs-lisp
-  (setq ibuffer-use-other-window nil)
-  (global-set-key (kbd "C-x C-b") `ibuffer)
-
+(setq ibuffer-use-other-window nil)
+(global-set-key (kbd "C-x C-b") `ibuffer)
 #+END_SRC
 
 #+RESULTS:
@@ -1601,19 +1361,6 @@ when you are in the =Size Mode= column. Let's change this behaviour so that
     :ensure t
     :config (global-set-key (kbd "C-s") 'swiper))
 #+END_SRC
-* company (auto-completion)
-
-#+BEGIN_SRC emacs-lisp
-(use-package company
-  :straight t
-  :config
-  (setq company-minimum-prefix-length 1
-        company-idle-delay 0.0)
-  ;; (add-hook 'after-init-hook 'global-company-mode)
-  )
-#+END_SRC
-
-#+RESULTS:
 
 * lsp / eglot
 
@@ -1669,24 +1416,8 @@ when you are in the =Size Mode= column. Let's change this behaviour so that
 #+RESULTS:
 : t
 
-* counsel
-#+BEGIN_SRC emacs-lisp
-  ;; (use-package counsel
-  ;;   :ensure t
-  ;;   :config
-  ;;   ;; (global-set-key (kbd "M-x")         'counsel-M-x)
-  ;;   ;; (global-set-key (kbd "C-x C-f")     'counsel-find-file)
-  ;;   (global-set-key (kbd "C-h S")       'counsel-info-lookup-symbol)
-  ;;   (global-set-key (kbd "C-c 8 <ret>") 'counsel-unicode-char)
-
-  ;;   (global-set-key (kbd "C-c g") 'counsel-git)
-  ;;   (global-set-key (kbd "C-c j") 'counsel-git-grep)
-  ;;   ;; (global-set-key (kbd "C-c k") 'counsel-rg)
-  ;;   (global-set-key (kbd "C-x l") 'counsel-locate)
-
-  ;;   (setq counsel-find-file-ignore-regexp "\\*.fasl$"))
-#+END_SRC
 * ivy
+
 #+BEGIN_SRC emacs-lisp
 ;; (use-package ivy
 ;;   :ensure t
@@ -1702,6 +1433,14 @@ when you are in the =Size Mode= column. Let's change this behaviour so that
 * dired
 
 #+BEGIN_SRC emacs-lisp
+(defun regexp-orrify (&rest disjuncts)
+  "Return the regexp disjunction of the given regexps"
+  (cond ((null disjuncts) "")
+        ((null (cdr disjuncts)) (car disjuncts))
+        (t (concat (car disjuncts)
+                   "\\|"
+                   (apply #'regexp-orrify (cdr disjuncts))))))
+
 (require 'dired-x)
 
 (setq dired-dwim-target t)
@@ -1770,14 +1509,8 @@ when you are in the =Size Mode= column. Let's change this behaviour so that
   ;; Auto complete with ignore case
   (setq-default read-buffer-completion-ignore-case t)
   (setq-default read-file-name-completion-ignore-case t)
-#+END_SRC
 
-#+RESULTS:
-: t
-
-show filesize as kb, mb, etc:
-
-#+BEGIN_SRC emacs-lisp
+;; show filesize as kb, mb, etc:
 (setq dired-listing-switches "-alh")
 #+END_SRC
 
@@ -1789,6 +1522,86 @@ show filesize as kb, mb, etc:
 (use-package expand-region
   :bind ("C-=" . er/expand-region))
 #+END_SRC
+
+* tramp
+
+#+BEGIN_SRC emacs-lisp
+  ;; ;; emacs 29.1 bug
+  ;; (when (string-equal emacs-version "29.1")
+  ;;        (with-current-buffer
+  ;;            (url-retrieve-synchronously
+  ;;             "https://git.savannah.gnu.org/cgit/emacs.git/plain/lisp/emacs-lisp/loaddefs-gen.el?h=emacs-29")
+  ;;          (goto-char (point-min))
+  ;;          (while (looking-at "^.+$") (forward-line))
+  ;;          (eval-region (point) (point-max))))
+
+
+  ;; (autoload #'tramp-register-crypt-file-name-handler "tramp-crypt")
+  ;;   (use-package tramp
+  ;;     :straight t
+  ;;     :config
+  ;;     (setq tramp-message-show-message "show-message")
+  ;; (setq vc-ignore-dir-regexp
+  ;;       (format "\\(%s\\)\\|\\(%s\\)"
+  ;;               vc-ignore-dir-regexp
+  ;;               tramp-file-name-regexp))
+  ;; (setq tramp-verbose 1)
+  ;; (setq tramp-default-method-alist
+  ;;       '(("\\`localhost\\'" "\\`root\\'" "su")
+  ;;         ("\\`localhost\\'" ".*" "ssh")
+  ;;         ("\\`" ".*" "ssh")))
+  ;;       (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+  ;;       (global-set-key (kbd "C-c t") 'tramp-cleanup-this-connection)
+  ;;     )
+#+END_SRC
+
+#+RESULTS:
+: t
+
+make sure tramp works on windows:
+
+#+BEGIN_SRC emacs-lisp
+(when (eq window-system 'w32)
+  (setq putty-directory "C:/Program Files/PuTTY")
+  (setq tramp-default-method "plink")
+  (when (and (not (string-match putty-directory (getenv "PATH")))
+       (file-directory-p putty-directory))
+    (setenv "PATH" (concat putty-directory ";" (getenv "PATH")))
+    (add-to-list 'exec-path putty-directory)))
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC emacs-lisp
+(setq epa-file-cache-passphrase-for-symmetric-encryption t)
+#+END_SRC
+
+#+RESULTS:
+: t
+
+** tramp-virtualenv
+
+#+BEGIN_SRC emacs-lisp
+(load-file "~/code/matthewlmcclure/tramp-virtualenv/tramp-virtualenv.el")
+#+END_SRC
+
+#+RESULTS:
+: t
+
+#+BEGIN_SRC emacs-lisp
+(use-package tramp-virtualenv
+  :straight (:host github :repo "paulodder/tramp-virtualenv" :branch "master")
+  :config
+  (setq tramp-virtualenv-venvs-dir "~/.virtualenvs")
+  )
+
+(load-file "~/.emacs.d/straight/repos/tramp-virtualenv/tramp-virtualenv.el")
+
+#+END_SRC
+
+#+RESULTS:
+: t
+
 * etc
 
 ** ffap
@@ -1824,52 +1637,8 @@ show filesize as kb, mb, etc:
 #+RESULTS:
 : my-find-file-at-point
 
-** keybindings
-
-#+BEGIN_SRC emacs-lisp
-;; buffer management
-(global-set-key (kbd "C-c b") 'bury-buffer)
-(global-set-key (kbd "C-x C-b") 'ibuffer)
-
-;; zoom in/out
-(global-set-key (kbd "C-+") 'text-scale-increase)
-(global-set-key (kbd "C--") 'text-scale-decrease)
-
-(add-hook 'emacs-lisp-mode-hook
-          (lambda ()
-            (local-set-key (kbd "C-c C-c") 'eval-buffer)))
-nil
-#+END_SRC
-
-** find-grep functionality
-
-#+BEGIN_SRC emacs-lisp
-(defun find-pattern-in-dir ()
-  (interactive)
-  (let* ((dir-name (read-directory-name "Directory to look in: "))
-         (extensions (seq-map 'file-name-extension (directory-files dir-name)))
-         (file-pattern (read-from-minibuffer "Files to match: " "*.org"))
-         (grep-pattern (read-from-minibuffer "Grep pattern: ")))
-    (shell-command (format "find %s -name  '%s' | xargs grep %s" dir-name file-pattern grep-pattern))))
-#+END_SRC
-
-
-** replace-string defun only
-Let's write a function that replaces a string only in current defun definition
-#+BEGIN_SRC emacs-lisp
-(defun replace-string-defun ()
-  (interactive)
-  (save-window-excursion
-    (narrow-to-defun)
-    (mark-whole-buffer)
-    (call-interactively 'replace-string)
-    (widen)))
-#+END_SRC
-
-#+RESULTS:
-: replace-string-defun
-
 ** comment-line
+
 #+BEGIN_SRC emacs-lisp
 (defun comment-dwim-or-line ()
   (interactive)
@@ -1953,7 +1722,9 @@ Let's write a function that replaces a string only in current defun definition
 ** drag-stuff
 
 #+BEGIN_SRC emacs-lisp
-(load-org "drag-stuff.org")
+;; (load-org "drag-stuff.org")
+(use-package drag-stuff
+  :straight t)
 
 (define-key indent-rigidly-map (kbd "C-p") 'drag-stuff-up)
 (define-key indent-rigidly-map (kbd "C-n") 'drag-stuff-down)
@@ -2160,8 +1931,8 @@ even beep.)"
 
 https://stackoverflow.com/questions/16270105/why-are-some-unicode-characters-invisible-in-emacs
 #+BEGIN_SRC emacs-lisp
-  ;; (use-package unicode-fonts
-  ;;   :straight t)
+(use-package unicode-fonts
+  :straight t)
   (require 'unicode-fonts)
   (unicode-fonts-setup)
 #+END_SRC
@@ -2210,6 +1981,9 @@ this is a standalone package which we want/need (also for org-roam)
 
 * multiple-cursors
 #+BEGIN_SRC emacs-lisp
+(use-package multiple-cursors
+  :straight t)
+
 (bind-keys* ((kbd "C-.") . mc/mark-next-like-this)
             ((kbd "C-,") . mc/mark-previous-like-this)
             ((kbd "C-M-.") . mc/unmark-next-like-this)
@@ -2318,92 +2092,6 @@ nil
 
 #+RESULTS:
 
-* tramp
-
-#+BEGIN_SRC emacs-lisp
-;; disable builtin tramp
-(tramp-unload-tramp)
-
-(autoload #'tramp-register-crypt-file-name-handler "tramp-crypt")
-(use-package tramp
-  :straight t
-  :config
-    (setq tramp-message-show-message "show-message")
-    (setq vc-ignore-dir-regexp
-        (format "\\(%s\\)\\|\\(%s\\)"
-                vc-ignore-dir-regexp
-                tramp-file-name-regexp))
-    (setq tramp-verbose 1)
-    (setq tramp-default-method-alist
-      '(("\\`localhost\\'" "\\`root\\'" "su")
-        ("\\`localhost\\'" ".*" "ssh")
-        ("\\`" ".*" "ssh")))
-    (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-    (global-set-key (kbd "C-c t") 'tramp-cleanup-this-connection)
-  )
-#+END_SRC
-
-#+RESULTS:
-: t
-
-make sure tramp works on windows:
-
-#+BEGIN_SRC emacs-lisp
-(when (eq window-system 'w32)
-  (setq putty-directory "C:/Program Files/PuTTY")
-  (setq tramp-default-method "plink")
-  (when (and (not (string-match putty-directory (getenv "PATH")))
-       (file-directory-p putty-directory))
-    (setenv "PATH" (concat putty-directory ";" (getenv "PATH")))
-    (add-to-list 'exec-path putty-directory)))
-#+END_SRC
-
-#+RESULTS:
-
-#+BEGIN_SRC emacs-lisp
-(setq epa-file-cache-passphrase-for-symmetric-encryption t)
-#+END_SRC
-
-#+RESULTS:
-: t
-
-** tramp-virtualenv
-
-#+BEGIN_SRC emacs-lisp
-(load-file "~/code/matthewlmcclure/tramp-virtualenv/tramp-virtualenv.el")
-#+END_SRC
-
-#+RESULTS:
-: t
-
-#+BEGIN_SRC emacs-lisp
-(use-package tramp-virtualenv
-  :straight (:host github :repo "paulodder/tramp-virtualenv" :branch "master")
-  :config
-  (setq tramp-virtualenv-venvs-dir "~/.virtualenvs")
-  )
-
-(load-file "~/.emacs.d/straight/repos/tramp-virtualenv/tramp-virtualenv.el")
-
-#+END_SRC
-
-#+RESULTS:
-: t
-
-** quick-find
-
-#+BEGIN_SRC emacs-lisp
-(use-package quick-find
-  :straight (:host github :repo "paulodder/quick-find-el" :branch "master")
-  )
-
-(setq quick-find-name2dir '(("home" . "~/")
-                            ("fxr" . "/ssh:jeroen@168.119.165.84:/home/jeroen/")))
-#+END_SRC
-
-#+RESULTS:
-: ((home . ~/) (fxr . /ssh:jeroen@168.119.165.84:/home/jeroen/))
-
 * poly-mode
 
 #+BEGIN_SRC emacs-lisp
@@ -2415,17 +2103,6 @@ make sure tramp works on windows:
 #+END_SRC
 
 #+RESULTS:
-
-* screenshots of emacs things
-
-#+BEGIN_SRC emacs-lisp
-(use-package escr
-  :straight (:host github :repo "atykhonov/escr"))
-
-(global-set-key (kbd "C-x j r") 'escr-region-screenshot)
-(global-set-key (kbd "C-x j f") 'escr-frame-screenshot)
-(global-set-key (kbd "C-x j w") 'escr-window-screenshot)
-#+END_SRC
 
 * ruby
 
@@ -2539,19 +2216,6 @@ then, flymake-eslint, which does eslint:
 
 #+RESULTS:
 : t
-
-* trello
-
-=org-trello= to use trello in emacs (in org-mode).
-
-#+BEGIN_SRC emacs-lisp
-;; (use-package org-trello
-;;   :straight t)
-
-;; (custom-set-variables '(org-trello-files (directory-files "~/trello/" nil "\\.org$")))
-#+END_SRC
-
-#+RESULTS:
 
 * deft / note-taking
 
@@ -2780,7 +2444,7 @@ run: =git clone https://github.com/paulodder/keybase-chat=
 ** inline images
 
 #+BEGIN_SRC emacs-lisp
-(setq org-image-actual-width '(1100))
+(setq org-image-actual-width '(700))
 #+END_SRC
 
 #+RESULTS:
@@ -3047,39 +2711,47 @@ nil
 ** org-roam
 
 #+BEGIN_SRC emacs-lisp
-(setq org-roam-directory (file-truename "~/Documents/org-roam"))
+  (setq org-roam-directory (file-truename "~/Documents/org-roam"))
 
-(use-package org-roam
-  :straight t
-  :bind (("C-c n l" . org-roam-buffer-toggle)
-         ("C-c n f" . org-roam-node-find)
-         ("C-c n i" . org-roam-node-insert)
-         ("C-c n t" . org-roam-tag-add)
-         ("C-c n a" . org-roam-alias-add))
-  :config
-  (setq org-roam-completion-everywhere t)
-  (setq org-roam-capture-templates
-        '(
-          ("d" "default" plain
-           "%?" ;; the template content; %? is where the cursor will land
-           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+TITLE: ${title}\n")
-           :unnarrowed t)
-          ("b" "book notes" plain
-           (file "~/Documents/org-roam/templates/book-notes-template.org")
-           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+TITLE: ${title}\n#+FILETAGS: book")
-           :unnarrowed t)
-          ("r" "paper" plain
-           (file "~/Documents/org-roam/templates/paper-notes-template.org")
-           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+TITLE: ${title}\n#+FILETAGS: paper")
-           :unnarrowed t)
-          ("p" "project " plain
-           (file "~/Documents/org-roam/templates/project-template.org")
-           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+TITLE: ${title}\n#+FILETAGS: project")
-           :unnarrowed t)
-          ))
-  (org-roam-db-autosync-mode))
+  (use-package emacsql-sqlite-builtin
+    :straight t)
+  ;; (use-package emacsql-sqlite-builtin)
 
-(setq org-roam-directory (file-truename "~/Documents/org-roam"))
+  (use-package org-roam
+    :straight t
+    :after (org emacsql-sqlite-builtin)
+    :bind (("C-c n l" . org-roam-buffer-toggle)
+           ("C-c n f" . org-roam-node-find)
+           ("C-c n i" . org-roam-node-insert)
+           ("C-c n t" . org-roam-tag-add)
+           ("C-c n a" . org-roam-alias-add))
+    :config
+    ;; (setq org-roam-v2-ack t)
+    (setq org-roam-database-connector 'sqlite-builtin)
+    (setq org-roam-completion-everywhere t)
+    (setq org-roam-capture-templates
+          '(
+            ("d" "default" plain
+             "%?" ;; the template content; %? is where the cursor will land
+             :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+TITLE: ${title}\n")
+             :unnarrowed t)
+            ("b" "book notes" plain
+             (file "~/Documents/org-roam/templates/book-notes-template.org")
+             :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+TITLE: ${title}\n#+FILETAGS: book")
+             :unnarrowed t)
+            ("r" "paper" plain
+             (file "~/Documents/org-roam/templates/paper-notes-template.org")
+             :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+TITLE: ${title}\n#+FILETAGS: paper")
+             :unnarrowed t)
+            ("p" "project " plain
+             (file "~/Documents/org-roam/templates/project-template.org")
+             :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+TITLE: ${title}\n#+FILETAGS: project")
+             :unnarrowed t)
+            ))
+    ;; (org-roam-db-autosync-mode)
+    )
+
+  (setq org-roam-directory (file-truename "~/Documents/org-roam"))
 #+END_SRC
 
 #+RESULTS:
@@ -3171,6 +2843,7 @@ Setting this variable causes auto-indentation inside org-mode src blocks
         ("DONE" . "green")))
 
 (use-package org-bullets
+  :straight t
   ;; :hook (org-mode org-bullets-mode)
   :init (progn
           (setq org-ellipsis " ⤵")
@@ -3410,6 +3083,9 @@ the shell, instead of executing it and having to wait for it to finish.
 
 *** ox-extras
 
+might need to do:
+=curl https://raw.githubusercontent.com/Fuco1/org-mode/master/contrib/lisp/ox-extra.el >> ~/.emacs.d/lisp/ox-extra.el=
+
 #+BEGIN_SRC emacs-lisp
 (require 'ox-extra)
 (ox-extras-activate '(ignore-headlines))
@@ -3422,6 +3098,10 @@ the shell, instead of executing it and having to wait for it to finish.
 bibliography/citations
 
 #+BEGIN_SRC emacs-lisp
+;; need this
+(use-package pdf-tools
+  :straight t)
+
 (use-package org-ref
   :straight t
   )
@@ -3486,7 +3166,7 @@ citecolor=blue,filecolor=blue,menucolor=blue,urlcolor=blue"
 ;; some requires for basic org-ref usage
 ;; (require 'org-plus-contrib)
 (require 'org-ref)
-(require 'org-ref-helm)
+;; (require 'org-ref-helm)
 (require 'org-ref-pdf)
 (require 'org-ref-url-utils)
 
@@ -3570,258 +3250,6 @@ citecolor=blue,filecolor=blue,menucolor=blue,urlcolor=blue"
 
 #+RESULTS:
 
-* latex
-#+BEGIN_SRC emacs-lisp
-;; (require 'auctex)
-(require 'mode-local)
-  (use-package auctex
-    :defer t
-    :ensure t
-    :hook (LaTeX-mode-hook .
-    electric-quote-local-mode)
-    :config
-    ;; Some LaTeX packages need to run a shell command, e.g. minted needs
-    ;; pygmentize
-    (push '("LaTeX-shell"
-            "%`%l -shell-escape %(mode)%' %t"
-            TeX-run-TeX
-            nil
-            (latex-mode doctex-mode)
-            :help "Run LaTeX allowing shell escape")
-          TeX-command-list)
-    (setq font-latex-fontify-script nil)
-    (setq-mode-local latex-mode region-extract-function latex--region-extract-function)
-    )
-
-
-  ;; configs below need to be outside the use-package since org-mode may need
-  ;; them directly.
-
-  (setq TeX-view-program-list
-        '(("mupdf" "/bin/mupdf %s.pdf"))
-        TeX-view-program-selection
-        '((output-pdf "PDF Tools")
-          ;; (output-pdf "mupdf")
-          ((output-dvi style-pstricks) "dvips and gv")
-          (output-dvi "xdvi")
-          (output-html "xdg-open"))
-        TeX-source-correlate-start-server t
-        LaTeX-electric-left-right-brace t)
-
-  ;; (setq bibtex-completion-bibliography
-  ;;       (mapcar (lambda (f)
-  ;;                 (concat
-  ;;                  "/path/to/media/data/tie/path/to/media/writing/bib/"
-  ;;                  f
-  ;;                  ".bib"))
-  ;;               '("bon" "counting" "dsls" "etc")))
-
-  ;; Update PDF buffers after successful LaTeX runs
-  (add-hook 'TeX-after-compilation-finished-functions
-            #'TeX-revert-document-buffer)
-
-#+END_SRC
-
-#+RESULTS:
-| TeX-revert-document-buffer |
-
-Does not work yet for
-+ end of lines
-+ copied math parts that were already delimited by $'s
-#+BEGIN_SRC emacs-lisp
-(defun has-face-at (pos face-in-question &optional object)
-  (let ((face-result-at-pos (get-text-property pos 'face object)))
-    (if (eq (type-of face-result-at-pos) 'cons)
-        (seq-contains face-result-at-pos face-in-question)
-      (eq face-result-at-pos face-in-question))
-    ))
-;; (face-at-post ))
-
-
-(defun latex--add-math-delimiters (substr)
-  "add $ if necessary"
-  (if (<= (length substr) 1)
-      substr
-    ;; (message (format "%s" (has-face-at  0 'font-latex-math-face substr)))
-    (let*
-        (;; (face-result-at-start (get-text-property 0 'face substr))
-         ;; (face-at-start (if (eq (type-of face-result-at-start) 'cons) (first face-result-at-start) face-result-at-start))
-         (substr-prefixed (if (and (not (string-prefix-p "$" substr))
-                                   (has-face-at  0 'font-latex-math-face substr)
-                                   )
-                              (concat "$" substr)
-                            substr))
-         (substr-suffixed
-          (if (and (not (string-suffix-p "$" substr-prefixed))
-                   ;; (has-face-at  (- (length substr-prefixed) 1) 'font-latex-math-face substr-prefixed)
-                   (has-face-at (- (length substr-prefixed) 1)
-                   ;; (has-face-at (length substr-prefixed)
-                                'font-latex-math-face substr-prefixed)
-                   )
-              (concat  substr-prefixed "$")
-            substr-prefixed))
-         )
-      substr-suffixed
-
-      )
-
-    )
-  )
-
-
-;; (defun latex--add-math-delimiters (str)
-;;   (let ((max-pos (length str)))
-;;     (message "AAA")
-;;     str
-;; ))
-
-(defvar latex--region-extract-function
-  (lambda (method)
-    (when (region-beginning)
-      (cond
-       ((eq method 'bounds)
-        (list (cons (region-beginning) (region-end))))
-       ((eq method 'delete-only)
-        (delete-region (region-beginning) (region-end)))
-       (t
-        (latex--add-math-delimiters (filter-buffer-substring (region-beginning) (region-end) method))
-        ;; (message out)
-        ;; (message (latex--add-math-delimiters out))
-        ))))
-  "Function to get the region's content.
-Called with one argument METHOD which can be:
-- nil: return the content as a string (list of strings for
-  non-contiguous regions).
-- `delete-only': delete the region; the return value is undefined.
-- `bounds': return the boundaries of the region as a list of one
-  or more cons cells of the form (START . END).
-- anything else: delete the region and return its content
-  as a string (or list of strings for non-contiguous regions),
-  after filtering it with `filter-buffer-substring', which
-c  is called, for each contiguous sub-region, with METHOD as its
-  3rd argument.")
-(setq-mode-local latex-mode region-extract-function latex--region-extract-function)
-#+END_SRC
-
-#+RESULTS:
-| lambda | (method) | (if (region-beginning) (progn (cond ((eq method (quote bounds)) (list (cons (region-beginning) (region-end)))) ((eq method (quote delete-only)) (delete-region (region-beginning) (region-end))) (t (latex--add-math-delimiters (filter-buffer-substring (region-beginning) (region-end) method)))))) |
-
-Now let's also write a function that removes $'s if it's being copied inside a
-math mode already. We need to adapt the =yank-handled-properties= variable
-#+BEGIN_SRC emacs-lisp
-(defun has-face (face-in-question face-seq)
-  )
-
-(defun latex--possibly-remove-math-delimiters (face start end)
-  ;; (message (format "%s" (seq-contains face 'font-latex-math-face)))
-  ;; (message (format "%s" (get-text-property (+ start 1) :foreground)))
-  (let* ((substr (buffer-substring start end))
-         ;; (face-after (get-text-property (+ end 1) 'face ))
-         ;; (face-before (get-text-property (- start 1) 'face ))
-         (has-face-after (has-face-at (+ end 1) 'font-latex-math-face);; (get-text-property (+ end 1) 'face )
-                         )
-         (has-face-before (has-face-at (- start 1) 'font-latex-math-face);; (get-text-property (+ end 1) 'face )
-                          )
-         ;; (face-before (get-text-property (- start 1) 'face ))
-         )
-    (if (and (string-equal "$" substr)
-             has-face-after has-face-before)
-        (delete-region start end))))
-
-
-    ;; (progn (message (format "%s"  substr ))
-    ;;        (message (format "%s"  (get-text-property start 'face )))
-    ;;        (message (format "face after %s"  (get-text-property (+ end 1) 'face )))
-    ;;        (message (format "face before %s"  ))
-    ;;        ;; (message (format "%s"  (null face)))
-    ;;        (message (format "%s" face))
-    ;; ;; (message (format "%s" (call-interactively 'delete-char)))
-    ;; (if (and
-    ;;      (eq substr "$")
-    ;;      (null (get-text-property start 'face ))
-    ;;      (not (null face)))
-    ;;     (call-interactively delete-char)))
-;; ))
-;; (message "CALLED")
-;;   (message (format "%s" face))
-;;   (message (format "%s" start))
-;;   (message (format "%s" end))
-;;   (message (buffer-substring start end))
-;; ;; (message (format "%s" (get-text-property start 'face )))
-;;   ;; (message (format "%s" (get-text-property (+ 1 start) :face )))
-;;   ;; (message (format "%s" (get-text-property (+ 1 start) 'face )))
-;;   (message (format "%s" (get-text-property start 'face )))
-;;   (cond ((and (seq-contains face 'font-latex-math-face)
-;;              (not (seq-contains  (get-text-property (+ 1 start) 'face ) 'font-latex-math-face)))
-;;          (message "HERE")
-;;         (message (format "%s" face)))
-;;         )
-;; (cond ((
-;;   (progn (message (format "%s" face))
-;;   (message (format "%s" start))
-;;   (message (format "%s" end)))
-;; )))
-;; )
-
-
-
-(defvar-mode-local latex-mode yank-handled-properties
-  '((font-lock-face . yank-handle-font-lock-face-property)
-    (face . latex--possibly-remove-math-delimiters)
-    ;; ('foreground . latex--possibly-add-math-delimiters)
-    (category . yank-handle-category-property)))
-
-
-#+END_SRC
-
-#+RESULTS:
-: yank-handled-properties
-
-** syntax table
-
-#+BEGIN_SRC emacs-lisp
-  ;; (modify-syntax-entry ?^ " " tex-mode-syntax-table)
-  ;; (modify-syntax-entry ?^ "" )
-  ;; (modify-syntax-entry ?^ " " LaTeX-mode-syntax-table)
-#+END_SRC
-
-#+RESULTS:
-
-** ans-copy
-#+BEGIN_SRC emacs-lisp
-(defun ans-copy ()
-  (interactive)
-  (let ((tmp-file (make-temp-file "ans_" nil nil
-                                  (substring-no-properties
-                                   (buffer-string) (region-beginning) (region-end)))))
-    (kill-new (shell-command-to-string
-                  (format "~/.virtualenvs/py3.8/bin/python ~/src/latex2ans.py %s" tmp-file))
-                 nil)
-))
-
-
-  ;; (while (< current end)
-  ;;   (cond ((and (has-face-at current font-latex-math-face)
-  ;;               (string-equal (substring-no-properties current (+ current 1) "$")))
-  ;;          (
-  ;;          )
-#+END_SRC
-
-#+RESULTS:
-: ans-copy
-
-** misc
-
-#+BEGIN_SRC emacs-lisp
-    (require 'latex-unicode-math-mode)
-    ;; Enable latex-unicode-math-mode automatically for all LaTeX files.
-    ;; This converts LaTeX to Unicode inside math environments.
-    (add-hook 'LaTeX-mode-hook (lambda () (modify-syntax-entry ?^ " ")))
-#+END_SRC
-
-#+RESULTS:
-| preview-mode-setup | (lambda nil (modify-syntax-entry 94  )) |
-
 * shell
 
 make sure shell opens in current window
@@ -3855,27 +3283,12 @@ enable command substitution
 #+RESULTS:
 : comint-magic-space
 
-** vterm
-
-#+BEGIN_SRC emacs-lisp
-;; (use-package vterm
-;;   :straight t)
-#+END_SRC
-
-** shx
-
-#+BEGIN_SRC emacs-lisp
-(use-package shx
-  :straight t)
-#+END_SRC
-
-#+RESULTS:
-
 * javascript
 ** auto-format
 
 #+BEGIN_SRC emacs-lisp
-(require 'js-format)
+(use-package js-format
+  :straight t)
 (eval-after-load 'js-mode
   (add-hook 'js-mode-hook
             (lambda()
@@ -3939,50 +3352,11 @@ enable command substitution
   :mode ("\\.py\\'" . python-mode)
   :interpreter ("python" . python-mode))
 
-(use-package virtualenvwrapper
-  :straight t
-  :config
-  (venv-initialize-interactive-shells) ;; if you want interactive shell support
-  (venv-initialize-eshell) ;; if you want eshell support
-  :hook (python-mode . venv-projectile-auto-workon))
-
 (defun my/python-mode-hook ()
   (setq python-shell-interpreter "ipython"
         python-shell-interpreter-args "--simple-prompt -i"))
 
 (add-hook 'python-mode-hook 'my/python-mode-hook)
-
-;; (use-package venv-projectile
-;;   :straight t
-;;   :after (projectile virtualenvwrapper))
-
-
-;; ;; (define-key dump-jump-mode-map (kbd "C-M-p") nil)
-;; ;; python-indent-dedent-line-backspace
-;; (use-package python
-;;   :ensure t
-;;   :mode ("\\.py\\'" . python-mode)
-;;   :interpreter ("python" . python-mode)
-;;   :config
-;;   (setq python-shell-interpreter "/Users/jeroen/.virtualenvs/base/bin/ipython -i --simple-prompt")
-;;   (setq py-shell-name "ipython")
-;;   (setq python-shell-interpreter-args "-c exec('__import__(\\'readline\\')') -i --simple-prompt")
-;;   ;; (setq
-;;   ;;  python-shell-prompt-regexp "In \\[[0-9]+\\]: "
-;;   ;;  python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
-;;   ;;  python-shell-completion-setup-code "from IPython.core.completerlib import module_completion"
-;;   ;;  python-shell-completion-module-string-code "';'.join(module_completion('''%s'''))\n"
-;;   ;;  python-shell-completion-string-code "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
-;;   (push '("\\.ipynb$" . js2-mode) auto-mode-alist)
-;;   :hook
-;;   (python-mode . (lambda ()
-;;                    "No eldoc for remote files"
-;;                    (let ((name (buffer-file-name)))
-;;                      (when (and name
-;;                                 (> (length name) 5)
-;;                                 (string= "/ssh:" (substring name 0 5)))
-;;                        (eldoc-mode -1))
-;;                      (setq forward-sexp-function nil)))))
 #+END_SRC
 
 #+RESULTS:
@@ -3992,7 +3366,7 @@ enable command substitution
 
 #+BEGIN_SRC emacs-lisp
 (use-package blacken
-  :diminish
+  :straight t
   :config
   (setq blacken-line-length 79)
   (setq blacken-executable "/Users/jeroen/.virtualenvs/py3.8/bin/black")
@@ -4005,60 +3379,7 @@ enable command substitution
 #+END_SRC
 
 #+RESULTS:
-| python-black-on-save-mode-enable-dwim | copilot-mode | (lambda nil (set (make-local-variable 'devdocs-current-docs) '(python~3.9 pandas~1 scikit_learn))) | python-docstring-mode | (lambda nil No eldoc for remote files (let ((name (buffer-file-name))) (if (and name (> (length name) 5) (string= /ssh: (substring name 0 5))) (progn (eldoc-mode -1))) (setq forward-sexp-function nil))) | eglot-ensure-if-not-ssh | blacken-mode |
-
-** python jedi (unused)
-
-1. From emacs-jedi readme
-#+BEGIN_SRC emacs-lisp
-;; (setq jedi:server-command '("pip3" "/Users/jeroen/.emacs.d/.python-environments/default/bin/jediepcserver"))
-#+END_SRC
-
-#+RESULTS:
-
-2. Then open Python file.
-#+BEGIN_SRC emacs-lisp
-;;; Python Jedi
-;;; From emacs-jedi readme
-;; Type:
-;;     M-x jedi:install-server RET
-;; Then open Python file.
-;; (use-package jedi
-;;   :ensure t
-;;   ;; :disabled nil
-;;   :defer 3
-;;   :config
-;;   ;; Standard Jedi.el setting
-;;   (add-hook 'python-mode-hook 'jedi:setup)
-;;   (setq jedi:complete-on-dot t))
-#+END_SRC
-
-#+RESULTS:
-
-** elpy (unused)
-
-#+BEGIN_SRC emacs-lisp
-;;   (use-package elpy
-;;     :ensure t
-;;     :diminish elpy-mode
-;;     :config (elpy-enable))
-
-;;     ;; (add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save)
-
-;;     (custom-set-variables
-;;      ;; sudo dnf install python-jedi python3-jedi -y
-;;      ;; '(elpy-rpc-backend "jedi")
-;;      '(help-at-pt-display-when-idle (quote (flymake-overlay)) nil (help-at-pt))
-;;      '(help-at-pt-timer-delay 0.9)
-;;      '(tab-width 2))
-
-;;     ;; Do not highlight indentation
-;;     ;; (delete 'elpy-module-highlight-indentation elpy-modules)
-;;     ;; )
-;; (setq elpy-eldoc-show-current-function nil)
-#+END_SRC
-
-#+RESULTS:
+: org-edit-src-exit@format-python
 
 ** xsh
 #+BEGIN_SRC emacs-lisp
@@ -4074,54 +3395,6 @@ nil
 nil
 #+END_SRC
 
-** bug fix
-#+BEGIN_SRC emacs-lisp
-;; Fix Python loading bug in emacs25
-;; (with-eval-after-load 'python
-;;   (defun python-shell-completion-native-try ()
-;;     "Return non-nil if can trigger native completion."
-;;     (let ((python-shell-completion-native-enable t)
-;;           (python-shell-completion-native-output-timeout
-;;            python-shell-completion-native-try-output-timeout))
-;;       (python-shell-completion-native-get-completions
-;;        (get-buffer-process (current-buffer))
-;;        nil "_"))))
-#+END_SRC
-
-#+RESULTS:
-: python-shell-completion-native-try
-
-** unused
-
-#+BEGIN_SRC emacs-lisp
-;; (setq
-   ;; python-shell-interpreter "python"
-   ;; python-shell-interpreter-args "--colors=Linux --profile=default"
-  ;; (setq python-shell-interpreter "ipython"
-  ;;       python-shell-interpreter-args "--simple-prompt"
-  ;;       py-python-command-args '("--matplotlib")
-  ;;       python-shell-prompt-regexp "In \\[[0-9]+\\]: "
-  ;;       python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
-  ;;       python-shell-completion-setup-code
-  ;;       "from IPython.core.completerlib import module_completion"
-  ;;       python-shell-completion-module-string-code
-  ;;       "';'.join(module_completion('''%s'''))\n"
-  ;;       python-shell-completion-string-code
-  ;;       "';'.join(get_ipython().Completer.all_completions('''%s'''))\n"
-
-  ;;       python-check-command "pylint"
-  ;;       python-indent-offset 2
-  ;;       py-autopep8-options '("--max-line-length=80")
-  ;;       )
-
-  ;; (add-hook 'python-mode-hook 'jedi:setup)
-  ;; (setq jedi:complete-on-dot t)
-
-#+END_SRC
-
-#+RESULTS:
-: ';'.join(get_ipython().Completer.all_completions('''%s'''))
-
 ** virtualenv
 
 #+BEGIN_SRC emacs-lisp
@@ -4133,7 +3406,9 @@ nil
   ;; note that setting `venv-location` is not necessary if you
   ;; use the default location (`~/.virtualenvs`), or if the
   ;; the environment variable `WORKON_HOME` points to the right place
-  (setq venv-location "~/.virtualenvs/"))
+  (setq venv-location "~/.virtualenvs/")
+  :hook (python-mode . venv-projectile-auto-workon)
+)
 #+END_SRC
 
 #+RESULTS:
@@ -4168,32 +3443,6 @@ nil
 : ipython-cpaste
 
 
-** jupyter
-
-Let's write a function that gets the token
-
-#+begin_src emacs-lisp
-(defun jupyter-insert-token ()
-  (interactive)
-  (let ((output (shell-command-to-string "jupyter notebook list")))
-        (insert (first (split-string (second (split-string output "token=")) " " )))
-))
-#+end_src
-
-#+RESULTS:
-: jupyter-insert-token
-
-#+begin_src emacs-lisp
-(defun pip-venv-mode () (interactive)
-(setq venv-location "~/.virtualenvs/"))
-
-(defun conda-venv-mode () (interactive)
-(setq venv-location "/usr/local/Caskroom/miniconda/base/envs"))
-#+end_src
-
-#+RESULTS:
-: conda-venv-mode
-
 ** pygen (unused)
 
 #+BEGIN_SRC emacs-lisp
@@ -4220,53 +3469,29 @@ improves this behaviour.
 #+RESULTS:
 | python-docstring-mode | (closure (t) nil (setq imenu-create-index-function py--imenu-create-index-function) (setq indent-tabs-mode py-indent-tabs-mode)) | (lambda nil No eldoc for remote files (let ((name (buffer-file-name))) (if (and name (> (length name) 5) (string= /ssh: (substring name 0 5))) (progn (eldoc-mode -1))))) | blacken-mode |
 
-** jupyter notebooks
-
-we're not gonna get it =straight=:
+** pytest
 
 #+BEGIN_SRC emacs-lisp
-;; (use-package jupyter
-;;   :straight t)
+(defun my-python-pytest-setup ()
+    (when (and (boundp 'tramp-virtualenv-dir)
+               tramp-virtualenv-dir)
+      ;; Set python-pytest-executable to use the pytest in the virtual environment
+      (setq-local python-pytest-executable
+                  (concat tramp-virtualenv-dir "/bin/pytest"))))
+
+(use-package python-pytest
+  :straight t
+  :config
+  (add-hook 'python-mode-hook #'my-python-pytest-setup)
+  (bind-keys* :map python-mode-map
+            ((kbd "C-c y") . python-pytest-dispatch)
+            )
+  )
 #+END_SRC
 
 #+RESULTS:
+: t
 
-instead, we will use a manual clone with experimental widget support built.
-
-to clone:
-=cd ~/.emacs.d && mkdir repos && cd repos && git clone https://github.com/nnicandro/emacs-jupyter/=
-
-#+BEGIN_SRC emacs-lisp
-;; we need to manually load these dependencies:
-(use-package websocket
-  :straight t)
-(use-package simple-httpd
-  :straight t)
-(use-package zmq
-  :straight t)
-
-(add-to-list 'load-path "/Users/jeroen/.emacs.d/repos/emacs-jupyter")
-(require 'jupyter)
-
-nil
-#+END_SRC
-
-#+RESULTS:
-
-* icicles
-
-#+BEGIN_SRC emacs-lisp
-;; (load "~/.emacs.d/icicles-install")
-;; (customize-variable' "icicle-download-dir" "~/.emacs.d/icicles")
-
-
-;; (add-to-list 'load-path "~/.emacs.d/icicles")
-;; (require 'icicles)
-
-;; (icy-mode 1)
-#+END_SRC
-
-#+RESULTS:
 
 * highlight syntax errors in json
 
@@ -4283,60 +3508,23 @@ This requires =jsonlint=. Install with =npm install jsonlint -g=.
 #+RESULTS:
 | flycheck-mode |
 
-* inline math results
-
-#+BEGIN_SRC emacs-lisp
-(defun eval-and-replace ()
-  "Replace the preceding sexp with its value."
-  (interactive)
-  (backward-kill-sexp)
-  (condition-case nil
-      (prin1 (eval (read (current-kill 0)))
-             (current-buffer))
-    (error (message "Invalid expression")
-           (insert (current-kill 0)))))
-
-(bind-key* "C-x M-e" 'eval-and-replace)
-#+END_SRC
-
-#+RESULTS:
-: eval-and-replace
-
 * emacs-dashboard
 the =dashboard= package changes the splash screen into something useful.
 
 enable it:
 #+BEGIN_SRC emacs-lisp
-(defun dashboard-remember (list-size)
-  (insert "remember:
-    [M--] negative argument
-    [C-M-v & M-- C-M-v] scroll other window down & up
-    [M-m] move to indentation
-    [C-c C-j in python] imenu
-    [M-{ & M-}] traverse paragraph-type blocks
-"))
 (use-package dashboard
   :ensure t
   :init
   (progn
-    (setq dashboard-items '((recents . 6)
-                            (projects . 8)
-                            (remember . 1)))
+    (setq dashboard-items nil)
     (setq dashboard-banner-logo-title "jpjmacs")
     (setq dashboard-startup-banner "~/.emacs.d/araki_banner.png")
-    (setq dashboard-set-navigator t)
+    (setq dashboard-set-navigator nil)
     (setq dashboard-set-footer nil)
-    (setq dashboard-navigator-buttons
-      `(;; line1
-        (
-         (nil "shell-fxr" "open shell on fxr" (lambda (&rest _) (shell-fxr)))
-        )
-       )
-      )
     )
   :config
   (dashboard-setup-startup-hook))
-(add-to-list 'dashboard-item-generators  '(remember . dashboard-remember))
 #+END_SRC
 
 #+RESULTS:
@@ -4559,17 +3747,6 @@ to blacklist all i /don't/ want. for that, there exists =rich-minority=:
 
 #+RESULTS:
 
-* hippie-expand
-
-built on top of dabbrev. let's try it out
-
-#+BEGIN_SRC emacs-lisp
-;; (bind-key* "M-/" 'hippie-expand)
-#+END_SRC
-
-#+RESULTS:
-: hippie-expand
-
 * powerthesaurus in emacs
 
 #+BEGIN_SRC emacs-lisp
@@ -4616,69 +3793,6 @@ google translate in emacs.
 #+RESULTS:
 : google-translate-smooth-translate
 
-* prism
-
-colours code based on indentation level.
-
-#+BEGIN_SRC emacs-lisp
-(use-package prism
-  :straight (:host github :repo "alphapapa/prism.el" :branch "master")
-  :defer
-  :config
-  (setq prism-comments nil) ; non-nil distorts colours
-  (setq prism-num-faces 8))
-
-  ;; ;; NOTE: read the manual of the `modus-themes' for prism.el
-
-  ;; ;; for 4 colours (the closest to the default)
-  ;; (prism-set-colors
-  ;;   :desaturations '(0) ; may lower the contrast ratio
-  ;;   :lightens '(0)      ; same
-  ;;   :colors (modus-themes-with-colors
-  ;;             (list fg-main
-  ;;                   cyan-alt-other
-  ;;                   magenta-alt-other
-  ;;                   magenta)))
-  ;;
-  ;; ;; for 16 colours
-  ;; (prism-set-colors
-  ;;   :desaturations '(0) ; may lower the contrast ratio
-  ;;   :lightens '(0)      ; same
-  ;;   :colors (modus-themes-with-colors
-  ;;             (list fg-main
-  ;;                   magenta
-  ;;                   cyan-alt-other
-  ;;                   magenta-alt-other
-  ;;                   blue
-  ;;                   magenta-alt
-  ;;                   cyan-alt
-  ;;                   red-alt-other
-  ;;                   green
-  ;;                   fg-main
-  ;;                   cyan
-  ;;                   yellow
-  ;;                   blue-alt
-  ;;                   red-alt
-  ;;                   green-alt-other
-  ;;                   fg-special-warm)))
-  ;;
-  ;; for 8 colours
-  ;; (prism-set-colors
-  ;;   :desaturations '(0) ; may lower the contrast ratio
-  ;;   :lightens '(0)      ; same
-  ;;   :colors (modus-themes-with-colors
-  ;;             (list fg-special-cold
-  ;;                   magenta
-  ;;                   magenta-alt-other
-  ;;                   cyan-alt-other
-  ;;                   fg-main
-  ;;                   blue-alt
-  ;;                   red-alt-other
-  ;;                   cyan))))
-#+END_SRC
-
-#+RESULTS:
-
 * maak-belachelijk
 #+BEGIN_SRC emacs-lisp
 (defun maak-belachelijk ()
@@ -4699,17 +3813,7 @@ colours code based on indentation level.
 #+RESULTS:
 : maak-belachelijk
 
-* ghosttext
-
-#+BEGIN_SRC emacs-lisp
-(use-package atomic-chrome
-  :straight t)
-#+END_SRC
-
-#+RESULTS:
-
 * macros
-** general
 
 #+BEGIN_SRC emacs-lisp
 (fset 'shell-last-python-script
@@ -4722,17 +3826,6 @@ colours code based on indentation level.
 
 #+RESULTS:
 : shell-last-python-script
-
-#+BEGIN_SRC emacs-lisp
-(defun insert-euro ()
-  (interactive)
-  (self-insert-command "€"))
-
-(bind-keys* ((kbd "s-@") . insert-euro))
-#+END_SRC
-
-#+RESULTS:
-: insert-euro
 
 * fxr
 
@@ -4792,92 +3885,10 @@ major mode for editing .tf files
 
 * xref and tags
 
-** xref
-
 #+BEGIN_SRC emacs-lisp
 ;; turn off the prompting for tags file
 (setq xref-prompt-for-identifier nil)
 #+END_SRC
-
-** automatically update TAGS table
-
-#+BEGIN_SRC emacs-lisp
-(defun jpj/create-tags-if-needed (SRC-DIR &optional FORCE)
-  "Return the full path of tags file."
-  (let ((dir (file-name-as-directory (file-truename SRC-DIR)) )
-       file)
-    (setq file (concat dir "TAGS"))
-    (when (or FORCE (not (file-exists-p file)))
-      (message "Creating TAGS in %s ..." dir)
-      (shell-command
-       (format "ctags -f %s -e -R %s" file dir)))
-    file))
-
-(defvar jpj/tags-updated-time nil)
-
-(defun jpj/update-tags ()
-  "Check the tags in tags-table-list and re-create it."
-  (interactive)
-  (let ((root-dir (projectile-project-root)))
-    (if (not (eq root-dir nil))
-        (dolist (tag tags-table-list)
-          (jpj/create-tags-if-needed (root-dir tag) t)))))
-
-(defun jpj/auto-update-tags-when-save ()
-  (interactive)
-  (cond
-   ((not jpj/tags-updated-time)
-    (setq jpj/tags-updated-time (current-time)))
-   ((< (- (float-time (current-time)) (float-time jpj/tags-updated-time)) 300)
-    ;; do nothing
-    )
-   (t
-    (setq jpj/tags-updated-time (current-time))
-    (jpj/update-tags)
-    (message "updated tags after %d seconds."
-             (- (float-time (current-time))
-                (float-time jpj/tags-updated-time))))))
-
-(add-hook 'after-save-hook 'jpj/auto-update-tags-when-save)
-#+END_SRC
-
-#+RESULTS:
-| jpj/auto-update-tags-when-save | rmail-after-save-hook |
-
-** ctags-update
-
-#+BEGIN_SRC emacs-lisp
-;; (use-package ctags-update
-;;   :straight t
-;;   :config
-;;   (autoload 'turn-on-ctags-auto-update-mode "ctags-update" "turn on 'ctags-auto-update-mode'." t)
-;;   (add-hook 'python-mode-hook  'turn-on-ctags-auto-update-mode)
-;;   (add-hook 'web-mode-hook  'turn-on-ctags-auto-update-mode)
-;;   )
-#+END_SRC
-
-#+RESULTS:
-: t
-
-** counsel-etags
-
-#+BEGIN_SRC emacs-lisp
-;; (use-package counsel-etags
-;;   :straight t
-;;   ;; :bind (("M-." . counsel-etags-find-tag-at-point))
-;;   :init
-;;   (add-hook 'prog-mode-hook
-;;         (lambda ()
-;;           (add-hook 'after-save-hook
-;;             'counsel-etags-virtual-update-tags 'append 'local)))
-;;   :config
-;;   (setq counsel-etags-update-interval 60)
-;;   ;; (push "build" counsel-etags-ignore-directories)
-;; )
-#+END_SRC
-
-#+RESULTS:
-: counsel-etags-find-tag-at-point
 
 * copilot
 
@@ -4900,101 +3911,15 @@ major mode for editing .tf files
 contact manager in emacs. requires =vdirsyncer= to be set up.
 
 #+BEGIN_SRC emacs-lisp
-(use-package vdirel
-  :straight t
-  :config
-  (setq vdirel-repository "~/.contacts")
-  )
+;; (use-package vdirel
+;;   :straight t
+;;   :config
+;;   (setq vdirel-repository "~/.contacts")
+;;   )
 #+END_SRC
 
 #+RESULTS:
 : t
-
-* mu4e
-
-#+BEGIN_SRC emacs-lisp
-(straight-use-package
- '(mu4e :files (:defaults "mu4e/*.el")))
-
-(setq mail-user-agent 'mu4e-user-agent)
-
-(setq mu4e-maildir "~/.mail"
-mu4e-attachment-dir "~/Downloads")
-
-;; relative to maildir
-(setq mu4e-sent-folder   "/sent"
-      mu4e-drafts-folder "/drafts"
-      mu4e-trash-folder  "/trash")
-
-;; the maildirs you use frequently; access them with 'j' ('jump')
-;; (setq   mu4e-maildir-shortcuts
-;;     '((:maildir "/archive" :key ?a)
-;;       (:maildir "/inbox"   :key ?i)
-;;       (:maildir "/work"    :key ?w)
-;;       (:maildir "/sent"    :key ?s)))
-
-;; the headers to show in the headers list -- a pair of a field
-;; and its width, with `nil' meaning 'unlimited'
-;; (better only use that for the last field.
-;; These are the defaults:
-;; (setq mu4e-headers-fields
-;;     '( (:date          .  25)    ;; alternatively, use :human-date
-;;        (:flags         .   6)
-;;        (:from          .  22)
-;;        (:subject       .  nil))) ;; alternatively, use :thread-subject
-
-;; program to get mail; alternatives are 'fetchmail', 'getmail'
-;; isync or your own shellscript. called when 'U' is pressed in
-;; main view.
-
-;; If you get your mail without an explicit command,
-;; use "true" for the command (this is the default)
-(setq mu4e-get-mail-command "mbsync protonmail"
-mu4e-change-filenames-when-moving t   ; needed for mbsync
-mu4e-update-interval 120)             ; update every 2 minutes
-
-
-;; general emacs mail settings; used when composing e-mail
-;; the non-mu4e-* stuff is inherited from emacs/message-mode
-(setq mu4e-compose-reply-to-address "July Jagt <jpjagt@pm.me>"
-      user-mail-address "jpjagt@pm.me"
-      user-full-name  "July Jagt")
-(setq mu4e-compose-signature
-   "july")
-
-(setq message-send-mail-function 'smtpmail-send-it
-smtpmail-auth-credentials "~/.authinfo.gpg"
-smtpmail-smtp-server "127.0.0.1"
-smtpmail-stream-type 'starttls
-smtpmail-smtp-service 1025)
-
-;; (add-to-list 'gnutls-trustfiles (expand-file-name "~/.config/protonmail/bridge/cert.pem"))
-
-;; don't keep message buffers around
-;; (setq message-kill-buffer-on-exit t)
-#+END_SRC
-
-#+RESULTS:
-: 120
-
-you might need to run the following shell command once:
-
-#+BEGIN_SRC sh
-mu init --maildir=~/.mail
-mu index
-#+END_SRC
-
-* edit-line-mode
-
-#+BEGIN_SRC emacs-lisp
-;; local .el file
-;; (add-to-list 'load-path "~/.emacs.d")
-;; (require 'edit-line-mode)
-;; (global-set-key (kbd "C-c v") 'edit-line-start)
-#+END_SRC
-
-#+RESULTS:
-: edit-line-start
 
 * swift
 
@@ -5040,35 +3965,16 @@ _x_ : copy-unfilled-region
 #+RESULTS:
 : hydra-personal/body
 
-* pytest
-
-#+BEGIN_SRC emacs-lisp
-(defun my-python-pytest-setup ()
-    (when (and (boundp 'tramp-virtualenv-dir)
-               tramp-virtualenv-dir)
-      ;; Set python-pytest-executable to use the pytest in the virtual environment
-      (setq-local python-pytest-executable
-                  (concat tramp-virtualenv-dir "/bin/pytest"))))
-
-(use-package python-pytest
-  :straight t
-  :config
-  (add-hook 'python-mode-hook #'my-python-pytest-setup)
-  (bind-keys* :map python-mode-map
-            ((kbd "C-c y") . python-pytest-dispatch)
-            )
-  )
-#+END_SRC
-
-#+RESULTS:
-: t
-
 * gptel
 
 #+BEGIN_SRC emacs-lisp
-(use-package gptel
-  :straight (:host github :repo "karthink/gptel")
-)
+(add-to-list 'load-path "~/.emacs.d/repos/gptel")
+(require 'gptel)
+(require 'gptel-curl)
+(require 'gptel-openai)
+;; (use-package gptel
+;;   :straight t
+;; )
 
 (defvar gptel-api-key-alist nil
   "Association list of mode names and their corresponding GPT-EL API keys.")
@@ -5078,7 +3984,7 @@ _x_ : copy-unfilled-region
   (interactive
    (list (completing-read "Choose mode: " (mapcar #'car gptel-api-key-alist))))
   (progn
-    ;; (setq gptel-default-mode 'org-mode)
+    (setq gptel-default-mode 'org-mode)
     (setq gptel-model "gpt-4-1106-preview")
     (let ((key-pair (assoc mode-name gptel-api-key-alist)))
     (if key-pair
@@ -5091,7 +3997,7 @@ _x_ : copy-unfilled-region
 ;;         ("private-mode" . "")))
 
 ;; set api keys in ./env.el
-(load-file "./env.el")
+(load-file "~/.emacs.d/env.el")
 
 (defun chat ()
   "Run gptel and then set the GPT-EL API key, both interactively."
@@ -5101,7 +4007,7 @@ _x_ : copy-unfilled-region
   (visual-line-mode)
   ;; Wait for the gptel process to complete or initialize.
   (run-with-idle-timer
-   0.3 nil ;; Adjust the delay time as needed.
+   0.1 nil ;; Adjust the delay time as needed.
    (lambda ()
      (call-interactively 'gptel-set-api-key)
      (visual-line-mode)
