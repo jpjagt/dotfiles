@@ -213,3 +213,9 @@ needs to be done per app. for emacs:
 - go to Keyboard Shortcuts -> App Shortcut -> Add Shortcut (for emacs)
 - name: "Hide Emacs" (as it appears in menu bar)
 - shortcut: something you will never press.
+
+* cog (flac audio player)
+
+#+BEGIN_SRC sh
+brew install --cask cog
+#+END_SRC

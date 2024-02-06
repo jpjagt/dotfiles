@@ -55,6 +55,7 @@
         kill-visual-line
         kmacro-end-and-call-macro
         mac-next-tab-or-toggle-tab-bar
+        magit-discard
         mark-sexp
         markdown-enter-key
         markdown-outdent-or-delete
@@ -71,6 +72,7 @@
         org-promote-subtree
         org-return
         org-self-insert-command
+        org-shifttab
         org-transpose-words
         org-yank
         prot-consult-yank

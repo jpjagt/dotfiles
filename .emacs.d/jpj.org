@@ -420,6 +420,16 @@ Taken from https://emacs.stackexchange.com/questions/10786/remove-parentheses-ar
 #+RESULTS:
 : my-move-region-inwards
 
+** UTF-8 / BOM encoding
+
+#+BEGIN_SRC emacs-lisp
+(prefer-coding-system 'utf-8)
+(setq-default buffer-file-coding-system 'utf-8-unix)
+#+END_SRC
+
+#+RESULTS:
+: utf-8-unix
+
 * vital functions/libraries
 
 ** s (string manipulation)
@@ -768,7 +778,6 @@ Taken from https://stackoverflow.com/questions/2416655/file-path-to-clipboard-in
 
 #+RESULTS:
 | :server-file | /var/folders/97/htw849gj5bq8x8l5306kmdfm0000gn/T/emacs501/pinentry |
-
 
 * compat
 
@@ -1127,7 +1136,7 @@ prescient makes sorting and filtering more intelligent.
          ("M-X" . consult-mode-command)
          ("M-K" . consult-keep-lines)  ; M-S-k is similar to M-S-5 (M-%)
          ("M-s f" . consult-find)
-         ("M-s g" . counsel-rg) ; THIS IS COUNSEL! NOT CONSULT
+         ("M-s g" . consult-ripgrep)
          ("M-s m" . consult-mark)
          ("C-j" . consult-buffer)
          ("C-x b" . consult-buffer)
@@ -1144,46 +1153,6 @@ prescient makes sorting and filtering more intelligent.
 
 #+RESULTS:
 : consult-buffer
-
-** embark
-
-#+BEGIN_SRC emacs-lisp
-(use-package embark
-  :straight t
-
-  :bind
-  (("s-r" . embark-act)         ;; pick some comfortable binding
-   ("C-s-r" . embark-dwim)        ;; good alternative: M-.
-   ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
-
-  :init
-
-  ;; Optionally replace the key help with a completing-read interface
-  (setq prefix-help-command #'embark-prefix-help-command)
-
-  ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
-  ;; strategy, if you want to see the documentation from multiple providers.
-  (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
-  ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
-
-  :config
-
-  ;; Hide the mode line of the Embark live/completions buffers
-  ;; (add-to-list 'display-buffer-alist
-  ;;              '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-  ;;                nil
-  ;;                (window-parameters (mode-line-format . none))))
-)
-
-;; Consult users will also want the embark-consult package.
-(use-package embark-consult
-  :straight t ; only need to install it, embark loads it after consult if found
-  :hook
-  (embark-collect-mode . consult-preview-at-point-mode))
-#+END_SRC
-
-#+RESULTS:
-| consult-preview-at-point-mode |
 
 * minibuffer
 
@@ -1362,6 +1331,82 @@ when you are in the =Size Mode= column. Let's change this behaviour so that
     :config (global-set-key (kbd "C-s") 'swiper))
 #+END_SRC
 
+
+* tree-sitter
+
+You might need to run: M-x =treesit-install-language-grammar=
+
+#+BEGIN_SRC emacs-lisp
+(setq treesit-language-source-alist
+   '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+     (cmake "https://github.com/uyha/tree-sitter-cmake")
+     (css "https://github.com/tree-sitter/tree-sitter-css")
+     (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+     (go "https://github.com/tree-sitter/tree-sitter-go")
+     (html "https://github.com/tree-sitter/tree-sitter-html")
+     (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+     (json "https://github.com/tree-sitter/tree-sitter-json")
+     (make "https://github.com/alemuller/tree-sitter-make")
+     (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+     (python "https://github.com/tree-sitter/tree-sitter-python")
+     (toml "https://github.com/tree-sitter/tree-sitter-toml")
+     (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+     (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+     (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
+
+nil
+#+END_SRC
+
+#+RESULTS:
+
+Activate the tree-sitter modes:
+
+#+BEGIN_SRC emacs-lisp
+(setq major-mode-remap-alist
+ '((yaml-mode . yaml-ts-mode)
+   (bash-mode . bash-ts-mode)
+   (js2-mode . js-ts-mode)
+   (typescript-mode . typescript-ts-mode)
+   (json-mode . json-ts-mode)
+   (css-mode . css-ts-mode)
+   (python-mode . python-ts-mode)))
+#+END_SRC
+
+#+RESULTS:
+: ((yaml-mode . yaml-ts-mode) (bash-mode . bash-ts-mode) (js2-mode . js-ts-mode) (typescript-mode . typescript-ts-mode) (json-mode . json-ts-mode) (css-mode . css-ts-mode) (python-mode . python-ts-mode))
+
+** combobulate
+
+#+BEGIN_SRC emacs-lisp
+(use-package combobulate
+  :straight (:host github :repo "mickeynp/combobulate" :branch "master")
+  :preface
+  ;; You can customize Combobulate's key prefix here.
+  ;; Note that you may have to restart Emacs for this to take effect!
+  (setq combobulate-key-prefix "C-c o")
+
+  :config
+  (setq combobulate-python-smart-indent nil)
+  ;; Optional, but recommended.
+  ;;
+  ;; You can manually enable Combobulate with `M-x
+  ;; combobulate-mode'.
+  :hook ((python-ts-mode . combobulate-mode)
+         (js-ts-mode . combobulate-mode)
+         (css-ts-mode . combobulate-mode)
+         (yaml-ts-mode . combobulate-mode)
+         (json-ts-mode . combobulate-mode)
+         (typescript-ts-mode . combobulate-mode)
+         (tsx-ts-mode . combobulate-mode))
+  ;; Amend this to the directory where you keep Combobulate's source
+  ;; code.
+  ;; :load-path ("path-to-git-checkout-of-combobulate"))
+  )
+#+END_SRC
+
+#+RESULTS:
+| combobulate-mode |
+
 * lsp / eglot
 
 #+BEGIN_SRC emacs-lisp
@@ -1369,14 +1414,14 @@ when you are in the =Size Mode= column. Let's change this behaviour so that
   "A major mode derived from web-mode, for editing .(j|t)s(x) files with eglot support.")
 (add-to-list 'auto-mode-alist '("\\.[jt]sx?\\'" . jpj-js-mode))
 
-(defun maybe-set-pylsp-path-on-ssh ()
-    (if (s-starts-with? "/ssh:jeroen@fxr" (buffer-file-name))
-        (setq-local eglot-server-programs
-                    '(
-                      (python-mode . ("/home/jeroen/.virtualenvs/base/bin/pylsp"))
-                      ))
-      (setq-local eglot-autoreconnect nil)
-))
+;; (defun maybe-set-pylsp-path-on-ssh ()
+;;     (if (s-starts-with? "/ssh:jeroen@fxr" (buffer-file-name))
+;;         (setq-local eglot-server-programs
+;;                     '(
+;;                       (python-mode . ("/home/jeroen/.virtualenvs/base/bin/pylsp"))
+;;                       ))
+;;       (setq-local eglot-autoreconnect nil)
+;; ))
 
 (defun eglot-ensure-if-not-ssh ()
     (if (not (s-starts-with? "/ssh:jeroen@fxr" (buffer-file-name)))
@@ -1391,19 +1436,15 @@ when you are in the =Size Mode= column. Let's change this behaviour so that
     ))
 
 (use-package eglot
-    :straight t
-    :config
-    ;; this one should go before eglot-ensure
-    ;; (add-hook 'python-mode-hook 'maybe-set-pylsp-path-on-ssh)
-    ;; (add-hook 'python-mode-hook 'eglot-ensure)
-    (add-hook 'python-mode-hook 'eglot-ensure-if-not-ssh)
-    (add-hook 'web-mode-hook 'set-eglot-server-program-in-typescript-buffer)
-    (add-hook 'jpj-js-mode-hook 'eglot-ensure)
-    (add-to-list 'eglot-server-programs
-             '(
-               jpj-js-mode . ("typescript-language-server" "--stdio")
-                           ))
-    (bind-keys* :map eglot-mode-map
+  :hook ((python-ts-mode . eglot-ensure-if-not-ssh)
+         (jpj-js-mode . eglot-ensure)
+         (typescript-ts-mode . eglot-ensure))
+  :config
+  (add-to-list 'eglot-server-programs
+               '(python-ts-mode . ("~/.virtualenvs/base/bin/pylsp")))
+  (add-to-list 'eglot-server-programs
+               '(typescript-ts-mode . ("typescript-language-server" "--stdio")))
+  (bind-keys* :map eglot-mode-map
                 ("C-c e r" . eglot-rename)
                 ("C-c e a" . eglot-code-actions)
                 ("C-c e i" . eglot-code-action-inline)
@@ -1414,7 +1455,7 @@ when you are in the =Size Mode= column. Let's change this behaviour so that
 #+END_SRC
 
 #+RESULTS:
-: t
+| eglot-ensure | combobulate-mode |
 
 * ivy
 
@@ -1520,8 +1561,12 @@ when you are in the =Size Mode= column. Let's change this behaviour so that
 * expand-region
 #+BEGIN_SRC emacs-lisp
 (use-package expand-region
+  :straight t
   :bind ("C-=" . er/expand-region))
 #+END_SRC
+
+#+RESULTS:
+: er/expand-region
 
 * tramp
 
@@ -2685,8 +2730,7 @@ nil
     (insert
      (format  "#+TITLE: %s
 ,#+BIND: org-export-use-babel nil
-,#+AUTHOR: July Jagt
-,#+EMAIL: <jpjagt@pm.me>
+,#+AUTHOR: July
 ,#+DATE: %s
 ,#+LATEX: \\setlength\\parindent{0pt}
 ,#+LATEX_HEADER: \\usepackage{minted}
@@ -2748,7 +2792,7 @@ nil
              :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+TITLE: ${title}\n#+FILETAGS: project")
              :unnarrowed t)
             ))
-    ;; (org-roam-db-autosync-mode)
+    (org-roam-db-autosync-mode)
     )
 
   (setq org-roam-directory (file-truename "~/Documents/org-roam"))
@@ -3354,13 +3398,39 @@ enable command substitution
 
 (defun my/python-mode-hook ()
   (setq python-shell-interpreter "ipython"
-        python-shell-interpreter-args "--simple-prompt -i"))
+        python-shell-interpreter-args "--simple-prompt -i")
+  (modify-syntax-entry ?\( ".")
+  (modify-syntax-entry ?\) ".")
+  )
 
-(add-hook 'python-mode-hook 'my/python-mode-hook)
+(add-hook 'python-ts-mode-hook 'my/python-mode-hook)
+
+nil
 #+END_SRC
 
 #+RESULTS:
-| my/python-mode-hook | venv-projectile-auto-workon | (lambda nil No eldoc for remote files (let ((name (buffer-file-name))) (when (and name (> (length name) 5) (string= /ssh: (substring name 0 5))) (eldoc-mode -1)) (setq forward-sexp-function nil))) | my-python-pytest-setup | copilot-mode | (lambda nil (set (make-local-variable 'devdocs-current-docs) '(python~3.9 pandas~1 scikit_learn))) | python-docstring-mode | (lambda nil No eldoc for remote files (let ((name (buffer-file-name))) (if (and name (> (length name) 5) (string= /ssh: (substring name 0 5))) (progn (eldoc-mode -1))) (setq forward-sexp-function nil))) | eglot-ensure-if-not-ssh | blacken-mode |
+
+** smartparens
+
+#+BEGIN_SRC emacs-lisp
+(use-package smartparens
+  :straight t
+  :config
+  (setq sp-autoinsert-pair nil))
+
+
+(defun my/smartparens-python-hook ()
+  (smartparens-mode)
+  ;; do sp keybindings: sp-backward-sexp and sp-forward-sexp
+  (local-set-key (kbd "C-M-f") 'sp-forward-sexp)
+  (local-set-key (kbd "C-M-b") 'sp-backward-sexp)
+  )
+(add-hook 'python-ts-mode-hook 'my/smartparens-python-hook)
+
+nil
+#+END_SRC
+
+#+RESULTS:
 
 ** autoformatting using black
 
@@ -3370,7 +3440,7 @@ enable command substitution
   :config
   (setq blacken-line-length 79)
   (setq blacken-executable "/Users/jeroen/.virtualenvs/py3.8/bin/black")
-  (add-hook 'python-mode-hook 'blacken-mode 'too-long-lines-mode))
+  (add-hook 'python-ts-mode-hook 'blacken-mode 'too-long-lines-mode))
 
 (define-advice org-edit-src-exit (:before (&rest _args) format-python)
   "Run `blacken-buffer' when leaving an org-mode Python source block."
@@ -3448,7 +3518,7 @@ nil
 #+BEGIN_SRC emacs-lisp
 ;; (use-package pygen
 ;;   :ensure t)
-;; (add-hook 'python-mode-hook 'pygen-mode)
+;; (add-hook 'python-ts-mode-hook 'pygen-mode)
 #+END_SRC
 
 #+RESULTS:
@@ -3463,7 +3533,7 @@ improves this behaviour.
 (use-package python-docstring
   :straight t)
 
-(add-hook 'python-mode-hook 'python-docstring-mode)
+(add-hook 'python-ts-mode-hook 'python-docstring-mode)
 #+END_SRC
 
 #+RESULTS:
@@ -3482,7 +3552,7 @@ improves this behaviour.
 (use-package python-pytest
   :straight t
   :config
-  (add-hook 'python-mode-hook #'my-python-pytest-setup)
+  (add-hook 'python-ts-mode-hook #'my-python-pytest-setup)
   (bind-keys* :map python-mode-map
             ((kbd "C-c y") . python-pytest-dispatch)
             )
@@ -3623,6 +3693,7 @@ to blacklist all i /don't/ want. for that, there exists =rich-minority=:
         '(
           "mc:*"
           " Def"
+          "©"
           ))
   (setq rm-whitelist (mapconcat 'identity rm-whitelist-regexps "\\|"))
   ;; (setq rm-whitelist
@@ -3876,7 +3947,7 @@ major mode for editing .tf files
   :straight t
   :config
   (bind-key* "C-<backspace> d" 'devdocs-lookup)
-  (add-hook 'python-mode-hook
+  (add-hook 'python-ts-mode-hook
           (lambda () (setq-local devdocs-current-docs '("python~3.9" "pandas~1" "scikit_learn")))))
 #+END_SRC
 
@@ -3897,9 +3968,21 @@ major mode for editing .tf files
   :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
   :ensure t
   :config
-  (add-hook 'python-mode-hook 'copilot-mode)
+  (add-hook 'python-ts-mode-hook 'copilot-mode)
   (add-hook 'web-mode-hook 'copilot-mode)
+  (add-hook 'lisp-mode-hook 'copilot-mode)
+  (setq copilot-major-mode-alist
+        (append copilot-major-mode-alist
+                '((yaml-ts-mode . "yaml")
+                  (bash-ts-mode . "bash")
+                  (js-ts-mode . "javascript")
+                  (typescript-ts-mode . "typescript")
+                  (json-ts-mode . "json")
+                  (css-ts-mode . "css")
+                  (python-ts-mode . "python")
+                  (web-mode . "html"))))
   (bind-key* "M-/" 'copilot-accept-completion)
+  (bind-key* "C-M-/" 'copilot-accept-completion-by-line)
   )
 #+END_SRC
 
@@ -3968,28 +4051,61 @@ _x_ : copy-unfilled-region
 * gptel
 
 #+BEGIN_SRC emacs-lisp
-(add-to-list 'load-path "~/.emacs.d/repos/gptel")
-(require 'gptel)
-(require 'gptel-curl)
-(require 'gptel-openai)
-;; (use-package gptel
-;;   :straight t
-;; )
+(use-package gptel
+  :straight t
+  :config
+  (require 'gptel-curl)
+  (require 'gptel-openai)
 
-(defvar gptel-api-key-alist nil
-  "Association list of mode names and their corresponding GPT-EL API keys.")
+  ;; Set default directory for GPT-EL
+  (setq-default gptel-default-directory "/Users/jeroen/gptel")
 
-(defun gptel-set-api-key (mode-name)
-  "Interactively set the GPT-EL API key for a given MODE-NAME."
-  (interactive
-   (list (completing-read "Choose mode: " (mapcar #'car gptel-api-key-alist))))
-  (progn
-    (setq gptel-default-mode 'org-mode)
-    (setq gptel-model "gpt-4-1106-preview")
-    (let ((key-pair (assoc mode-name gptel-api-key-alist)))
-    (if key-pair
-        (setq gptel-api-key (cdr key-pair))
-      (error "No API key found for mode: %s" mode-name)))))
+  ;; Default settings
+  (setq gptel-default-mode 'org-mode)
+  (setq gptel-default-model "gpt-4-1106-preview")
+
+  ;; Function to set API key
+  (defun gptel-set-api-key (mode-name)
+    "Interactively set the GPT-EL API key for a given MODE-NAME."
+    (interactive
+     (list (completing-read "Choose mode: " (mapcar #'car gptel-api-key-alist))))
+    (progn
+      (setq gptel-model "gpt-4-1106-preview")
+      (let ((key-pair (assoc mode-name gptel-api-key-alist)))
+        (if key-pair
+            (setq gptel-api-key (cdr key-pair))
+          (error "No API key found for mode: %s" mode-name)))))
+
+  ;; Function to set model
+  (defun gptel-set-model (model)
+    (interactive (list (completing-read "Select model: " '("gpt-4-1106-preview" "other-models"))))
+    (setq gptel-default-model model)))
+
+(defun gptel-rewrite-region (start end)
+  "Send the selected region from START to END to gptel with a rewrite instruction and replace it with the response."
+  (interactive "r")
+  (let* ((gptel-buffer (current-buffer))
+         (response-pt
+          (if (use-region-p)
+              (set-marker (make-marker) (region-end))
+            (gptel--at-word-end (point-marker))))
+         (selected-text (buffer-substring start end))
+         (instruction (read-string "refactor instruction: "))
+         (full-prompt (concat "You have to refactor some code
+ according to the instruction. Only reply with the code, nothing
+ else. Instruction: " instruction "\n\nCode:\n\n" selected-text))
+         )
+    (funcall
+     (if gptel-use-curl
+         #'gptel-curl-get-response #'gptel--url-get-response)
+     (list :prompt full-prompt
+           :buffer gptel-buffer
+           :position response-pt))
+    (gptel--update-status " Waiting..." 'warning)))
+
+(defun embark-gptel-rewrite-region (content)
+  (gptel-rewrite-region (region-beginning) (region-end))
+  )
 
 ;; Example API key pairs (replace these with real keys):
 ;; (setq gptel-api-key-alist
@@ -4004,15 +4120,7 @@ _x_ : copy-unfilled-region
   (interactive)
   (call-interactively 'gptel)
   (auto-fill-mode 0)
-  (visual-line-mode)
-  ;; Wait for the gptel process to complete or initialize.
-  (run-with-idle-timer
-   0.1 nil ;; Adjust the delay time as needed.
-   (lambda ()
-     (call-interactively 'gptel-set-api-key)
-     (visual-line-mode)
-     (auto-fill-mode)
-     (setq default-directory "/Users/jeroen/gptel"))))
+  (visual-line-mode))
 #+END_SRC
 
 #+RESULTS:
@@ -4025,3 +4133,127 @@ machine api.openai.com login apikey password <key>
 #+END_EXAMPLE
 
 key from: https://platform.openai.com/api-keys
+
+* embark
+
+#+BEGIN_SRC emacs-lisp
+(defun my/swiper-with-embark-target (target)
+  "Invoke swiper with the current Embark target as the initial input."
+  (swiper target))
+
+(use-package embark
+  :straight t
+
+  :bind
+  (("s-r" . embark-act)         ;; pick some comfortable binding
+   ("C-s-r" . embark-dwim)        ;; good alternative: M-.
+   ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+
+  :init
+
+  ;; Optionally replace the key help with a completing-read interface
+  (setq prefix-help-command #'embark-prefix-help-command)
+
+  ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
+  ;; strategy, if you want to see the documentation from multiple providers.
+  (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
+  ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
+
+  :config
+  (dolist (map (list embark-region-map
+                     embark-identifier-map
+                     embark-symbol-map
+                     embark-general-map
+                     embark-buffer-map
+                     embark-file-map))
+    (define-key map (kbd "s") 'my/swiper-with-embark-target)
+    (define-key map (kbd "g") 'consult-ripgrep)
+    (define-key map (kbd "/") 'embark-gptel-rewrite-region))
+
+
+  ;; Hide the mode line of the Embark live/completions buffers
+  ;; (add-to-list 'display-buffer-alist
+  ;;              '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+  ;;                nil
+  ;;                (window-parameters (mode-line-format . none))))
+)
+
+;; Consult users will also want the embark-consult package.
+(use-package embark-consult
+  :straight t ; only need to install it, embark loads it after consult if found
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
+#+END_SRC
+
+#+RESULTS:
+| embark-consult--upgrade-markers | consult-preview-at-point-mode |
+
+* jpj-python
+
+#+BEGIN_SRC emacs-lisp
+(defun jpjpy/search-python-symbol-definitions (input)
+  "Search for Python symbol definitions matching INPUT in the project."
+  (let* ((project-root (projectile-project-root))
+         (all-files (projectile-current-project-files))
+         (search-regexp (concat "^def " "\\(" input "\\sw*\\).*$"            ; Match function definitions
+        "\\|^class " "\\(" input "\\sw*\\).*$"       ; Match class definitions
+        "\\|^" "\\(" input "\\sw*\\) =.*$"           ; Match variable assignments
+        "\\|\\bfrom \\S+ import \\(?:\\S+ \\)*\\(" input "\\sw*\\).*$")  ; Match from-imports
+                        )
+         (matches '()))
+    (dolist (file all-files matches)
+      (with-temp-buffer
+        (insert-file-contents (concat project-root file))
+        (goto-char (point-min))
+        (while (re-search-forward search-regexp nil t)
+          (let ((symbol-match (match-string 0))
+                (full-symbol (or (match-string 1) (match-string 2) (match-string 3) (match-string 4) (match-string 5))))
+            ;; Check if it's an import statement and the file is __init__.py
+            (when (or (not (or (match-string 4) (match-string 5))) ; Not an import statement
+                      (string-match-p "__init__.py$" file))       ; Or it's an import in __init__.py
+              (push (cons (concat file " - " full-symbol ": " symbol-match) file) matches))))))))
+
+(defun jpjpy/format-import-statement (file symbol)
+  "Format an import statement from FILE and SYMBOL."
+  (let* (
+         ;; (project-root (projectile-project-root))
+         ;; (relative-path (file-relative-name file project-root))
+         (relative-path file)
+         (module-path (replace-regexp-in-string "/" "." (file-name-sans-extension relative-path)))
+         (module-path (replace-regexp-in-string ".__init__$" "" module-path)))
+    (format "from %s import %s\n" module-path symbol)))
+
+(defun jpjpy/insert-at-top-after-comments (text)
+  "Insert TEXT at the top of the file, after any comments."
+  (save-excursion
+    (goto-char (point-min))
+    (while (looking-at-p "#")
+      (forward-line))
+    (insert text)))
+
+(defun jpjpy/insert-python-import-interactive ()
+  "Interactively insert a Python import statement, using the word at point or the selected region as the initial input, if available."
+  (interactive)
+  (let ((initial-input (if (use-region-p)
+                           (buffer-substring-no-properties (region-beginning) (region-end))
+                         (thing-at-point 'sexp))))
+    (ivy-read "Symbol: " (lambda (input)
+                           (or (ivy-more-chars)
+                               (jpjpy/search-python-symbol-definitions input)))
+              :dynamic-collection t
+              :initial-input initial-input
+              :require-match t
+              :action (lambda (x)
+                        (let* ((split-selection (split-string x " - "))
+                               (file (car split-selection))
+                               (symbol (car (split-string (nth 1 split-selection) ": ")))
+                               (import-statement (jpjpy/format-import-statement file symbol)))
+                          (jpjpy/insert-at-top-after-comments import-statement)
+                          ))
+              :caller 'jpjpy/insert-python-import-interactive)))
+
+(bind-key* "s-i" 'jpjpy/insert-python-import-interactive)
+#+END_SRC
+
+#+RESULTS:
+: jpjpy/insert-python-import-interactive
