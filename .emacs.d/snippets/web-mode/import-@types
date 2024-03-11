@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: import-@types
+# key: @t
+# --
+import { $0 } from '@/types'

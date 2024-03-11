@@ -19,6 +19,7 @@
 * freeish keybindings
 
 - C-q (never used)
+- C-[ (unused)
 
 * basic emacs
 
@@ -499,7 +500,7 @@ from its README:
   :straight t
   :bind (
          ("C-c r C-o" . crux-open-with)
-         ;; ("C-c r ?" . crux-smart-kill-line)
+         ("C-k" . crux-smart-kill-line)
          ("C-c r o" . crux-smart-open-line-above)
          ;; ("C-c r ?" . crux-smart-open-line)
          ;; ("C-c r ?" . crux-cleanup-buffer-or-region)
@@ -802,7 +803,7 @@ Taken from https://stackoverflow.com/questions/2416655/file-path-to-clipboard-in
   :ensure t
   :init (setq-default indicate-empty-lines t)
   :config
-  (setq whitespace-line-column 120
+  (setq whitespace-line-column nil
         whitespace-style '(face trailing lines-tail empty
                                 indentation::space space-before-tab::tab))
   (global-whitespace-mode -1))
@@ -831,11 +832,11 @@ Taken from https://stackoverflow.com/questions/2416655/file-path-to-clipboard-in
             (setq indent-tabs-mode t
                   do-whitespace-cleanup nil)))
 
-(add-hook 'prog-mode-hook
-          (lambda ()
-            (whitespace-mode +1)
-            ;; (setq show-trailing-whitespace t)
-            ))
+;; (add-hook 'prog-mode-hook
+;;           (lambda ()
+;;             (whitespace-mode +1)
+;;             ;; (setq show-trailing-whitespace t)
+;;             ))
 #+END_SRC
 
 #+RESULTS:
@@ -936,14 +937,20 @@ disable/enable horizontal line where point is
 ;; (require 'sanity)
 ;; ;; (require 'elegance)
 
-(set-face-font 'default "DM Mono 13")
+(setq my-font "DM Mono 13")
+
+;; alternatively:
+
+;; (setq my-font "Roboto Mono 13")
+
+(set-face-font 'default my-font)
 
 ;; ;; (set-frame-parameter (selected-frame)
 ;; ;;                      'internal-border-width 24)
 (setq default-frame-alist
       (append (list '(vertical-scroll-bars . nil)
                     ;; '(internal-border-width . 24)
-                    '(font . "DM Mono 13"))))
+                    '(font . my-font))))
 
 
 ;; ;; Line spacing, can be 0 for code and 1 or 2 for text
@@ -978,7 +985,7 @@ disable/enable horizontal line where point is
 #+END_SRC
 
 #+RESULTS:
-: ((vertical-scroll-bars) (font . DM Mono 13))
+: ((vertical-scroll-bars) (font . my-font))
 
 * visual things
 ** matching parenthesis
@@ -1159,7 +1166,7 @@ prescient makes sorting and filtering more intelligent.
 #+BEGIN_SRC emacs-lisp
 (use-package minibuffer
   :config
-  (setq completion-styles '(orderless partial-completion))
+  (setq completion-styles '(prescient partial-completion))
   (setq completion-category-defaults nil)
   (setq completion-cycle-threshold 3)
   (setq completion-flex-nospace nil)
@@ -1242,7 +1249,8 @@ add remote endpoints
 
 #+BEGIN_SRC emacs-lisp
 (setq ssh-config '(
-                   ("fxr" "/ssh:jeroen@fxr:")
+                   ("fxr" "/ssh:paul@fxr:")
+                   ("tsf" "/ssh:july@factory:")
                    ("lodder" "/ssh:paul@www.lodder.dev:")
                   ))
 
@@ -1262,9 +1270,12 @@ add remote endpoints
     elt
     )
 )
+
+(bind-key* "s-t" 'shell-tsf)
 #+END_SRC
 
 #+RESULTS:
+: shell-tsf
 
 * auto-fill-mode
 
@@ -1365,15 +1376,16 @@ Activate the tree-sitter modes:
 (setq major-mode-remap-alist
  '((yaml-mode . yaml-ts-mode)
    (bash-mode . bash-ts-mode)
-   (js2-mode . js-ts-mode)
-   (typescript-mode . typescript-ts-mode)
+   ;; (js2-mode . js-ts-mode)
+   ;; (typescript-mode . typescript-ts-mode)
    (json-mode . json-ts-mode)
    (css-mode . css-ts-mode)
-   (python-mode . python-ts-mode)))
+   ;; (python-mode . python-ts-mode)
+   ))
 #+END_SRC
 
 #+RESULTS:
-: ((yaml-mode . yaml-ts-mode) (bash-mode . bash-ts-mode) (js2-mode . js-ts-mode) (typescript-mode . typescript-ts-mode) (json-mode . json-ts-mode) (css-mode . css-ts-mode) (python-mode . python-ts-mode))
+: ((yaml-mode . yaml-ts-mode) (bash-mode . bash-ts-mode) (js2-mode . js-ts-mode) (json-mode . json-ts-mode) (css-mode . css-ts-mode) (python-mode . python-mode))
 
 ** combobulate
 
@@ -1406,56 +1418,6 @@ Activate the tree-sitter modes:
 
 #+RESULTS:
 | combobulate-mode |
-
-* lsp / eglot
-
-#+BEGIN_SRC emacs-lisp
-(define-derived-mode jpj-js-mode web-mode "jpj-js"
-  "A major mode derived from web-mode, for editing .(j|t)s(x) files with eglot support.")
-(add-to-list 'auto-mode-alist '("\\.[jt]sx?\\'" . jpj-js-mode))
-
-;; (defun maybe-set-pylsp-path-on-ssh ()
-;;     (if (s-starts-with? "/ssh:jeroen@fxr" (buffer-file-name))
-;;         (setq-local eglot-server-programs
-;;                     '(
-;;                       (python-mode . ("/home/jeroen/.virtualenvs/base/bin/pylsp"))
-;;                       ))
-;;       (setq-local eglot-autoreconnect nil)
-;; ))
-
-(defun eglot-ensure-if-not-ssh ()
-    (if (not (s-starts-with? "/ssh:jeroen@fxr" (buffer-file-name)))
-        (eglot-ensure)))
-
-(defun set-eglot-server-program-in-typescript-buffer ()
-  (when (string-equal "tsx" (file-name-extension buffer-file-name))
-    (setq-local eglot-server-programs '(
-                                        (web-mode . ("typescript-language-server" "--stdio"))
-                                        ))
-    (eglot-ensure)
-    ))
-
-(use-package eglot
-  :hook ((python-ts-mode . eglot-ensure-if-not-ssh)
-         (jpj-js-mode . eglot-ensure)
-         (typescript-ts-mode . eglot-ensure))
-  :config
-  (add-to-list 'eglot-server-programs
-               '(python-ts-mode . ("~/.virtualenvs/base/bin/pylsp")))
-  (add-to-list 'eglot-server-programs
-               '(typescript-ts-mode . ("typescript-language-server" "--stdio")))
-  (bind-keys* :map eglot-mode-map
-                ("C-c e r" . eglot-rename)
-                ("C-c e a" . eglot-code-actions)
-                ("C-c e i" . eglot-code-action-inline)
-                ("C-c e q" . eglot-code-action-quickfix)
-                ("C-c e x" . eglot-code-action-extract)
-                ("C-c e o" . eglot-code-action-organize-imports)
-                ))
-#+END_SRC
-
-#+RESULTS:
-| eglot-ensure | combobulate-mode |
 
 * ivy
 
@@ -2128,6 +2090,78 @@ nil
 
 #+RESULTS:
 
+** .astro files
+
+#+BEGIN_SRC emacs-lisp
+(define-derived-mode astro-mode web-mode "astro")
+(setq auto-mode-alist
+      (append '((".*\\.astro\\'" . astro-mode))
+              auto-mode-alist))
+
+nil
+#+END_SRC
+
+#+RESULTS:
+
+* lsp / eglot
+
+#+BEGIN_SRC emacs-lisp
+(define-derived-mode jpj-js-mode web-mode "jpj-js"
+  "A major mode derived from web-mode, for editing .(j|t)s(x) files with eglot support.")
+(add-to-list 'auto-mode-alist '("\\.[jt]sx?\\'" . jpj-js-mode))
+
+;; (defun maybe-set-pylsp-path-on-ssh ()
+;;     (if (s-starts-with? "/ssh:jeroen@fxr" (buffer-file-name))
+;;         (setq-local eglot-server-programs
+;;                     '(
+;;                       (python-mode . ("/home/jeroen/.virtualenvs/base/bin/pylsp"))
+;;                       ))
+;;       (setq-local eglot-autoreconnect nil)
+;; ))
+
+(defun eglot-ensure-if-not-ssh ()
+    (if (not (s-starts-with? "/ssh:jeroen@fxr" (buffer-file-name)))
+        (eglot-ensure)))
+
+(defun set-eglot-server-program-in-typescript-buffer ()
+  (when (string-equal "tsx" (file-name-extension buffer-file-name))
+    (setq-local eglot-server-programs '(
+                                        (web-mode . ("typescript-language-server" "--stdio"))
+                                        ))
+    (eglot-ensure)
+    ))
+
+(use-package eglot
+  :hook ((python-mode . eglot-ensure-if-not-ssh)
+         (jpj-js-mode . eglot-ensure)
+         (typescript-ts-mode . eglot-ensure))
+  :config
+  (add-to-list 'eglot-server-programs
+               '(python-mode . ("~/.virtualenvs/base/bin/pylsp")))
+  (add-to-list 'eglot-server-programs
+               '(typescript-ts-mode . ("typescript-language-server" "--stdio")))
+  (add-to-list 'eglot-server-programs
+               '(jpj-js-mode . ("typescript-language-server" "--stdio")))
+  (add-to-list 'eglot-server-programs
+               '(astro-mode . ("astro-ls" "--stdio"
+                               :initializationOptions
+                               (:typescript (:tsdk "./node_modules/typescript/lib")))))
+  (bind-keys* :map eglot-mode-map
+                ("C-c e r" . eglot-rename)
+                ("C-c e a" . eglot-code-actions)
+                ("C-c e i" . eglot-code-action-inline)
+                ("C-c e q" . eglot-code-action-quickfix)
+                ("C-c e x" . eglot-code-action-extract)
+                ("C-c e o" . eglot-code-action-organize-imports)
+                )
+  :init
+  (add-hook 'astro-mode-hook 'eglot-ensure)
+  )
+#+END_SRC
+
+#+RESULTS:
+| eglot-ensure | combobulate-mode |
+
 * restclient
 
 #+BEGIN_SRC emacs-lisp
@@ -2210,6 +2244,9 @@ second package: prettier-js, which autoformats js files on save. for this, i als
 add-node-modules-path
 
 #+BEGIN_SRC emacs-lisp
+(use-package add-node-modules-path
+  :straight t)
+
 (use-package prettier-js
   :straight t
   :config
@@ -2230,7 +2267,7 @@ add-node-modules-path
 #+END_SRC
 
 #+RESULTS:
-| web-mode-init-prettier-hook | add-node-modules-path | copilot-mode | prettier-js-mode | web-mode-init-hook | web-mode-init-emmet-hook | set-eglot-server-program-in-typescript-buffer |
+| er/add-web-mode-expansions | er/add-html-mode-expansions | web-mode-init-prettier-hook | add-node-modules-path | copilot-mode | prettier-js-mode | web-mode-init-hook | web-mode-init-emmet-hook |
 
 then, flymake-eslint, which does eslint:
 
@@ -2522,6 +2559,32 @@ when point is at the beginning of headers, use keys to quickly navigate etc:
 
 the key =?= lists an overview of the commands
 
+** org-table: realign and move up/down
+
+like TAB but then moving up/down rows.
+
+#+BEGIN_SRC emacs-lisp
+(defun org-table-realign-and-move-down ()
+  "Realign the table and move down one row in the same column."
+  (interactive)
+  (let ((current-column (org-table-current-column)))
+    (org-table-align)
+    (org-table-next-row)
+    (org-table-goto-column current-column)))
+
+(defun org-table-realign-and-move-up ()
+  "Realign the table and move up one row in the same column."
+  (interactive)
+  (let ((current-column (org-table-current-column)))
+    (org-table-align)
+    ;; Move up a line and then jump to the correct column.
+    (previous-line)
+    (org-table-goto-column current-column)))
+#+END_SRC
+
+#+RESULTS:
+: org-table-realign-and-move-up
+
 ** keybindings
 
 #+BEGIN_SRC emacs-lisp
@@ -2567,14 +2630,27 @@ the key =?= lists an overview of the commands
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp
+(defun my-org-contextual-move-down ()
+  (interactive)
+  (if (org-at-table-p)
+      (org-table-realign-and-move-down)
+    (org-babel-next-src-block)))
+
+(defun my-org-contextual-move-up ()
+  (interactive)
+  (if (org-at-table-p)
+      (org-table-realign-and-move-up)
+    (org-babel-previous-src-block)))
+
+
 (bind-keys* :map org-mode-map
-            ((kbd "M-n") . org-babel-next-src-block)
-            ((kbd "M-p") . org-babel-previous-src-block)
+            ((kbd "M-n") . my-org-contextual-move-down)
+            ((kbd "M-p") . my-org-contextual-move-up)
             )
 #+END_SRC
 
 #+RESULTS:
-: org-babel-previous-src-block
+: my-org-contextual-move-up
 
 ** toggle code block execution
 
@@ -3401,9 +3477,10 @@ enable command substitution
         python-shell-interpreter-args "--simple-prompt -i")
   (modify-syntax-entry ?\( ".")
   (modify-syntax-entry ?\) ".")
+  (setq forward-sexp-function nil)
   )
 
-(add-hook 'python-ts-mode-hook 'my/python-mode-hook)
+(add-hook 'python-mode-hook 'my/python-mode-hook)
 
 nil
 #+END_SRC
@@ -3425,7 +3502,7 @@ nil
   (local-set-key (kbd "C-M-f") 'sp-forward-sexp)
   (local-set-key (kbd "C-M-b") 'sp-backward-sexp)
   )
-(add-hook 'python-ts-mode-hook 'my/smartparens-python-hook)
+(add-hook 'python-mode-hook 'my/smartparens-python-hook)
 
 nil
 #+END_SRC
@@ -3440,7 +3517,7 @@ nil
   :config
   (setq blacken-line-length 79)
   (setq blacken-executable "/Users/jeroen/.virtualenvs/py3.8/bin/black")
-  (add-hook 'python-ts-mode-hook 'blacken-mode 'too-long-lines-mode))
+  (add-hook 'python-mode-hook 'blacken-mode 'too-long-lines-mode))
 
 (define-advice org-edit-src-exit (:before (&rest _args) format-python)
   "Run `blacken-buffer' when leaving an org-mode Python source block."
@@ -3518,7 +3595,7 @@ nil
 #+BEGIN_SRC emacs-lisp
 ;; (use-package pygen
 ;;   :ensure t)
-;; (add-hook 'python-ts-mode-hook 'pygen-mode)
+;; (add-hook 'python-mode-hook 'pygen-mode)
 #+END_SRC
 
 #+RESULTS:
@@ -3533,7 +3610,7 @@ improves this behaviour.
 (use-package python-docstring
   :straight t)
 
-(add-hook 'python-ts-mode-hook 'python-docstring-mode)
+(add-hook 'python-mode-hook 'python-docstring-mode)
 #+END_SRC
 
 #+RESULTS:
@@ -3552,7 +3629,7 @@ improves this behaviour.
 (use-package python-pytest
   :straight t
   :config
-  (add-hook 'python-ts-mode-hook #'my-python-pytest-setup)
+  (add-hook 'python-mode-hook #'my-python-pytest-setup)
   (bind-keys* :map python-mode-map
             ((kbd "C-c y") . python-pytest-dispatch)
             )
@@ -3898,12 +3975,6 @@ google translate in emacs.
 #+RESULTS:
 : shell-last-python-script
 
-* fxr
-
-#+BEGIN_SRC emacs-lisp
-(bind-key* "s-f" 'shell-fxr)
-#+END_SRC
-
 * free-keys
 
 find free keys
@@ -3947,7 +4018,7 @@ major mode for editing .tf files
   :straight t
   :config
   (bind-key* "C-<backspace> d" 'devdocs-lookup)
-  (add-hook 'python-ts-mode-hook
+  (add-hook 'python-mode-hook
           (lambda () (setq-local devdocs-current-docs '("python~3.9" "pandas~1" "scikit_learn")))))
 #+END_SRC
 
@@ -3968,7 +4039,7 @@ major mode for editing .tf files
   :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
   :ensure t
   :config
-  (add-hook 'python-ts-mode-hook 'copilot-mode)
+  (add-hook 'python-mode-hook 'copilot-mode)
   (add-hook 'web-mode-hook 'copilot-mode)
   (add-hook 'lisp-mode-hook 'copilot-mode)
   (setq copilot-major-mode-alist
@@ -3979,7 +4050,7 @@ major mode for editing .tf files
                   (typescript-ts-mode . "typescript")
                   (json-ts-mode . "json")
                   (css-ts-mode . "css")
-                  (python-ts-mode . "python")
+                  (python-mode . "python")
                   (web-mode . "html"))))
   (bind-key* "M-/" 'copilot-accept-completion)
   (bind-key* "C-M-/" 'copilot-accept-completion-by-line)
@@ -4025,6 +4096,32 @@ contact manager in emacs. requires =vdirsyncer= to be set up.
 * my personal lil hydra
 
 #+BEGIN_SRC emacs-lisp
+(defun jpj/org-toggle-between-list-paragraph ()
+  (interactive)
+  ;; Check if the current line is a list item.
+  (if (org-in-item-p)
+      ;; Convert from list item to paragraph.
+      (let ()
+        (unfill-paragraph) ;; Assuming this unfills the entire list/paragraph.
+        ;; Remove "- " from the beginning of the line.
+        (goto-char (line-beginning-position))
+        (when (looking-at "- ")
+          (delete-region (line-beginning-position) (+ (line-beginning-position) 2)))
+        (save-excursion
+          (goto-char (line-end-position))
+          (unless (and (eq (char-after) ?\n) (eq (char-after (1+ (point))) ?\n))
+            (insert "\n")))
+        )
+    ;; Convert from paragraph to list item.
+    (let ()
+      (unfill-paragraph) ;; Unfill the paragraph first to ensure it's a single line.
+      ;; Add "- " at the beginning of the line.
+      (goto-char (line-beginning-position))
+      (insert "- ")))
+  ;; Reformat the text to adhere to Org's fill settings.
+  (org-fill-paragraph))
+
+
 (defun org-define-nyt-link (&optional complete-file)
   "Prompt for a link, then insert it with 'nyt' as the visible text."
   (interactive "P")
@@ -4037,12 +4134,14 @@ contact manager in emacs. requires =vdirsyncer= to be set up.
 -------------------------------
 _n_ : org-define-nyt-link
 _x_ : copy-unfilled-region
+_l_ : jpj/org-toggle-between-list-paragraph
 "
   ("n" org-define-nyt-link)
   ("x" copy-unfilled-region)
+  ("l" jpj/org-toggle-between-list-paragraph)
 )
 
-(bind-key* "s-g o" 'hydra-personal/body)
+(bind-key* "s-g" 'hydra-personal/body)
 #+END_SRC
 
 #+RESULTS:
@@ -4057,74 +4156,105 @@ _x_ : copy-unfilled-region
   (require 'gptel-curl)
   (require 'gptel-openai)
 
-  ;; Set default directory for GPT-EL
-  (setq-default gptel-default-directory "/Users/jeroen/gptel")
+  ;; Define default model and API key
+  (setq-default gptel-model "gpt-4-1106-preview")
+  (setq-default gptel-default-mode 'org-mode)
+  (setq my/gptel-api-key-label "private-mode")
 
-  ;; Default settings
-  (setq gptel-default-mode 'org-mode)
-  (setq gptel-default-model "gpt-4-1106-preview")
+  (defun my/set-gptel-api-key-label ()
+    (interactive)
+    (setq my/gptel-api-key-label (completing-read "set api key: " gptel-api-key-alist)))
 
-  ;; Function to set API key
-  (defun gptel-set-api-key (mode-name)
-    "Interactively set the GPT-EL API key for a given MODE-NAME."
-    (interactive
-     (list (completing-read "Choose mode: " (mapcar #'car gptel-api-key-alist))))
-    (progn
-      (setq gptel-model "gpt-4-1106-preview")
-      (let ((key-pair (assoc mode-name gptel-api-key-alist)))
-        (if key-pair
-            (setq gptel-api-key (cdr key-pair))
-          (error "No API key found for mode: %s" mode-name)))))
+  ;; Load API keys and potentially other configurations
+  (load-file "~/.emacs.d/env.el")
 
-  ;; Function to set model
-  (defun gptel-set-model (model)
-    (interactive (list (completing-read "Select model: " '("gpt-4-1106-preview" "other-models"))))
-    (setq gptel-default-model model)))
+  ;; Function to dynamically set the gptel API key based on label
+  (defun gptel-select-api-key (label)
+    "Select the API key based on the given LABEL."
+    (interactive "sEnter API key label: ")
+    (let ((key (cdr (assoc label gptel-api-key-alist))))
+      (if key
+          (setq gptel-api-key key)
+        (error "API key for label '%s' not found" label))))
 
-(defun gptel-rewrite-region (start end)
-  "Send the selected region from START to END to gptel with a rewrite instruction and replace it with the response."
-  (interactive "r")
-  (let* ((gptel-buffer (current-buffer))
-         (response-pt
-          (if (use-region-p)
-              (set-marker (make-marker) (region-end))
-            (gptel--at-word-end (point-marker))))
-         (selected-text (buffer-substring start end))
-         (instruction (read-string "refactor instruction: "))
-         (full-prompt (concat "You have to refactor some code
- according to the instruction. Only reply with the code, nothing
- else. Instruction: " instruction "\n\nCode:\n\n" selected-text))
-         )
-    (funcall
-     (if gptel-use-curl
-         #'gptel-curl-get-response #'gptel--url-get-response)
-     (list :prompt full-prompt
-           :buffer gptel-buffer
-           :position response-pt))
-    (gptel--update-status " Waiting..." 'warning)))
+  ;; Entry point for chat sessions
+  (defun chat ()
+    "Start a new chat session with the specified settings."
+    (interactive)
+    (gptel-select-api-key my/gptel-api-key-label)
+    (gptel "GPT-4 Chat" nil nil t)
+    (auto-fill-mode 0)
+    (visual-line-mode t))
 
-(defun embark-gptel-rewrite-region (content)
-  (gptel-rewrite-region (region-beginning) (region-end))
+  ;; Entry point for gpt-screen function
+  (defun gpt-screen ()
+    "Take the contents of each buffer visible on screen and start a new gptel session."
+    (interactive)
+    (let ((content "*** Here is some code I am working on:\n\n"))
+      ;; Concatenate buffer contents
+      (dolist (win (window-list))
+        (let* ((buf (window-buffer win))
+               (buf-name (buffer-name buf)))
+          (with-current-buffer buf
+            (setq content (concat content
+                                  "**** " buf-name "\n\n#+BEGIN_EXAMPLE\n"
+                                  (buffer-string) "\n#+END_EXAMPLE\n\n")))))
+      (setq content (concat content
+                                  "*** now please answer the following question:\n\n"
+))
+      ;; Start a new gptel session with the concatenated content
+      (gptel-select-api-key my/gptel-api-key-label)
+      (gptel (generate-new-buffer-name "*gpt screen*") nil content t))
+    (auto-fill-mode 0)
+    (visual-line-mode t))
+
+  (defun gpt-screen-visible ()
+  "Take the contents of each visible part of buffers on screen and start a new gptel session."
+  (interactive)
+  (let ((content "*** Here is some code I am working on:\n\n"))
+    ;; Concatenate visible buffer contents
+    (dolist (win (window-list))
+      (let* ((buf (window-buffer win))
+             (buf-name (buffer-name buf))
+             (start (window-start win))
+             (end (window-end win t))) ; 't' for fully updated window-end position
+        (with-current-buffer buf
+          (setq content (concat content
+                                "**** " buf-name "\n\n (note: potentially truncated.)\n#+BEGIN_EXAMPLE\n"
+                                (buffer-substring start end) "\n#+END_EXAMPLE\n\n")))))
+    (setq content (concat content
+                          "*** now please answer the following question:\n\n"))
+    ;; Start a new gptel session with the concatenated content
+    (gptel-select-api-key my/gptel-api-key-label)
+    (gptel (generate-new-buffer-name "*gpt screen visible*") nil content t))
+  (auto-fill-mode 0)
+  (visual-line-mode t))
+
+
+  (defhydra hydra-gptel (:color blue :hint nil)
+  "
+  ^gptel macro^
+  -------------------------------
+  _c_ : chat
+  _s_ : gpt-screen
+  _v_ : gpt-screen-visible
+  _k_ : my/set-gptel-api-key-label
+  "
+    ("c" chat)
+    ("s" gpt-screen)
+    ("v" gpt-screen-visible)
+    ("k" my/set-gptel-api-key-label)
+    ("q" nil "quit" :color blue)
   )
 
-;; Example API key pairs (replace these with real keys):
-;; (setq gptel-api-key-alist
-;;       '(("fxr-mode" . "")
-;;         ("private-mode" . "")))
+  (bind-key* "s-l" 'hydra-gptel/body)
+)
 
-;; set api keys in ./env.el
-(load-file "~/.emacs.d/env.el")
 
-(defun chat ()
-  "Run gptel and then set the GPT-EL API key, both interactively."
-  (interactive)
-  (call-interactively 'gptel)
-  (auto-fill-mode 0)
-  (visual-line-mode))
 #+END_SRC
 
 #+RESULTS:
-: chat
+: t
 
 to authenticate, add this to your .authinfo(.gpg):
 

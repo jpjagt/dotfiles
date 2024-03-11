@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: import-@components
+# key: @c
+# --
+import { $0 } from '@/components'

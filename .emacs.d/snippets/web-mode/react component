@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
 # name: react component
-# key: <rc
+# key: rc
 # --
 import React from 'react'
 

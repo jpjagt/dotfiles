@@ -79,10 +79,12 @@
         py-electric-colon
         py-hungry-delete-backwards
         py-indent-or-complete
+        sp-forward-sexp
         sql-magic-go
         sql-magic-semicolon
         transpose-words
         upcase-region
+        wdired--self-insert
         wdired-next-line
         yaml-electric-backspace
         yaml-electric-dash-and-dot
