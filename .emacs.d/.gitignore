@@ -1,5 +1,7 @@
 # -*- mode: gitignore; -*-
 
+custom.el
+
 org-roam.db
 quelpa/*
 repos/*
@@ -13,6 +15,8 @@ request/curl-cookie-jar
 projectile-bookmarks
 projectile-bookmarks.eld
 var/pcache/unicode-fonts
+var/pcache/font-utils
+var/pcache/ucs-utils
 
 *~
 \#*\#
