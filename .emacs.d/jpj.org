@@ -431,6 +431,14 @@ Taken from https://emacs.stackexchange.com/questions/10786/remove-parentheses-ar
 #+RESULTS:
 : utf-8-unix
 
+* env
+
+load API keys and potentially other configurations:
+
+#+BEGIN_SRC emacs-lisp
+(load-file "~/.emacs.d/env.el")
+#+END_SRC
+
 * vital functions/libraries
 
 ** s (string manipulation)
@@ -950,7 +958,7 @@ disable/enable horizontal line where point is
 (setq default-frame-alist
       (append (list '(vertical-scroll-bars . nil)
                     ;; '(internal-border-width . 24)
-                    '(font . my-font))))
+                    '(font . "DM Mono 13"))))
 
 
 ;; ;; Line spacing, can be 0 for code and 1 or 2 for text
@@ -985,7 +993,7 @@ disable/enable horizontal line where point is
 #+END_SRC
 
 #+RESULTS:
-: ((vertical-scroll-bars) (font . my-font))
+: ((vertical-scroll-bars) (font . DM Mono 13))
 
 * visual things
 ** matching parenthesis
@@ -1875,64 +1883,23 @@ standard-indent 2
 ** delete line but don't kill
 
 #+BEGIN_SRC emacs-lisp
-(defun kill-line (&optional arg)
-  "Kill the rest of the current line; if no nonblanks there, kill thru newline.
-With prefix argument ARG, kill that many lines from point.
-Negative arguments kill lines backward.
-With zero argument, kills the text before point on the current line.
+(defun my-smart-delete-line ()
+  "Delete to the end of the line or the whole line without adding to kill ring.
+If at the end of the line, delete the entire line including the newline,
+then move to the start of the next line's non-whitespace text. Otherwise,
+delete to the end of the line."
+  (interactive)
+  (if (eolp) ; Check if cursor is at the end of line
+      (progn
+        (delete-region (line-beginning-position) (min (1+ (line-end-position)) (point-max))) ; delete whole line including newline
+        (back-to-indentation)) ; move to start of non-whitespace text on next line
+    (delete-region (point) (line-end-position)))) ; else delete to end of line
 
-When calling from a program, nil means \"no arg\",
-a number counts as a prefix arg.
-
-To kill a whole line, when point is not at the beginning, type \
-\\[move-beginning-of-line] \\[kill-line] \\[kill-line].
-
-If `show-trailing-whitespace' is non-nil, this command will just
-kill the rest of the current line, even if there are no nonblanks
-there.
-
-If option `kill-whole-line' is non-nil, then this command kills the whole line
-including its terminating newline, when used at the beginning of a line
-with no argument.  As a consequence, you can always kill a whole line
-by typing \\[move-beginning-of-line] \\[kill-line].
-
-If you want to append the killed line to the last killed text,
-use \\[append-next-kill] before \\[kill-line].
-
-If the buffer is read-only, Emacs will beep and refrain from deleting
-the line, but put the line in the kill ring anyway.  This means that
-you can use this command to copy text from a read-only buffer.
-\(If the variable `kill-read-only-ok' is non-nil, then this won't
-even beep.)"
-  (interactive "P")
-  (delete-region (point)
-         ;; It is better to move point to the other end of the kill
-         ;; before killing.  That way, in a read-only buffer, point
-         ;; moves across the text that is copied to the kill ring.
-         ;; The choice has no effect on undo now that undo records
-         ;; the value of point from before the command was run.
-               (progn
-                 (if arg
-         (forward-visible-line (prefix-numeric-value arg))
-       (if (eobp)
-           (signal 'end-of-buffer nil))
-       (let ((end
-        (save-excursion
-          (end-of-visible-line) (point))))
-         (if (or (save-excursion
-             ;; If trailing whitespace is visible,
-             ;; don't treat it as nothing.
-             (unless show-trailing-whitespace
-         (skip-chars-forward " \t" end))
-             (= (point) end))
-           (and kill-whole-line (bolp)))
-       (forward-visible-line 1)
-           (goto-char end))))
-     (point))))
+(global-set-key (kbd "C-k") 'my-smart-delete-line)
 #+END_SRC
 
 #+RESULTS:
-: kill-line
+: my-smart-delete-line
 
 * unicode-fonts
 
@@ -4151,22 +4118,29 @@ _l_ : jpj/org-toggle-between-list-paragraph
 
 #+BEGIN_SRC emacs-lisp
 (use-package gptel
-  :straight t
+  :straight (:host github :repo "karthink/gptel" :branch "master")
   :config
   (require 'gptel-curl)
   (require 'gptel-openai)
 
-  ;; Define default model and API key
-  (setq-default gptel-model "gpt-4-1106-preview")
   (setq-default gptel-default-mode 'org-mode)
-  (setq my/gptel-api-key-label "private-mode")
+
+  ;; claude
+
+  (setq-default gptel-model "claude-3-haiku-20240307")
+  (setq-default gptel-backend (gptel-make-anthropic "claude"
+                   :stream t :key gptel-claude-3-api-key))
+  (setq my/gptel-api-key-label "claude-private-mode")
+
+  ;; gpt
+
+  ;; (setq-default gptel-model "gpt-4-1106-preview")
+  ;; (setq my/gptel-api-key-label "private-mode")
+
 
   (defun my/set-gptel-api-key-label ()
     (interactive)
     (setq my/gptel-api-key-label (completing-read "set api key: " gptel-api-key-alist)))
-
-  ;; Load API keys and potentially other configurations
-  (load-file "~/.emacs.d/env.el")
 
   ;; Function to dynamically set the gptel API key based on label
   (defun gptel-select-api-key (label)
