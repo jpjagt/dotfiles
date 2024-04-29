@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: tsf-search
+# key: tsf-search
+# --
+await api_search_strategy.search("red $0", {})

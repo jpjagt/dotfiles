@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: from dj import
+# key: dji
+# --
+from dj.$1 import $0

@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: from sf import
+# key: sfi
+# --
+from sf.$1 import $0

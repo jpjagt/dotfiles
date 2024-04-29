@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: import @ slash hooks
+# key: @h
+# --
+import ${1:use} from '@/hooks/$1'

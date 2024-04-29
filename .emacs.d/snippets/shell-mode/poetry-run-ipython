@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: poetry-run-ipython
+# key: pri
+# --
+poetry run ipython --simple-prompt -i --colors=Linux --profile=default

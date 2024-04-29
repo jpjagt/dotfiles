@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: docker-compose tsf api
+# key: dcta
+# --
+docker-compose -f deployment/api/docker-compose.yml ${0:run api /bin/bash}
