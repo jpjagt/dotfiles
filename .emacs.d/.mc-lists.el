@@ -79,6 +79,7 @@
         py-electric-colon
         py-hungry-delete-backwards
         py-indent-or-complete
+        sp-backward-sexp
         sp-forward-sexp
         sql-magic-go
         sql-magic-semicolon

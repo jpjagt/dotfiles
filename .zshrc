@@ -106,3 +106,5 @@ fi
 # else
 #     eval $(gpg-agent --daemon)
 # fi
+
+eval "$(zoxide init zsh)"

@@ -219,3 +219,32 @@ needs to be done per app. for emacs:
 #+BEGIN_SRC sh
 brew install --cask cog
 #+END_SRC
+
+* monolith (save webpages as single html file)
+
+#+BEGIN_SRC sh
+brew install monolith
+#+END_SRC
+
+* wireshark (monitor network packets)
+
+#+BEGIN_SRC sh
+brew install --cask wireshark
+#+END_SRC
+
+* touchdesigner
+
+#+BEGIN_SRC sh
+brew install --cask touchdesigner
+#+END_SRC
+
+* reverse engineering
+
+** charlesproxy
+
+https://www.charlesproxy.com/latest-release/download.do
+
+** ios apps
+
+- hopperapp
+- http://stevenygard.com/projects/class-dump/
