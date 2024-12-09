@@ -16,6 +16,7 @@
         comint-magic-space
         comint-previous-input
         comment-dwim-or-line
+        consult-yank-from-kill-ring
         copilot-complete
         counsel-M-x
         counsel-yank-pop
@@ -43,6 +44,7 @@
         forward-sexp
         ibuffer-do-kill-on-deletion-marks
         ibuffer-mark-for-delete
+        ibuffer-mark-for-delete-backwards
         ibuffer-unmark-backward
         indent-for-tab-command
         indent-region
@@ -60,6 +62,7 @@
         markdown-enter-key
         markdown-outdent-or-delete
         my-delete-surrounded-delimiters
+        my-smart-delete-line
         org-beginning-of-line
         org-delete-char
         org-demote-subtree
@@ -86,7 +89,9 @@
         transpose-words
         upcase-region
         wdired--self-insert
+        wdired-downcase-word
         wdired-next-line
+        wdired-previous-line
         yaml-electric-backspace
         yaml-electric-dash-and-dot
         yas-expand
@@ -104,6 +109,7 @@
         counsel-rg
         deft
         describe-key
+        dired-copy-filename-as-kill
         dired-display-file
         dired-do-flagged-delete
         dired-do-kill-lines
@@ -144,10 +150,12 @@
         shell
         swiper
         switch-to-buffer-other-window
+        text-scale-adjust
         text-scale-decrease
         toggle-input-method
         undefined
         wdired-abort-changes
         wdired-exit
         wdired-finish-edit
+        xref-find-definitions
         ))

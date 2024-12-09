@@ -20,6 +20,21 @@
 
 here are some of the things i use in my macos setup.
 
+* interesting products for reference
+
+i don't use these but i might want to
+
+** font manager: https://rightfontapp.com/
+
+** 'talking head' video / video call: https://reincubate.com/camo/
+
+** screenshot tool: https://cleanshot.com/
+
+** site + app blockers
+
+- https://getcoldturkey.com/
+- https://freedom.to
+
 * make dock hide/show more quickly
 
 #+BEGIN_SRC sh
@@ -51,44 +66,49 @@ put the following in =~/Library/KeyBindings/DefaultKeyBinding.dict=
 
 there is a specific =macos_setup.org= in this dotfiles' .emacs.d.
 
-* raycast
+* brew packages
 
 #+BEGIN_SRC sh
-brew install --cask raycast
-open /Applications/Raycast.app
+brew install --cask raycast # A powerful alternative to Spotlight
+brew install --cask protonmail-bridge # Secure email app bridge
+brew install --cask shottr # Screenshot tool
+brew install --cask hiddenbar # Hide menu bar items
+brew install --cask imageoptim # Image compressor
+brew install --cask cog # FLAC audio player
+brew install --cask wireshark # Network protocol analyzer
+brew install --cask touchdesigner # Visual development platform
+brew install --cask alt-tab # Window switcher
+brew install --cask screen-studio # Screen recording and streaming tool
+brew install --cask monolith # Download web pages as a single HTML file
+brew install --cask freecad # Open-source 3D modelling software
+brew install --cask iina # open-source video player
+brew install --cask whatsapp
+brew install --cask cursor # ai-first code editor
+brew install volta # javascript toolchain manager
+brew install ruff # python formatter + linter
+brew install rsnapshot # backups - see below
+brew install --cask tripmode # control data usage
+brew install --cask soulseek
 #+END_SRC
 
-* protonmail
+* volta packages to install
 
 #+BEGIN_SRC sh
-brew install --cask protonmail-bridge
+volta install node
+volta install npm
+volta install yarn
+volta install bun
+volta install @biomejs/biome # linting + formatting
 #+END_SRC
 
-* shottr
+* rsnapshot (backups)
+
+i made a config file in this dotfiles repo: [[./rsnapshot.conf]]
+
+create a backup with:
 
 #+BEGIN_SRC sh
-brew install --cask shottr
-open /Applications/Shottr.app
-#+END_SRC
-
-follow the instructions in "keyboard shortcuts"
-
-* hidden bar
-
-an app to hide part of your toolbar.
-
-#+BEGIN_SRC sh
-brew install --cask hiddenbar
-open '/Applications/Hidden Bar.app'
-#+END_SRC
-
-* imageoptim
-
-a utility programme which can minify (or compress lossily) images
-
-#+BEGIN_SRC sh
-brew install --cask imageoptim
-open /Applications/ImageOptim.app
+rsnapshot -c /Users/jeroen/code/jpjagt/dotfiles/rsnapshot.conf main
 #+END_SRC
 
 * managing contacts with vdirsyncer
@@ -214,30 +234,6 @@ needs to be done per app. for emacs:
 - name: "Hide Emacs" (as it appears in menu bar)
 - shortcut: something you will never press.
 
-* cog (flac audio player)
-
-#+BEGIN_SRC sh
-brew install --cask cog
-#+END_SRC
-
-* monolith (save webpages as single html file)
-
-#+BEGIN_SRC sh
-brew install monolith
-#+END_SRC
-
-* wireshark (monitor network packets)
-
-#+BEGIN_SRC sh
-brew install --cask wireshark
-#+END_SRC
-
-* touchdesigner
-
-#+BEGIN_SRC sh
-brew install --cask touchdesigner
-#+END_SRC
-
 * reverse engineering
 
 ** charlesproxy
@@ -248,3 +244,84 @@ https://www.charlesproxy.com/latest-release/download.do
 
 - hopperapp
 - http://stevenygard.com/projects/class-dump/
+
+* settings from youtube video
+
+this video has some nice setting changes:
+
+https://www.youtube.com/watch?v=Kft9Y33oc2I
+
+* cog folder
+
+the app =cog= can only open one folder. let's create symlinks to the actual
+audio directories.
+
+#+BEGIN_SRC sh
+mkdir -p ~/cog-files
+mkdir -p ~/cog-files/chinese
+
+ln -s "/Users/jeroen/Documents/projects/chinese/chinese-textbook-1-audio" ~/cog-files/chinese/textbook-1
+ln -s "/Users/jeroen/torrents/Takashi Kokubo" ~/cog-files/takashi-kokubo
+#+END_SRC
+
+* cloud (menu bar timer)
+
+https://github.com/YYUUGGOO/Cloud
+
+* cyan.graphics
+
+image color converter etc
+
+https://github.com/rodlie/cyan/releases/tag/1.2.4
+
+* insert current date, etc
+
+Recently, I converted to using ISO-8601 formatted dates as much as possible, e.g. `2020-06-12`. As a meme, I hope this catches on. Dates written this way are internationally recognizable, no confusion over `mm/dd/yy` or `dd/mm/yy`. They are sortable. And, when used consistently, they are easy to search; no worries about case sensitivity, or Jun/June spellings. Don’t take my word for it, though. [Randall Munroe](https://xkcd.com/1179/) agrees. So does [GitLab](https://about.gitlab.com/handbook/communication/#writing-style-guidelines).
+
+Here's how to create a keyboard shortcut to insert the current date formatted as ISO-8601.
+
+1. Launch Automator, and create a new Service.
+
+2. This particular service receives no input.
+
+3. Drag in Run AppleScript to the service.
+
+4. The script I used to insert a date is:
+
+```
+on run {input, parameters}
+        tell application "System Events"
+                set _Date to (current date)
+                set yyymmdd to (year of _Date as text) & "-" & ¬
+                        text -2 thru -1 of ("00" & ((month of _Date) as integer)) & "-" & ¬
+                        text -2 thru -1 of ("00" & ((day of _Date) as integer))
+                keystroke yyymmdd
+        end tell
+end run
+```
+
+5. Save the service and remember the name.
+
+6. Open System Preferences > Keyboard > Shortcuts and map the service to a
+   useful keyboard shortcut. I use `Control`+`Option`+`Command`+`d`, because it
+   doesn't overlap with any of my existing app shortcuts.
+
+7. If the shortcut doesn't trigger in some apps, open System Preferences >
+   Seciruty & Privacy > Accessibility and grant access to each app you want to
+   allow to use the shortcut.
+
+* spicetify - spotify extender
+
+#+BEGIN_SRC sh
+curl -fsSL https://raw.githubusercontent.com/spicetify/cli/main/install.sh | sh
+npx degit spicetify/spicetify-themes ~/.config/spicetify/Themes
+npx degit Sowgro/betterLibrary/CustomApps/betterLibrary ~/.config/spicetify/CustomApps/betterLibrary
+#+END_SRC
+
+usage:
+
+#+BEGIN_SRC sh
+spicetify config custom_apps betterLibrary
+spicetify config extensions keyboardShortcut spicetify-marketplace
+spicetify backup apply enable-devtools
+#+END_SRC

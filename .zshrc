@@ -1,6 +1,3 @@
-# when using an emacs' tramp shell
-# [[ $TERM == "dumb" ]] && unsetopt zle && PS1='$ '
-
 ZSH=$HOME/.oh-my-zsh
 
 # You can change the theme with another one:
@@ -83,9 +80,6 @@ alias sed='gsed'
 autoload -U +X bashcompinit && bashcompinit
 complete -o nospace -C /usr/local/bin/terraform terraform
 
-# show timestamp in front of prompt
-RPROMPT='%{$fg[yellow]%}[%D{%H:%M}] '$RPROMPT
-
 # jenv - java version manager
 export PATH="$HOME/.jenv/bin:$PATH"
 eval "$(jenv init -)"
@@ -108,3 +102,30 @@ fi
 # fi
 
 eval "$(zoxide init zsh)"
+
+# EMACS
+
+if [[ "dumb" == $TERM ]] ; then
+  alias l='cat'
+  alias less='cat'
+  alias m='cat'
+  alias more='cat'
+  export PAGER=cat
+  export TERM=xterm-256color
+else
+  alias l='less'
+  alias m='more'
+fi
+
+# to prevent tramp from hanging
+# [[ $TERM == "dumb" ]] && unsetopt zle && PS1='$ '
+
+# directory tracking in emacs
+function myprompt() {
+  print -Pn "\e]7;file://%m%~\e\\"
+}
+precmd_functions+=(myprompt)
+export VOLTA_HOME="$HOME/.volta"
+export PATH="$VOLTA_HOME/bin:$PATH"
+
+export PATH=$PATH:/Users/jeroen/.spicetify

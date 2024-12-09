@@ -1,20 +1,11 @@
-* things to research/do
+* env.el
 
-- look up (py) documentation:
-  https://stackoverflow.com/questions/45992859/how-to-read-python-documentation-in-emacs
-- code nav: helm
-- save window configs/workspaces: eyebrowse
-- treemacs with M-p M-n recent file traversal
-- autocomplete fixen (company?)
-- save command line history thru sessions, and separate it per type of shell
-  (python, zsh, etc)
-- bookmarks? https://www.emacswiki.org/emacs/VisibleBookmarks
-- copy code unindented
-  https://emacs.stackexchange.com/questions/34966/copy-region-without-leading-indentation
-
-* interesting configs?
-
-- https://github.com/gonsie/dotfiles/blob/master/emacs
+i use a separate file to manage sensitive variables i can't commit to version
+control. that's =env.el= with the following variables set:
+- gptel-claude-3-api-key
+- gptel-api-key-alist
+- spotify-client-id
+- spotify-client-secret
 
 * freeish keybindings
 
@@ -106,10 +97,15 @@ case that you kill something within emacs.
   (interactive)
   (find-file "~/.emacs.d/jpj.org")
   )
+
+(defun open-macos-setup ()
+  (interactive)
+  (find-file "~/code/jpjagt/dotfiles/macos_setup.org")
+  )
 #+END_SRC
 
 #+RESULTS:
-: thesis
+: open-macos-setup
 
 ** random
 
@@ -894,6 +890,20 @@ themes i like:
 #+RESULTS:
 : t
 
+** flexoki
+
+#+BEGIN_SRC emacs-lisp
+(use-package flexoki-themes
+  :straight t
+  :custom
+  (flexoki-themes-use-bold-keywords t)
+  (flexoki-themes-use-bold-builtins t)
+  (flexoki-themes-use-italic-comments t))
+#+END_SRC
+
+#+RESULTS:
+
+** my theming
 
 #+BEGIN_SRC emacs-lisp
 (defun load-theme-and-disable-all-others (theme)
@@ -905,7 +915,7 @@ themes i like:
 
 (defun light ()
   (interactive)
-  (load-theme-and-disable-all-others 'doom-opera-light))
+  (load-theme-and-disable-all-others 'flexoki-themes-light))
 
 (defun gray ()
   (interactive)
@@ -915,11 +925,16 @@ themes i like:
   (interactive)
   (load-theme-and-disable-all-others 'doom-palenight))
 
+(defun darker ()
+  (interactive)
+  (load-theme-and-disable-all-others 'flexoki-themes-dark))
+
 (dark)
 #+END_SRC
 
 #+RESULTS:
 : t
+
 
 ** additional theming
 
@@ -952,6 +967,10 @@ disable/enable horizontal line where point is
 ;; (setq my-font "Roboto Mono 13")
 
 (set-face-font 'default my-font)
+
+(set-fontset-font
+ "fontset-default" 'han
+ (font-spec :family "Noto Sans Mono CJK SC"))
 
 ;; ;; (set-frame-parameter (selected-frame)
 ;; ;;                      'internal-border-width 24)
@@ -1262,6 +1281,7 @@ add remote endpoints
                    ("minifactory" "/ssh:paul@minifactory:")
                    ("factory-api" "/ssh:root@factory-api:")
                    ("lodder" "/ssh:paul@www.lodder.dev:")
+                   ("mxomni" "/ssh:root@M-x-omni:")
                   ))
 
 (dolist (elt ssh-config)
@@ -1389,7 +1409,7 @@ Activate the tree-sitter modes:
    ;; (js2-mode . js-ts-mode)
    ;; (typescript-mode . typescript-ts-mode)
    (json-mode . json-ts-mode)
-   (css-mode . css-ts-mode)
+   ;; (css-mode . css-ts-mode)
    ;; (python-mode . python-ts-mode)
    ))
 #+END_SRC
@@ -1935,6 +1955,20 @@ this is a standalone package which we want/need (also for org-roam)
   :straight t)
 #+END_SRC
 
+** magit-todos
+
+shows "TODO" comments of a codebase in magit.
+
+#+BEGIN_SRC emacs-lisp
+(use-package magit-todos
+  :straight t
+  :after magit
+  :config (magit-todos-mode 1))
+#+END_SRC
+
+#+RESULTS:
+: t
+
 * yasnippet
 
 #+BEGIN_SRC emacs-lisp
@@ -2053,6 +2087,7 @@ web-mode ensures syntax highlighting for a bunch of web code files (html), inclu
 (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.css\\'" . web-mode))
 
 nil
 #+END_SRC
@@ -2077,7 +2112,7 @@ nil
 #+BEGIN_SRC emacs-lisp
 (define-derived-mode jpj-js-mode web-mode "jpj-js"
   "A major mode derived from web-mode, for editing .(j|t)s(x) files with eglot support.")
-(add-to-list 'auto-mode-alist '("\\.[jt]sx?\\'" . jpj-js-mode))
+(add-to-list 'auto-mode-alist '("\\.\\([jt]sx?\\|mjs\\)\\'" . jpj-js-mode))
 
 ;; (defun maybe-set-pylsp-path-on-ssh ()
 ;;     (if (s-starts-with? "/ssh:jeroen@fxr" (buffer-file-name))
@@ -2130,6 +2165,24 @@ nil
 
 #+RESULTS:
 | eglot-ensure | combobulate-mode |
+
+** lsp-mode
+
+#+BEGIN_SRC emacs-lisp
+(use-package lsp-mode
+ :straight t)
+#+END_SRC
+
+#+RESULTS:
+
+*** biome (js formatter)
+
+#+BEGIN_SRC emacs-lisp
+(use-package lsp-biome
+    :straight (:host github :repo "cxa/lsp-biome" :branch "main"))
+#+END_SRC
+
+#+RESULTS:
 
 * restclient
 
@@ -2227,16 +2280,19 @@ add-node-modules-path
   )
 
 (defun web-mode-init-prettier-hook ()
-  (prettier-js-mode))
+  (when (string-equal "css" (file-name-extension buffer-file-name))
+              (prettier-js-mode)
+              (add-hook 'before-save-hook 'prettier-js nil 'local)))
 
 (eval-after-load 'web-mode
     '(progn
        (add-hook 'web-mode-hook #'add-node-modules-path)
-       (add-hook 'web-mode-hook #'web-mode-init-prettier-hook)))
+       (add-hook 'web-mode-hook #'web-mode-init-prettier-hook)
+       ))
 #+END_SRC
 
 #+RESULTS:
-| er/add-web-mode-expansions | er/add-html-mode-expansions | web-mode-init-prettier-hook | add-node-modules-path | copilot-mode | prettier-js-mode | web-mode-init-hook | web-mode-init-emmet-hook |
+| web-mode-init-prettier-hook | add-node-modules-path | copilot-mode | prettier-js-mode | web-mode-init-hook | web-mode-init-emmet-hook |
 
 then, flymake-eslint, which does eslint:
 
@@ -2268,7 +2324,7 @@ then, flymake-eslint, which does eslint:
   "Prompt for a shadcn-ui component and add it using bunx in the directory containing package.json."
   (interactive "sEnter the component name to add: ")
   (let* ((root-dir (find-root-dir-with "package.json"))
-         (command (format "bunx --bun shadcn-ui@latest add %s" component)))
+         (command (format "pnpm dlx shadcn@latest add %s" component)))
     (if root-dir
         (let ((default-directory root-dir))
           ;; Execute command in a shell and display output
@@ -2800,28 +2856,20 @@ nil
     (message session-name)
     (insert
      (format  "#+TITLE: %s
-,#+BIND: org-export-use-babel nil
 ,#+AUTHOR: July
 ,#+DATE: %s
-,#+LATEX: \\setlength\\parindent{0pt}
-,#+LATEX_HEADER: \\usepackage{minted}
-,#+LATEX_HEADER: \\usepackage[margin=1.2in]{geometry}
 ,#+LATEX_HEADER: \\usepackage{mathpazo}
-,#+LATEX_HEADER: \\usepackage{adjustbox}
-,#+LATEX_HEADER_EXTRA:  \\usepackage{mdframed}
-,#+LATEX_HEADER_EXTRA: \\BeforeBeginEnvironment{minted}{\\begin{mdframed}}
-,#+LATEX_HEADER_EXTRA: \\AfterEndEnvironment{minted}{\\end{mdframed}}
-,#+LATEX_HEADER_EXTRA: \\BeforeBeginEnvironment{tabular}{\\begin{adjustbox}{center}}
-,#+LATEX_HEADER_EXTRA: \\AfterEndEnvironment{tabular}{\\end{adjustbox}}
-,#+MACRO: NEWLINE @@latex:\\\\@@ @@html:<br>@@
 ,#+PROPERTY: header-args :exports both :session %s :cache :results value
 ,#+OPTIONS: ^:nil
-,#+LATEX_COMPILER: pdflatex" session-name (insdate-insert-current-date t) session-name)
+" session-name (insdate-insert-current-date t) session-name)
      ;; (org-mode-restart)
      )))
 (define-auto-insert "\\.org$" #'my/org-template)
   ;; ))
 #+END_SRC
+
+#+RESULTS:
+: [my/org-template my/org-template]
 
 ** org-roam
 
@@ -3379,14 +3427,21 @@ switch between bash and zsh
 
 #+BEGIN_SRC emacs-lisp
 (defun set-bash () (interactive) (setq explicit-shell-file-name "/bin/bash"))
-(defun set-zsh () (interactive) (setq explicit-shell-file-name "/bin/zsh"))
+(defun set-zsh () (interactive)
+       (setq explicit-shell-file-name "/bin/zsh")
+       (setq explicit-zsh-args '("--interactive" "--login"))
+       (setq comint-process-echoes 0)
+       (add-hook 'comint-output-filter-functions #'comint-osc-process-output)
+       (shell-dirtrack-mode -1)
+       (dirtrack-mode -1)
+       )
 
 ;; set zsh as default
 (set-zsh)
+nil
 #+END_SRC
 
 #+RESULTS:
-: set-zsh
 
 enable command substitution
 (https://www.masteringemacs.org/article/shell-comint-secrets-history-commands)
@@ -3459,6 +3514,15 @@ enable command substitution
 #+RESULTS:
 : my-tide-show-symbol-info
 
+* reformatter
+
+#+BEGIN_SRC emacs-lisp
+(use-package reformatter
+  :straight t)
+#+END_SRC
+
+#+RESULTS:
+
 * python
 
 #+BEGIN_SRC emacs-lisp
@@ -3482,6 +3546,19 @@ nil
 
 #+RESULTS:
 
+** python for freecad
+
+#+BEGIN_SRC emacs-lisp
+(defun my/python-for-freecad ()
+  (interactive)
+  (setq-local python-shell-interpreter "/usr/local/Caskroom/freecad/0.21.2/FreeCAD.app/Contents/Resources/bin/python"
+              python-shell-interpreter-args "")
+  )
+#+END_SRC
+
+#+RESULTS:
+: my/python-for-freecad
+
 ** smartparens
 
 #+BEGIN_SRC emacs-lisp
@@ -3504,6 +3581,27 @@ nil
 
 #+RESULTS:
 
+** ruff
+
+#+BEGIN_SRC emacs-lisp
+(use-package flymake-ruff
+  :straight (flymake-ruff
+             :type git
+             :host github
+             :repo "erickgnavar/flymake-ruff")
+  :hook (eglot-managed-mode . flymake-ruff-load)
+        (python-mode . flymake-ruff-load))
+
+(use-package ruff
+  :straight (ruff :host github
+                          :repo "scop/emacs-ruff-format")
+  :hook (python-mode . ruff-format-on-save-mode))
+
+nil
+#+END_SRC
+
+#+RESULTS:
+
 ** autoformatting using black
 
 #+BEGIN_SRC emacs-lisp
@@ -3512,7 +3610,8 @@ nil
   :config
   (setq blacken-line-length 79)
   (setq blacken-executable "/Users/jeroen/.virtualenvs/py3.8/bin/black")
-  (add-hook 'python-mode-hook 'blacken-mode 'too-long-lines-mode))
+  ;; (add-hook 'python-mode-hook 'blacken-mode 'too-long-lines-mode)
+  )
 
 (define-advice org-edit-src-exit (:before (&rest _args) format-python)
   "Run `blacken-buffer' when leaving an org-mode Python source block."
@@ -4055,7 +4154,7 @@ major mode for editing .tf files
                   (js-ts-mode . "javascript")
                   (typescript-ts-mode . "typescript")
                   (json-ts-mode . "json")
-                  (css-ts-mode . "css")
+                  ;; (css-ts-mode . "css")
                   (python-mode . "python")
                   (web-mode . "html"))))
   (bind-key* "M-/" 'copilot-accept-completion)
@@ -4163,25 +4262,35 @@ _u_ : org-unindent-buffer
 
 #+BEGIN_SRC emacs-lisp
 (use-package gptel
-  ;; :straight (:host github :repo "karthink/gptel" :branch "master")
-  :straight (:host github :repo "suzuki/gptel" :branch "add-gpt-4-turbo")
+  :straight (:host github :repo "karthink/gptel" :branch "4c0583b2bd6557a09d66dfec84bab776242d0848")
   :config
   (require 'gptel-curl)
   (require 'gptel-openai)
+  (require 'gptel-anthropic)
 
   (setq-default gptel-default-mode 'org-mode)
+  (setq gptel-directives '(
+                          (default . "You are a large language model living in Emacs and a helpful assistant. Respond concisely. When asked a code question, you should choose whether the user wants the relevant snippet only, or the entire implementation. In both cases, first give the code with minimal comments, and only explain it after. When giving a snippet, really only provide the relevant bit of code that the user needs to know in order to proceed! IMPORTANT: in code src blocks remember to not confuse Markdown-to-Org things: like don't use = instead of ` in javascript code, etc.")
+                          (programming . "You are a large language model and a careful programmer. Provide code and only code as output without any additional text, prompt or note.")
+                          (writing . "You are a large language model and a writing assistant. Respond concisely.")
+                          (chat . "You are a large language model and a conversation partner. Respond concisely.")
+                          ))
 
   ;; claude
 
-  ;; (setq-default gptel-model "claude-3-opus-20240229")
-  ;; (setq-default gptel-backend (gptel-make-anthropic "claude"
-  ;;                  :stream t :key gptel-claude-3-api-key))
-  ;; (setq my/gptel-api-key-label "claude-private-mode")
+  ;; (gptel-make-anthropic "claude"
+  ;;   :stream t :key gptel-claude-3-api-key)
+
+  (setq
+   gptel-model "claude-3-5-sonnet-20241022"
+   gptel-backend (gptel-make-anthropic "claude"
+                   :stream t :key gptel-claude-3-api-key :models '("claude-3-5-sonnet-20241022")))
+  (setq my/gptel-api-key-label "claude-private-mode")
 
   ;; gpt
 
-  (setq-default gptel-model "gpt-4-turbo")
-  (setq my/gptel-api-key-label "tsf-mode")
+  ;; (setq-default gptel-model "gpt-4-turbo")
+  ;; (setq my/gptel-api-key-label "tsf-mode")
 
 
   (defun my/set-gptel-api-key-label ()
@@ -4209,7 +4318,7 @@ _u_ : org-unindent-buffer
     "Start a new chat session with the specified settings."
     (interactive)
     (gptel-select-api-key my/gptel-api-key-label)
-    (gptel "GPT-4 Chat" nil nil t)
+    (gptel "*llm*" nil nil t)
     (auto-fill-mode 0)
     (visual-line-mode t))
 
@@ -4231,7 +4340,7 @@ _u_ : org-unindent-buffer
 ))
       ;; Start a new gptel session with the concatenated content
       (gptel-select-api-key my/gptel-api-key-label)
-      (gptel (generate-new-buffer-name "*gpt screen*") nil content t))
+      (gptel (generate-new-buffer-name "*llm screen*") nil content t))
     (auto-fill-mode 0)
     (visual-line-mode t))
 
@@ -4257,6 +4366,25 @@ _u_ : org-unindent-buffer
   (auto-fill-mode 0)
   (visual-line-mode t))
 
+  (defun gpt-screen-current ()
+  "Process the current buffer and start a new gptel session."
+  (interactive)
+  (let ((content (format "*** Here is a buffer I am working on:\n\n**** %s\n\n#+BEGIN_EXAMPLE\n%s\n#+END_EXAMPLE\n\n*** now please answer the following question:\n\n" (buffer-name) (buffer-string))))
+    (gptel-select-api-key my/gptel-api-key-label)
+    (gptel (generate-new-buffer-name "*gpt current*") nil content t))
+  (auto-fill-mode 0)
+  (visual-line-mode t))
+
+(defun gpt-screen-current-visible ()
+  "Process the visible part of the current buffer and start a new gptel session."
+  (interactive)
+  (let* ((win (selected-window))
+         (content (format "*** Here is the visible part of the current buffer:\n\n**** %s\n\n (note: potentially truncated.)\n#+BEGIN_EXAMPLE\n%s\n#+END_EXAMPLE\n\n*** now please answer the following question:\n\n" (buffer-name) (buffer-substring (window-start win) (window-end win t)))))
+    (gptel-select-api-key my/gptel-api-key-label)
+    (gptel (generate-new-buffer-name "*gpt current visible*") nil content t))
+  (auto-fill-mode 0)
+  (visual-line-mode t))
+
 
   (defhydra hydra-gptel (:color blue :hint nil)
   "
@@ -4266,13 +4394,17 @@ _u_ : org-unindent-buffer
   _s_ : gpt-screen
   _v_ : gpt-screen-visible
   _k_ : my/set-gptel-api-key-label
+  _j_ : gpt-screen-current
+  _n_ : gpt-screen-current-visible
   "
-    ("c" chat)
-    ("s" gpt-screen)
-    ("v" gpt-screen-visible)
-    ("k" my/set-gptel-api-key-label)
-    ("q" nil "quit" :color blue)
-  )
+  ("c" chat)
+  ("s" gpt-screen)
+  ("v" gpt-screen-visible)
+  ("k" my/set-gptel-api-key-label)
+  ("j" gpt-screen-current)
+  ("n" gpt-screen-current-visible)
+  ("q" nil "quit" :color blue)
+)
 
   (bind-key* "s-l" 'hydra-gptel/body)
 )
@@ -4466,3 +4598,57 @@ needs a =brew install zoxide= as well.
 
 #+RESULTS:
 | my-optimize-inferior-python-mode |
+
+* video-org-sync
+
+#+BEGIN_SRC emacs-lisp
+(use-package videorg
+  :load-path "~/code/jpjagt/videorg"
+  :custom
+  (videorg-python-script "/Users/jeroen/code/jpjagt/videorg/videorg.py")
+  (videorg-video-folder "/Users/jeroen/video")
+  (videorg-org-file (expand-file-name "20240711115118-videos.org" org-roam-directory))
+  :bind
+  ("C-c v s" . videorg-sync))
+#+END_SRC
+
+#+RESULTS:
+: videorg-sync
+
+* playground
+
+#+BEGIN_SRC emacs-lisp
+(use-package playground
+  :straight t)
+#+END_SRC
+
+#+RESULTS:
+
+* spotify
+
+** smudge
+
+#+BEGIN_SRC emacs-lisp
+(use-package smudge
+  :straight t
+  :bind-keymap ("C-c ." . smudge-command-map)
+  :config
+  (setq smudge-oauth2-client-secret spotify-client-secret
+        smudge-oauth2-client-id spotify-client-id))
+#+END_SRC
+
+#+RESULTS:
+| lambda | nil | (interactive) | (use-package-autoload-keymap 'smudge-command-map 'smudge nil) |
+
+** counsel-spotify
+
+#+BEGIN_SRC emacs-lisp
+(use-package counsel-spotify
+  :straight (:host github :repo "Lautaro-Garcia/counsel-spotify")
+  :config
+  (setq counsel-spotify-client-id spotify-client-id
+        counsel-spotify-client-secret spotify-client-secret))
+#+END_SRC
+
+#+RESULTS:
+: t

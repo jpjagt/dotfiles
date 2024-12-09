@@ -40,9 +40,18 @@ check the Emacs app.
 - =exec-path-from-shell=
 - =use-package=
 
-* font
+* fonts
 
-using DM Mono as font. ya gots to install it: https://fonts.google.com/specimen/DM+Mono
+install fonts:
+
+** DM Mono
+
+https://fonts.google.com/specimen/DM+Mono
+
+** Noto Sans Mono CJK SC
+
+mono font for simplified chinese. "NotoSansMonoCJK-SC.zip" at:
+https://github.com/life888888/cjk-fonts-ttf
 
 * launching as application (Emacs.app) instead of from shell cmd
 

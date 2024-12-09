@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: import-shadcn-component
+# key: ish
+# --
+import { ${1:Component} } from '@/components/ui/${1:$(downcase (replace-regexp-in-string "\\([A-Z]\\)" "-\\1" yas-text))}'
