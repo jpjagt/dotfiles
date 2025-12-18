@@ -45,33 +45,16 @@ export CPPFLAGS="-I/usr/local/opt/readline/include"
 # fix openssl
 export RUBY_CONFIGURE_OPTS="--with-openssl-dir=$(brew --prefix openssl@1.1)"
 
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/usr/local/Caskroom/miniconda/base/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    if [ -f "/usr/local/Caskroom/miniconda/base/etc/profile.d/conda.sh" ]; then
-        . "/usr/local/Caskroom/miniconda/base/etc/profile.d/conda.sh"
-    else
-        export PATH="/usr/local/Caskroom/miniconda/base/bin:$PATH"
-    fi
-fi
-unset __conda_setup
-# <<< conda initialize <<<
-conda deactivate
-
 # for rake tasks like rake tweet:send[username] to not fail
 unsetopt nomatch
 export PATH="/usr/local/opt/gnu-getopt/bin:$PATH"
 export BUNDLER_EDITOR="'/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl' -a"
 
 # use venv and wrapper shell tools
-export WORKON_HOME=~/.virtualenvs
-export VIRTUALENVWRAPPER_PYTHON=$WORKON_HOME/base/bin/python
-mkdir -p $WORKON_HOME
-source $WORKON_HOME/base/bin/virtualenvwrapper.sh
-workon base
+export WORKON_HOME=$HOME/.virtualenvs
+export VIRTUALENVWRAPPER_PYTHON=$HOME/.local/pipx/venvs/virtualenvwrapper/bin/python3.13
+# Path shown from pipx list
+source $HOME/.local/pipx/venvs/virtualenvwrapper/bin/virtualenvwrapper.sh
 
 # replace sed with gnu-sed
 alias sed='gsed'
@@ -129,3 +112,61 @@ export VOLTA_HOME="$HOME/.volta"
 export PATH="$VOLTA_HOME/bin:$PATH"
 
 export PATH=$PATH:/Users/jeroen/.spicetify
+
+export HOMEBREW_AUTO_UPDATE_SECS=1814400
+export PATH="/usr/local/opt/postgresql@17/bin:$PATH"
+
+
+if [[ "$TERM" == "dumb" ]]; then
+  export UV_NO_PROGRESS=true
+fi
+
+alias claude="/Users/jeroen/.claude/local/claude"
+
+cdx() {
+    if [[ "$1" == "update" ]]; then
+        npm install -g @openai/codex@latest
+    else
+        codex \
+            --model 'gpt-5-codex' \
+            --full-auto \
+            -c model_reasoning_summary_format=experimental \
+            --search "$@"
+    fi
+}
+
+# opencode
+export PATH=/Users/jeroen/.opencode/bin:$PATH
+
+git-comp() {
+  local range="$1"
+  git diff --numstat "$range" | sort -rn -k3 | awk '{printf "%s +%d -%d\n", $3, $1, $2}'
+}
+
+git-comp() {
+  local range="${1:-HEAD}"
+  if [[ "$1" == *..* ]]; then
+    range="$1"
+    shift
+  elif [[ -n "$1" ]]; then
+    range="$1..${2:-HEAD}"
+  fi
+  git diff --numstat "$range" | sort -rn -k3 | awk '
+  {
+    printf "+%-6d -%-6d  |  %s\n", $1, $2, $3
+  }'
+}
+
+git-comp() {
+  local range="${1:-HEAD}"
+  if [[ "$1" == *..* ]]; then
+    range="$1"
+    shift
+  elif [[ -n "$1" ]]; then
+    range="$1..${2:-HEAD}"
+  fi
+  git diff --numstat "$range" | awk '{print $1 + $2 "\t" $1 "\t" $2 "\t" $3}' | sort -k1,1rn | awk '
+  {
+    printf "+%-6d -%-6d  |  %s\n", $2, $3, $4
+  }'
+}

@@ -82,13 +82,13 @@ brew install --cask screen-studio # Screen recording and streaming tool
 brew install --cask monolith # Download web pages as a single HTML file
 brew install --cask freecad # Open-source 3D modelling software
 brew install --cask iina # open-source video player
-brew install --cask whatsapp
 brew install --cask cursor # ai-first code editor
 brew install volta # javascript toolchain manager
 brew install ruff # python formatter + linter
 brew install rsnapshot # backups - see below
 brew install --cask tripmode # control data usage
-brew install --cask soulseek
+brew install --cask deluge # torrent client
+brew install --cask soulseek # share files
 #+END_SRC
 
 * volta packages to install
@@ -325,3 +325,15 @@ spicetify config custom_apps betterLibrary
 spicetify config extensions keyboardShortcut spicetify-marketplace
 spicetify backup apply enable-devtools
 #+END_SRC
+
+* python setup
+
+#+BEGIN_SRC sh
+python3.12 -m pip install pipx
+pipx ensurepath
+pipx install virtualenvwrapper uv ruff album-splitter black fire flake8 ipdb ipython matplotlib numpy pandas pytest yt-dlp
+#+END_SRC
+
+* cursor setup
+
+see [[file:cursor_setup.org]].

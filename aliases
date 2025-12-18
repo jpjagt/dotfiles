@@ -7,14 +7,18 @@ alias speedtest="wget -O /dev/null http://speedtest.wdc01.softlayer.com/download
 alias serve='ruby -run -e httpd . -p 8000'  # Or python -m SimpleHTTPServer :)
 
 # JJ aliases
+alias gst="git status"
 alias ga="git add "
 alias gcm="git commit -m "
 alias gpo="git push origin "
 alias gplo="git pull origin "
 alias gphm="git push heroku master"
 alias gco="git checkout "
-alias hours_old="ruby ~/code/jpjagt/hours.rb"
 alias gpl="git pull"
+alias hours_old="ruby ~/code/jpjagt/hours.rb"
 alias hours="workon base && python ~/code/jpjagt/hours.py"
 
 alias killrailspid="lsof -wni tcp:3000; echo 'kill -9 '"
+
+alias prp="poetry run python"
+alias prpm="poetry run python manage.py"

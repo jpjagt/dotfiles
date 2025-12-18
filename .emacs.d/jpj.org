@@ -1,7 +1,7 @@
 * env.el
 
 i use a separate file to manage sensitive variables i can't commit to version
-control. that's =env.el= with the following variables set:
+control. that's =./env.el= with the following variables set:
 - gptel-claude-3-api-key
 - gptel-api-key-alist
 - spotify-client-id
@@ -13,6 +13,12 @@ control. that's =env.el= with the following variables set:
 - C-[ (unused)
 
 * basic emacs
+
+** update built-in packages
+
+#+BEGIN_SRC emacs-lisp
+(setq package-install-upgrade-built-in t)
+#+END_SRC
 
 ** keymap fns
 
@@ -437,6 +443,15 @@ load API keys and potentially other configurations:
 
 * vital functions/libraries
 
+** transient
+
+#+BEGIN_SRC emacs-lisp
+(use-package transient
+  :straight t)
+#+END_SRC
+
+#+RESULTS:
+
 ** s (string manipulation)
 
 #+BEGIN_SRC emacs-lisp
@@ -591,7 +606,7 @@ current line, rather than the whole line, in the absence of a region:
 
 #+BEGIN_SRC emacs-lisp
 (use-package ace-window
-  :ensure t)
+  :straight t)
 (global-set-key (kbd "M-o") 'ace-window)
 (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
 (defvar aw-dispatch-alist
@@ -638,6 +653,43 @@ Taken from https://stackoverflow.com/questions/2416655/file-path-to-clipboard-in
       (kill-new filename)
       (message "Copied buffer file name '%s' to the clipboard." filename))))
 
+(defun crpath ()
+  "Copy the current buffer's path relative to projectile project root."
+  (interactive)
+  (if (and (featurep 'projectile) (projectile-project-p))
+      (let* ((full-path (buffer-file-name))
+             (project-root (projectile-project-root))
+             (rel-path (file-relative-name full-path project-root))
+             )
+        (kill-new rel-path)
+        (message "Copied rel path '%s' to the clipboard." rel-path))
+    (message "Not in a projectile project")))
+
+(defun crmod ()
+  "Copy the current buffer's path relative to projectile project root as a module name."
+  (interactive)
+  (if (and (featurep 'projectile) (projectile-project-p))
+      (let* ((full-path (buffer-file-name))
+             (project-root (projectile-project-root))
+             (rel-path (file-relative-name full-path project-root))
+             (module-name (replace-regexp-in-string "/" "." (file-name-sans-extension rel-path))))
+        (kill-new module-name)
+        (message "Copied module name '%s' to the clipboard." module-name))
+    (message "Not in a projectile project")))
+
+(defun copy-rel-mpc-path ()
+  "Copy a Markdown link with filename and project-relative path: [filename.ext](path/to/filename.ext)"
+  (interactive)
+  (if (and (featurep 'projectile) (projectile-project-p))
+      (let* ((full-path (buffer-file-name))
+             (project-root (projectile-project-root))
+             (rel-path (file-relative-name full-path project-root))
+             (filename (file-name-nondirectory full-path))
+             (markdown-link (format "[%s](mdc:%s)" filename rel-path)))
+        (kill-new markdown-link)
+        (message "Copied Markdown link '%s' to the clipboard." markdown-link))
+    (message "Not in a projectile project")))
+
 
 (defun cdir ()
   "Copy the current buffer full path to the clipboard."
@@ -667,7 +719,7 @@ Taken from https://stackoverflow.com/questions/2416655/file-path-to-clipboard-in
 #+END_SRC
 
 #+RESULTS:
-: cfile
+: cname
 
 ** meow (modal editing)
 
@@ -804,7 +856,7 @@ Taken from https://stackoverflow.com/questions/2416655/file-path-to-clipboard-in
 ** whitespace
 #+BEGIN_SRC emacs-lisp
 (use-package whitespace
-  :ensure t
+  :straight t
   :init (setq-default indicate-empty-lines t)
   :config
   (setq whitespace-line-column nil
@@ -877,7 +929,7 @@ themes i like:
 ;;; doom-palenight-theme.el --- inspired by Material-PaleNight -*- no-byte-compile: t; -*-
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
 (use-package doom-themes
-  :ensure t
+  :straight t
   :config (load-theme 'doom-palenight t)
 
   ;; Enable flashing mode-line on errors
@@ -1096,6 +1148,17 @@ not used because it uses the header :(
 
   #+RESULTS:
 
+* smerge
+
+less cumbersome keybind than C-c ^:
+
+#+BEGIN_SRC emacs-lisp
+(setq smerge-command-prefix (kbd "s-6"))
+#+END_SRC
+
+#+RESULTS:
+: [8388662]
+
 * selection candidates and search
 
 ** vertico
@@ -1282,6 +1345,7 @@ add remote endpoints
                    ("factory-api" "/ssh:root@factory-api:")
                    ("lodder" "/ssh:paul@www.lodder.dev:")
                    ("mxomni" "/ssh:root@M-x-omni:")
+                   ("tana" "/ssh:july@tana:")
                   ))
 
 (dolist (elt ssh-config)
@@ -1296,16 +1360,17 @@ add remote endpoints
     (s-concat "shell-" (nth 0 elt))
     (lambda (name directory)
       (interactive)
+      (set-bash)
       (open-shell-in-directory directory (s-concat "*shell-" name "*")))
     elt
     )
 )
 
-(bind-key* "s-t" 'shell-tsf)
+(bind-key* "s-t" 'shell-tana)
 #+END_SRC
 
 #+RESULTS:
-: shell-tsf
+: shell-tana
 
 * auto-fill-mode
 
@@ -1368,7 +1433,7 @@ when you are in the =Size Mode= column. Let's change this behaviour so that
 * swiper
 #+BEGIN_SRC emacs-lisp
   (use-package swiper
-    :ensure t
+    :straight t
     :config (global-set-key (kbd "C-s") 'swiper))
 #+END_SRC
 
@@ -1453,7 +1518,7 @@ Activate the tree-sitter modes:
 
 #+BEGIN_SRC emacs-lisp
 ;; (use-package ivy
-;;   :ensure t
+;;   :straight t
 ;;   :config
 ;;   (ivy-mode 1)
 ;;   (setq ivy-use-virtual-buffers t
@@ -1893,7 +1958,7 @@ standard-indent 2
 
 ;; ;; Save point position between sessions
 ;; ;; (use-package saveplace
-;; ;;   :ensure t
+;; ;;   :straight t
 ;; ;;   :config
 ;; ;;   (setq-default save-place t)
 ;; ;;   (setq save-place-file (expand-file-name ".places" user-emacs-directory)))
@@ -1963,7 +2028,8 @@ shows "TODO" comments of a codebase in magit.
 (use-package magit-todos
   :straight t
   :after magit
-  :config (magit-todos-mode 1))
+  ;; :config (magit-todos-mode 1)
+  )
 #+END_SRC
 
 #+RESULTS:
@@ -2013,6 +2079,17 @@ shows "TODO" comments of a codebase in magit.
 (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
 (projectile-mode +1)
 
+(defun jpj/projectile-open-root-in-finder ()
+  (interactive)
+  (shell-command (format "open %s" (projectile-acquire-root))))
+
+(defun jpj/projectile-open-root-in-cursor ()
+  (interactive)
+  (shell-command (format "code %s" (projectile-acquire-root))))
+
+(define-key projectile-mode-map (kbd "C-c p F") 'jpj/projectile-open-root-in-finder)
+(define-key projectile-mode-map (kbd "C-c p z") 'jpj/projectile-open-root-in-cursor)
+
 (defun projectile-replace-multiple (old2new)
   (let* ((directory (projectile-acquire-root))
          (old-text (read-string
@@ -2030,7 +2107,7 @@ shows "TODO" comments of a codebase in magit.
 #+END_SRC
 
 #+RESULTS:
-: t
+: projectile-replace-multiple
 
 * format-all
 
@@ -2060,7 +2137,7 @@ web-mode ensures syntax highlighting for a bunch of web code files (html), inclu
 
 #+BEGIN_SRC emacs-lisp
 (use-package web-mode
-  :ensure t
+  :straight t
   :mode
   ;; ("\\.ejs\\'" "\\.hbs\\'" "\\.html\\'" "\\.php\\'" "\\.[jt]sx?\\'" "\\.svelte\\'")
   ("\\.ejs\\'" "\\.hbs\\'" "\\.html\\'" "\\.php\\'" "\\.svelte\\'")
@@ -2088,6 +2165,7 @@ web-mode ensures syntax highlighting for a bunch of web code files (html), inclu
 (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.css\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.mdx\\'" . web-mode))
 
 nil
 #+END_SRC
@@ -2124,7 +2202,7 @@ nil
 ;; ))
 
 (defun eglot-ensure-if-not-ssh ()
-    (if (not (s-starts-with? "/ssh:jeroen@fxr" (buffer-file-name)))
+    (if (not (s-starts-with? "/ssh:july@tana" (buffer-file-name)))
         (eglot-ensure)))
 
 (defun set-eglot-server-program-in-typescript-buffer ()
@@ -2175,15 +2253,6 @@ nil
 
 #+RESULTS:
 
-*** biome (js formatter)
-
-#+BEGIN_SRC emacs-lisp
-(use-package lsp-biome
-    :straight (:host github :repo "cxa/lsp-biome" :branch "main"))
-#+END_SRC
-
-#+RESULTS:
-
 * restclient
 
 #+BEGIN_SRC emacs-lisp
@@ -2220,7 +2289,7 @@ projectile-rails is used for navigation inside a rails project.
 
 #+BEGIN_SRC emacs-lisp
 (use-package projectile-rails
-  :ensure t)
+  :straight t)
 (projectile-rails-global-mode)
 (define-key projectile-rails-mode-map (kbd "C-c e") 'projectile-rails-command-map)
 #+END_SRC
@@ -2269,45 +2338,57 @@ add-node-modules-path
 (use-package add-node-modules-path
   :straight t)
 
-(use-package prettier-js
-  :straight t
-  :config
-  (add-hook 'js-mode-hook 'prettier-js-mode)
-  (add-hook 'web-mode-hook 'prettier-js-mode)
-  (eval-after-load 'js-mode (lambda ()
-                              (define-key js-mode-map (kbd "C-c C-c")  'indium-reload)))
-  (setq prettier-js-args (list "--no-semi" "--single-quote"))
-  )
+;; (use-package prettier-js
+;;   :straight t
+;;   :config
+;;   (add-hook 'js-mode-hook 'prettier-js-mode)
+;;   (add-hook 'web-mode-hook 'prettier-js-mode)
+;;   (eval-after-load 'js-mode (lambda ()
+;;                               (define-key js-mode-map (kbd "C-c C-c")  'indium-reload)))
+;;   (setq prettier-js-args (list "--no-semi" "--single-quote"))
+;;   )
 
-(defun web-mode-init-prettier-hook ()
-  (when (string-equal "css" (file-name-extension buffer-file-name))
-              (prettier-js-mode)
-              (add-hook 'before-save-hook 'prettier-js nil 'local)))
+;; (defun web-mode-init-prettier-hook ()
+;;   (when (string-equal "css" (file-name-extension buffer-file-name))
+;;               (prettier-js-mode)
+;;               (add-hook 'before-save-hook 'prettier-js nil 'local)))
 
-(eval-after-load 'web-mode
-    '(progn
-       (add-hook 'web-mode-hook #'add-node-modules-path)
-       (add-hook 'web-mode-hook #'web-mode-init-prettier-hook)
-       ))
+;; (eval-after-load 'web-mode
+;;     '(progn
+;;        (add-hook 'web-mode-hook #'add-node-modules-path)
+;;        (add-hook 'web-mode-hook #'web-mode-init-prettier-hook)
+;;        ))
 #+END_SRC
 
 #+RESULTS:
 | web-mode-init-prettier-hook | add-node-modules-path | copilot-mode | prettier-js-mode | web-mode-init-hook | web-mode-init-emmet-hook |
 
-then, flymake-eslint, which does eslint:
+** biome
+
+replacement for prettier.
 
 #+BEGIN_SRC emacs-lisp
-;; (defcustom flymake-eslint-executable-name "eslint"
-;;   "Name of executable to run when checker is called.  Must be present in variable `exec-path'."
-;;   :type 'string
-;;   :group 'flymake-eslint)
-
-;; (add-hook 'web-mode-hook
-;;   (lambda ()
-;;     (flymake-eslint-enable)))
+(use-package biomejs-format
+  :straight (:host github :repo "yadex205/emacs-biomejs-format" :branch "master")
+  :config
+  (setq biomejs-format-biome-args '(
+    "format"
+    "--indent-style" "space"
+    "--indent-width" "2"
+    "--semicolons" "as-needed"
+    "--trailing-commas" "all"
+    "--bracket-spacing" "true"
+    "--jsx-quote-style" "single"
+  ))
+  (add-hook 'js-mode-hook 'biomejs-format-mode)
+  (add-hook 'jpj-js-mode-hook 'biomejs-format-mode)
+  (add-hook 'js2-mode-hook 'biomejs-format-mode)
+  (add-hook 'web-mode-hook 'biomejs-format-mode)
+  )
 #+END_SRC
 
 #+RESULTS:
+: t
 
 ** shadcn/ui install shortcut
 
@@ -2328,7 +2409,7 @@ then, flymake-eslint, which does eslint:
     (if root-dir
         (let ((default-directory root-dir))
           ;; Execute command in a shell and display output
-          (compile command))
+          (async-shell-command command))
       (message "package.json not found in any parent directory"))))
 #+END_SRC
 
@@ -2856,7 +2937,7 @@ nil
     (message session-name)
     (insert
      (format  "#+TITLE: %s
-,#+AUTHOR: July
+,#+AUTHOR: july
 ,#+DATE: %s
 ,#+LATEX_HEADER: \\usepackage{mathpazo}
 ,#+PROPERTY: header-args :exports both :session %s :cache :results value
@@ -2874,47 +2955,44 @@ nil
 ** org-roam
 
 #+BEGIN_SRC emacs-lisp
-  (setq org-roam-directory (file-truename "~/Documents/org-roam"))
+;; (use-package emacsql-sqlite-builtin
+;;   :straight t)
 
-  (use-package emacsql-sqlite-builtin
-    :straight t)
-  ;; (use-package emacsql-sqlite-builtin)
-
-  (use-package org-roam
-    :straight t
-    :after (org emacsql-sqlite-builtin)
-    :bind (("C-c n l" . org-roam-buffer-toggle)
-           ("C-c n f" . org-roam-node-find)
-           ("C-c n i" . org-roam-node-insert)
-           ("C-c n t" . org-roam-tag-add)
-           ("C-c n a" . org-roam-alias-add))
-    :config
-    ;; (setq org-roam-v2-ack t)
-    (setq org-roam-database-connector 'sqlite-builtin)
-    (setq org-roam-completion-everywhere t)
-    (setq org-roam-capture-templates
-          '(
-            ("d" "default" plain
-             "%?" ;; the template content; %? is where the cursor will land
-             :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+TITLE: ${title}\n")
-             :unnarrowed t)
-            ("b" "book notes" plain
-             (file "~/Documents/org-roam/templates/book-notes-template.org")
-             :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+TITLE: ${title}\n#+FILETAGS: book")
-             :unnarrowed t)
-            ("r" "paper" plain
-             (file "~/Documents/org-roam/templates/paper-notes-template.org")
-             :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+TITLE: ${title}\n#+FILETAGS: paper")
-             :unnarrowed t)
-            ("p" "project " plain
-             (file "~/Documents/org-roam/templates/project-template.org")
-             :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+TITLE: ${title}\n#+FILETAGS: project")
-             :unnarrowed t)
-            ))
-    (org-roam-db-autosync-mode)
-    )
-
-  (setq org-roam-directory (file-truename "~/Documents/org-roam"))
+(use-package org-roam
+  :straight t
+  :custom
+  (org-roam-directory (file-truename "~/Documents/org-roam"))
+  :after (org)
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n i" . org-roam-node-insert)
+         ("C-c n t" . org-roam-tag-add)
+         ("C-c n a" . org-roam-alias-add))
+  :config
+  ;; (setq org-roam-v2-ack t)
+  ;; (setq org-roam-database-connector 'sqlite-builtin)
+  (setq org-roam-completion-everywhere t)
+  (setq org-roam-capture-templates
+        '(
+          ("d" "default" plain
+           "%?" ;; the template content; %? is where the cursor will land
+           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+TITLE: ${title}\n")
+           :unnarrowed t)
+          ("b" "book notes" plain
+           (file "~/Documents/org-roam/templates/book-notes-template.org")
+           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+TITLE: ${title}\n#+FILETAGS: book")
+           :unnarrowed t)
+          ("r" "paper" plain
+           (file "~/Documents/org-roam/templates/paper-notes-template.org")
+           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+TITLE: ${title}\n#+FILETAGS: paper")
+           :unnarrowed t)
+          ("p" "project " plain
+           (file "~/Documents/org-roam/templates/project-template.org")
+           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+TITLE: ${title}\n#+FILETAGS: project")
+           :unnarrowed t)
+          ))
+  (org-roam-db-autosync-mode)
+  )
 #+END_SRC
 
 #+RESULTS:
@@ -2932,6 +3010,23 @@ using deft for org-roam note searching:
 ;;     :bind
 ;;     ("C-c n d" . deft))
 #+END_SRC
+
+find by tag:
+
+#+BEGIN_SRC emacs-lisp
+(defun my/org-roam-node-has-tag (node tag)
+  "Filter function to check if the given NODE has the specified TAG."
+  (member tag (org-roam-node-tags node)))
+
+(defun my/org-roam-node-find-by-tag ()
+  "Find and open an Org-roam node based on a specified tag."
+  (interactive)
+  (let ((tag (read-string "Enter tag: ")))
+    (org-roam-node-find nil nil (lambda (node) (my/org-roam-node-has-tag node tag)))))
+#+END_SRC
+
+#+RESULTS:
+: my/org-roam-node-find-by-tag
 
 ** edit random comments and strings with org-mode
 
@@ -3393,6 +3488,19 @@ citecolor=blue,filecolor=blue,menucolor=blue,urlcolor=blue"
 #+RESULTS:
 : t
 
+** org-rich-yank: paste other buffer content into org-mode nicely
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-rich-yank
+  :straight t
+  :demand t
+  :bind (:map org-mode-map
+              ("C-M-y" . org-rich-yank)))
+#+END_SRC
+
+#+RESULTS:
+: org-rich-yank
+
 ** org-reveal: export org to reveal.js slides
 
 #+BEGIN_SRC emacs-lisp
@@ -3454,30 +3562,6 @@ enable command substitution
 : comint-magic-space
 
 * javascript
-** auto-format
-
-#+BEGIN_SRC emacs-lisp
-(use-package js-format
-  :straight t)
-(eval-after-load 'js-mode
-  (add-hook 'js-mode-hook
-            (lambda()
-              (js-format-setup "airbnb")))
-  )
-(custom-set-variables
- '(js-auto-format-command "prettier")
- '(js-auto-format-command-args "--write --single-quote --no-semi"))
-
-
-(add-hook `js2-mode-hook (lambda ()
-                           (global-set-key (kbd "C-c C-v") #'js-format-buffer)))
-#+END_SRC
-
-#+RESULTS:
-| lambda | nil | (global-set-key (kbd C-c C-v) #'js-format-buffer) |
-
-#+RESULTS:
-: scss-mode
 
 #+RESULTS:
 #+BEGIN_SRC emacs-lisp
@@ -3490,8 +3574,8 @@ enable command substitution
 
 ;; (use-package tide
 ;;    :hook (web-mode . my/activate-tide-mode)
-;;    :ensure t)
-(add-hook 'rjsx-mode-hook 'prettier-js-mode)
+;;    :straight t)
+;; (add-hook 'rjsx-mode-hook 'prettier-js-mode)
 #+END_SRC
 
 #+RESULTS:
@@ -3688,7 +3772,7 @@ nil
 
 #+BEGIN_SRC emacs-lisp
 ;; (use-package pygen
-;;   :ensure t)
+;;   :straight t)
 ;; (add-hook 'python-mode-hook 'pygen-mode)
 #+END_SRC
 
@@ -3744,6 +3828,19 @@ improves this behaviour.
 
 #+RESULTS:
 
+** django
+
+#+BEGIN_SRC emacs-lisp
+(defun supernal-django-shell ()
+  (interactive)
+  (let ((default-directory "/Users/jeroen/code/supernal/foundation/src/foundation")
+        (python-shell-interpreter "/Users/jeroen/.local/bin/poetry run python")
+        (python-shell-interpreter-args "/Users/jeroen/code/supernal/foundation/src/foundation/manage.py shell_plus"))
+    (run-python)))
+#+END_SRC
+
+#+RESULTS:
+: supernal-django-shell
 
 * highlight syntax errors in json
 
@@ -3752,7 +3849,7 @@ This requires =jsonlint=. Install with =npm install jsonlint -g=.
 #+BEGIN_SRC emacs-lisp
 (delete 'flycheck-disabled-checkers "json-jsonlist")
 (use-package flycheck
-  :ensure t)
+  :straight t)
 (flycheck-add-mode 'json-jsonlint 'json-mode)
 (add-hook 'json-mode-hook 'flycheck-mode)
 #+END_SRC
@@ -3766,7 +3863,7 @@ the =dashboard= package changes the splash screen into something useful.
 enable it:
 #+BEGIN_SRC emacs-lisp
 (use-package dashboard
-  :ensure t
+  :straight t
   :init
   (progn
     (setq dashboard-items nil)
@@ -3789,7 +3886,7 @@ olivetti provides a centered buffer.
 
 #+BEGIN_SRC emacs-lisp
 (use-package olivetti
-  :ensure t
+  :straight t
   :diminish
   :config
   (setq olivetti-body-width 0.7)
@@ -4140,9 +4237,12 @@ major mode for editing .tf files
 * copilot
 
 #+BEGIN_SRC emacs-lisp
+(use-package track-changes
+  :straight (:host github :repo "emacs-straight/track-changes")
+  )
+
 (use-package copilot
-  :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
-  :ensure t
+  :straight (:host github :repo "copilot-emacs/copilot.el" :files ("dist" "*.el"))
   :config
   (add-hook 'python-mode-hook 'copilot-mode)
   (add-hook 'web-mode-hook 'copilot-mode)
@@ -4198,94 +4298,110 @@ contact manager in emacs. requires =vdirsyncer= to be set up.
 
 #+RESULTS:
 
-* my personal lil hydra
-
-#+BEGIN_SRC emacs-lisp
-(defun jpj/org-toggle-between-list-paragraph ()
-  (interactive)
-  ;; Check if the current line is a list item.
-  (if (org-in-item-p)
-      ;; Convert from list item to paragraph.
-      (let ()
-        (unfill-paragraph) ;; Assuming this unfills the entire list/paragraph.
-        ;; Remove "- " from the beginning of the line.
-        (goto-char (line-beginning-position))
-        (when (looking-at "- ")
-          (delete-region (line-beginning-position) (+ (line-beginning-position) 2)))
-        (save-excursion
-          (goto-char (line-end-position))
-          (unless (and (eq (char-after) ?\n) (eq (char-after (1+ (point))) ?\n))
-            (insert "\n")))
-        )
-    ;; Convert from paragraph to list item.
-    (let ()
-      (unfill-paragraph) ;; Unfill the paragraph first to ensure it's a single line.
-      ;; Add "- " at the beginning of the line.
-      (goto-char (line-beginning-position))
-      (insert "- ")))
-  ;; Reformat the text to adhere to Org's fill settings.
-  (org-fill-paragraph))
-
-
-(defun org-define-nyt-link (&optional complete-file)
-  "Prompt for a link, then insert it with 'nyt' as the visible text."
-  (interactive "P")
-  (let ((url (read-string "Enter URL: ")))
-    (org-insert-link complete-file url "nyt")))
-
-(defhydra hydra-personal (:color blue :hint nil)
-  "
-^Personal Macros/Things^
--------------------------------
-_n_ : org-define-nyt-link
-_x_ : copy-unfilled-region
-_l_ : jpj/org-toggle-between-list-paragraph
-_s_ : jpj/add-shadcn-ui-component
-_o_ : olivetti-mode
-_u_ : org-unindent-buffer
-"
-  ("n" org-define-nyt-link)
-  ("x" copy-unfilled-region)
-  ("l" jpj/org-toggle-between-list-paragraph)
-  ("s" jpj/add-shadcn-ui-component)
-  ("o" olivetti-mode)
-  ("u" org-unindent-buffer)
-)
-
-(bind-key* "s-g" 'hydra-personal/body)
-#+END_SRC
-
-#+RESULTS:
-: hydra-personal/body
-
 * gptel
 
 #+BEGIN_SRC emacs-lisp
+;; Define the base directory for prompts
+(defvar gptel-prompts-directory
+  (expand-file-name "gptel-prompts" user-emacs-directory)
+  "Directory containing GPTel prompt files.")
+
+;; Helper to read prompt files
+(defun gptel-load-prompt (filename)
+  "Load prompt from FILENAME in `gptel-prompts-directory'."
+  (let ((file (expand-file-name filename gptel-prompts-directory)))
+    (if (file-exists-p file)
+        (with-temp-buffer
+          (insert-file-contents file)
+          (buffer-string))
+      (error "Prompt file %s not found" file))))
+
+;; Create the prompts directory if it doesn't exist
+(unless (file-exists-p gptel-prompts-directory)
+  (make-directory gptel-prompts-directory t))
+
 (use-package gptel
-  :straight (:host github :repo "karthink/gptel" :branch "4c0583b2bd6557a09d66dfec84bab776242d0848")
+  :straight (:host github :repo "karthink/gptel" :branch "main")
   :config
   (require 'gptel-curl)
   (require 'gptel-openai)
   (require 'gptel-anthropic)
 
+  (setq gptel-max-tokens 2500)
+
   (setq-default gptel-default-mode 'org-mode)
-  (setq gptel-directives '(
-                          (default . "You are a large language model living in Emacs and a helpful assistant. Respond concisely. When asked a code question, you should choose whether the user wants the relevant snippet only, or the entire implementation. In both cases, first give the code with minimal comments, and only explain it after. When giving a snippet, really only provide the relevant bit of code that the user needs to know in order to proceed! IMPORTANT: in code src blocks remember to not confuse Markdown-to-Org things: like don't use = instead of ` in javascript code, etc.")
-                          (programming . "You are a large language model and a careful programmer. Provide code and only code as output without any additional text, prompt or note.")
-                          (writing . "You are a large language model and a writing assistant. Respond concisely.")
-                          (chat . "You are a large language model and a conversation partner. Respond concisely.")
-                          ))
+  (setq gptel-directives
+      `((default . ,(gptel-load-prompt "default.org"))
+        (reason . ,(gptel-load-prompt "reason.org"))
+        ;; (programming . ,(gptel-load-prompt "programming.org"))
+        ;; (writing . ,(gptel-load-prompt "writing.org"))
+        ;; (chat . ,(gptel-load-prompt "chat.org"))
+        ))
 
   ;; claude
 
   ;; (gptel-make-anthropic "claude"
   ;;   :stream t :key gptel-claude-3-api-key)
 
+  (setq gptel-claude-backend
+        (gptel-make-anthropic "claude"
+          :stream t :key gptel-claude-3-api-key :models '("claude-3-7-sonnet-latest")))
+  (setq gptel-gemini-backend
+        (gptel-make-gemini "gemini"
+          :key gptel-gemini-api-key :stream t :models '("gemini-2.0-flash-exp")))
+
+
   (setq
-   gptel-model "claude-3-5-sonnet-20241022"
-   gptel-backend (gptel-make-anthropic "claude"
-                   :stream t :key gptel-claude-3-api-key :models '("claude-3-5-sonnet-20241022")))
+   gptel-model "claude-3-5-sonnet-latest"
+   gptel-backend gptel-claude-backend)
   (setq my/gptel-api-key-label "claude-private-mode")
+  ;; (setq
+  ;;  gptel-model "gemini-2.0-flash-exp"
+  ;;  gptel-backend gptel-gemini-backend)
+  ;; (setq my/gptel-api-key-label "gemini-private-mode")
+
+  (cl-defun gptel-make-azure-llama
+    (name &key curl-args models stream
+          (protocol "https")
+          (host (dns-azure-host))
+          (endpoint "/chat/completions")
+          (header (lambda ()
+                   `(("Content-Type" . "application/json")
+                     ("Authorization" . ,(concat "Bearer " (gptel--get-api-key))))))
+          (key (dns-azure-api-key))
+          request-params)
+  "Register an Azure Llama backend for gptel with NAME.
+
+Keyword arguments:
+CURL-ARGS (optional) is a list of additional Curl arguments.
+HOST is the Azure API host.
+MODELS is a list of available model names.
+STREAM is a boolean to toggle streaming responses.
+PROTOCOL specifies the protocol (https by default).
+ENDPOINT is the API endpoint for completions.
+HEADER is for additional headers to send with each request.
+KEY is the API key or a function that returns it.
+REQUEST-PARAMS is a plist of additional HTTP request parameters."
+  (declare (indent 1))
+  (let ((backend (gptel--make-openai
+                  :curl-args curl-args
+                  :name name
+                  :host host
+                  :header header
+                  :key key
+                  :models (gptel--process-models (or models '(llama-70b)))
+                  :protocol protocol
+                  :endpoint endpoint
+                  :stream stream
+                  :request-params request-params
+                  :url (if protocol
+                          (concat protocol "://" host endpoint)
+                        (concat host endpoint)))))
+    (prog1 backend
+      (setf (alist-get name gptel--known-backends
+                       nil nil #'equal)
+            backend))))
+
 
   ;; gpt
 
@@ -4319,6 +4435,14 @@ _u_ : org-unindent-buffer
     (interactive)
     (gptel-select-api-key my/gptel-api-key-label)
     (gptel "*llm*" nil nil t)
+    (auto-fill-mode 0)
+    (visual-line-mode t))
+
+  (defun new-chat ()
+    "Start a new chat session with a unique buffer name."
+    (interactive)
+    (gptel-select-api-key my/gptel-api-key-label)
+    (gptel (generate-new-buffer-name "*llm*") nil nil t)
     (auto-fill-mode 0)
     (visual-line-mode t))
 
@@ -4391,6 +4515,7 @@ _u_ : org-unindent-buffer
   ^gptel macro^
   -------------------------------
   _c_ : chat
+  _p_ : new-chat
   _s_ : gpt-screen
   _v_ : gpt-screen-visible
   _k_ : my/set-gptel-api-key-label
@@ -4398,6 +4523,7 @@ _u_ : org-unindent-buffer
   _n_ : gpt-screen-current-visible
   "
   ("c" chat)
+  ("p" new-chat)
   ("s" gpt-screen)
   ("v" gpt-screen-visible)
   ("k" my/set-gptel-api-key-label)
@@ -4406,7 +4532,7 @@ _u_ : org-unindent-buffer
   ("q" nil "quit" :color blue)
 )
 
-  (bind-key* "s-l" 'hydra-gptel/body)
+  (bind-key* "C-s-l" 'hydra-gptel/body)
 )
 
 
@@ -4422,6 +4548,44 @@ machine api.openai.com login apikey password <key>
 #+END_EXAMPLE
 
 key from: https://platform.openai.com/api-keys
+
+** gptel-quick
+
+for this we need:
+
+#+BEGIN_SRC emacs-lisp
+(use-package posframe
+  :straight t)
+#+END_SRC
+
+#+RESULTS:
+
+and main one:
+
+#+BEGIN_SRC emacs-lisp
+(use-package gptel-quick
+  :straight (:host github :repo "karthink/gptel-quick"))
+#+END_SRC
+
+#+RESULTS:
+
+* aidermacs
+
+#+BEGIN_SRC emacs-lisp
+(use-package aidermacs
+  :straight (:host github :repo "MatthewZMD/aidermacs")
+  :bind (("C-c a" . aidermacs-transient-menu))
+  :config
+  ; Set API_KEY in .bashrc, that will automatically picked up by aider or in elisp
+  (setenv "ANTHROPIC_API_KEY" gptel-claude-3-api-key)
+  :custom
+  ; See the Configuration section below
+  (aidermacs-use-architect-mode t)
+  (aidermacs-default-model "sonnet"))
+#+END_SRC
+
+#+RESULTS:
+: aidermacs-transient-menu
 
 * embark
 
@@ -4457,7 +4621,9 @@ key from: https://platform.openai.com/api-keys
                      embark-file-map))
     (define-key map (kbd "s") 'my/swiper-with-embark-target)
     (define-key map (kbd "g") 'consult-ripgrep)
-    (define-key map (kbd "/") 'embark-gptel-rewrite-region))
+    (define-key map (kbd "/") 'embark-gptel-rewrite-region)
+    )
+  (keymap-set embark-general-map "?" #'gptel-quick)
 
 
   ;; Hide the mode line of the Embark live/completions buffers
@@ -4652,3 +4818,171 @@ needs a =brew install zoxide= as well.
 
 #+RESULTS:
 : t
+
+* postgres
+
+#+BEGIN_SRC emacs-lisp
+(use-package pg :straight t)
+
+(use-package pgmacs
+  :straight (:host github :repo "emarsden/pgmacs"))
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC emacs-lisp
+(defun my-sql-postgres-foundation ()
+  (interactive)
+  (setq sql-product 'postgres)
+  (setq sql-connection-alist
+        '((foundation
+           (database "postgres")
+           (user "foundation")
+           (password "postgres")
+           (server "localhost")
+           (port 5432)
+           (ssl nil))))
+  (sql-connect 'foundation))
+
+(global-set-key (kbd "C-c s f") 'my-sql-postgres-foundation)
+#+END_SRC
+
+#+RESULTS:
+: my-sql-postgres-foundation
+
+* vterm
+
+#+BEGIN_SRC emacs-lisp
+(use-package vterm
+    :straight t)
+#+END_SRC
+
+#+RESULTS:
+: t
+
+* my personal lil hydra
+
+#+BEGIN_SRC emacs-lisp
+(defun jpj/org-toggle-between-list-paragraph ()
+  (interactive)
+  ;; Check if the current line is a list item.
+  (if (org-in-item-p)
+      ;; Convert from list item to paragraph.
+      (let ()
+        (unfill-paragraph) ;; Assuming this unfills the entire list/paragraph.
+        ;; Remove "- " from the beginning of the line.
+        (goto-char (line-beginning-position))
+        (when (looking-at "- ")
+          (delete-region (line-beginning-position) (+ (line-beginning-position) 2)))
+        (save-excursion
+          (goto-char (line-end-position))
+          (unless (and (eq (char-after) ?\n) (eq (char-after (1+ (point))) ?\n))
+            (insert "\n")))
+        )
+    ;; Convert from paragraph to list item.
+    (let ()
+      (unfill-paragraph) ;; Unfill the paragraph first to ensure it's a single line.
+      ;; Add "- " at the beginning of the line.
+      (goto-char (line-beginning-position))
+      (insert "- ")))
+  ;; Reformat the text to adhere to Org's fill settings.
+  (org-fill-paragraph))
+
+
+(defun org-define-nyt-link (&optional complete-file)
+  "Prompt for a link, then insert it with 'nyt' as the visible text."
+  (interactive "P")
+  (let ((url (read-string "Enter URL: ")))
+    (org-insert-link complete-file url "nyt")))
+
+(defun copy-pytest-failures ()
+  "Copy text between the FAILURES and warnings summary markers in the current buffer to the kill ring."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    ;; Find the starting marker and record its beginning position.
+    (if (search-forward "====================================== FAILURES =======================================" nil t)
+        (let ((failures-start (match-beginning 0)))
+          ;; Now search for the ending marker from the beginning.
+          (goto-char failures-start)
+          (if (search-forward "================================== warnings summary ===================================" nil t)
+              (let ((failures-end (match-beginning 0)))
+                (kill-ring-save failures-start failures-end)
+                (message "Copied pytest failures to kill ring."))
+            (message "Ending marker not found.")))
+      (message "Starting marker not found."))))
+
+
+(defhydra hydra-personal (:color blue :hint nil)
+  "
+^Personal Macros/Things^
+-------------------------------
+_n_ : org-define-nyt-link
+_x_ : copy-unfilled-region
+_l_ : jpj/org-toggle-between-list-paragraph
+_s_ : jpj/add-shadcn-ui-component
+_o_ : olivetti-mode
+_u_ : org-unindent-buffer
+_t_ : copy-pytest-failures
+_m_ : mulrun-hydra
+_pp_ : cpath
+_pr_ : crpath
+"
+  ("n" org-define-nyt-link)
+  ("x" copy-unfilled-region)
+  ("l" jpj/org-toggle-between-list-paragraph)
+  ("s" jpj/add-shadcn-ui-component)
+  ("o" olivetti-mode)
+  ("u" org-unindent-buffer)
+  ("t" copy-pytest-failures)
+  ("m" mulrun-hydra)
+  ("pp" cpath)
+  ("pr" crpath)
+  ("pm" crmod)
+  ("pc" copy-rel-mpc-path)
+)
+
+(bind-key* "s-g" 'hydra-personal/body)
+#+END_SRC
+
+#+RESULTS:
+: hydra-personal/body
+
+* claude-code
+
+#+BEGIN_SRC emacs-lisp
+;; for eat terminal backend:
+;; (use-package eat
+;;   :straight (:type git
+;;                    :host codeberg
+;;                    :repo "akib/emacs-eat"
+;;                    :files ("*.el" ("term" "term/*.el") "*.texi"
+;;                            "*.ti" ("terminfo/e" "terminfo/e/*")
+;;                            ("terminfo/65" "terminfo/65/*")
+;;                            ("integration" "integration/*")
+;;                            (:exclude ".dir-locals.el" "*-tests.el"))))
+
+;; for vterm terminal backend:
+;; (use-package vterm :straight t)
+
+;; install claude-code.el, using :depth 1 to reduce download size:
+(use-package claude-code
+  :straight (:type git :host github :repo "stevemolitor/claude-code.el" :branch "main" :depth 1
+                   :files ("*.el" (:exclude "images/*")))
+  :bind-keymap
+  ("s-c" . claude-code-command-map) ;; or your preferred key
+  ;; Optionally define a repeat map so that "M" will cycle thru Claude auto-accept/plan/confirm modes after invoking claude-code-cycle-mode / C-c M.
+  :bind
+  (:repeat-map my-claude-code-map ("M" . claude-code-cycle-mode)))
+  :config
+  ;; optional IDE integration with Monet
+  ;; (add-hook 'claude-code-process-environment-functions #'monet-start-server-function)
+  ;; (monet-mode 1)
+
+  (claude-code-mode)
+  (setq claude-code-terminal-backend 'vterm)
+)
+#+END_SRC
+
+#+RESULTS:
+: vterm
