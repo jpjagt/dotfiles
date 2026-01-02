@@ -4986,3 +4986,20 @@ _pr_ : crpath
 
 #+RESULTS:
 : vterm
+
+* markdown visual wrap
+
+#+BEGIN_SRC emacs-lisp
+(use-package visual-fill-column
+  :straight t
+  :hook (markdown-mode . visual-fill-column-mode)
+  :config
+  (setq visual-fill-column-width 80)
+  (setq visual-fill-column-extra-text-width '(4 . 0))
+  (setq visual-fill-column-center-text nil))
+
+(add-hook 'markdown-mode-hook 'visual-line-mode)
+#+END_SRC
+
+#+RESULTS:
+| visual-line-mode | visual-fill-column-mode |
