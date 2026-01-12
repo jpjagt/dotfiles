@@ -452,6 +452,15 @@ load API keys and potentially other configurations:
 
 #+RESULTS:
 
+** hydra
+
+#+BEGIN_SRC emacs-lisp
+(use-package hydra
+  :straight t)
+#+END_SRC
+
+#+RESULTS:
+
 ** s (string manipulation)
 
 #+BEGIN_SRC emacs-lisp
@@ -4345,7 +4354,7 @@ contact manager in emacs. requires =vdirsyncer= to be set up.
 
   (setq gptel-claude-backend
         (gptel-make-anthropic "claude"
-          :stream t :key gptel-claude-3-api-key :models '("claude-3-7-sonnet-latest")))
+          :stream t :key gptel-claude-3-api-key :models '("claude-opus-4-5-20251101")))
   (setq gptel-gemini-backend
         (gptel-make-gemini "gemini"
           :key gptel-gemini-api-key :stream t :models '("gemini-2.0-flash-exp")))
@@ -4850,16 +4859,6 @@ needs a =brew install zoxide= as well.
 #+RESULTS:
 : my-sql-postgres-foundation
 
-* vterm
-
-#+BEGIN_SRC emacs-lisp
-(use-package vterm
-    :straight t)
-#+END_SRC
-
-#+RESULTS:
-: t
-
 * my personal lil hydra
 
 #+BEGIN_SRC emacs-lisp
@@ -4947,45 +4946,6 @@ _pr_ : crpath
 
 #+RESULTS:
 : hydra-personal/body
-
-* claude-code
-
-#+BEGIN_SRC emacs-lisp
-;; for eat terminal backend:
-;; (use-package eat
-;;   :straight (:type git
-;;                    :host codeberg
-;;                    :repo "akib/emacs-eat"
-;;                    :files ("*.el" ("term" "term/*.el") "*.texi"
-;;                            "*.ti" ("terminfo/e" "terminfo/e/*")
-;;                            ("terminfo/65" "terminfo/65/*")
-;;                            ("integration" "integration/*")
-;;                            (:exclude ".dir-locals.el" "*-tests.el"))))
-
-;; for vterm terminal backend:
-;; (use-package vterm :straight t)
-
-;; install claude-code.el, using :depth 1 to reduce download size:
-(use-package claude-code
-  :straight (:type git :host github :repo "stevemolitor/claude-code.el" :branch "main" :depth 1
-                   :files ("*.el" (:exclude "images/*")))
-  :bind-keymap
-  ("s-c" . claude-code-command-map) ;; or your preferred key
-  ;; Optionally define a repeat map so that "M" will cycle thru Claude auto-accept/plan/confirm modes after invoking claude-code-cycle-mode / C-c M.
-  :bind
-  (:repeat-map my-claude-code-map ("M" . claude-code-cycle-mode)))
-  :config
-  ;; optional IDE integration with Monet
-  ;; (add-hook 'claude-code-process-environment-functions #'monet-start-server-function)
-  ;; (monet-mode 1)
-
-  (claude-code-mode)
-  (setq claude-code-terminal-backend 'vterm)
-)
-#+END_SRC
-
-#+RESULTS:
-: vterm
 
 * markdown visual wrap
 
