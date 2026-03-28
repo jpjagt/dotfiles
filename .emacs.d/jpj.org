@@ -1385,6 +1385,7 @@ add remote endpoints
 
 #+BEGIN_SRC emacs-lisp
 (auto-fill-mode 1)
+(add-hook 'org-mode-hook 'auto-fill-mode)
 #+END_SRC
 
 #+RESULTS:
