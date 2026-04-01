@@ -3,6 +3,7 @@
 i use a separate file to manage sensitive variables i can't commit to version
 control. that's =./env.el= with the following variables set:
 - gptel-vercel-ai-api-key
+- opencode-zen-api-key
 - spotify-client-id
 - spotify-client-secret
 
@@ -12,6 +13,12 @@ control. that's =./env.el= with the following variables set:
 - C-[ (unused)
 
 * basic emacs
+
+** update built-in packages
+
+#+BEGIN_SRC emacs-lisp
+(setq package-install-upgrade-built-in t)
+#+END_SRC
 
 ** keymap fns
 
@@ -436,6 +443,24 @@ load API keys and potentially other configurations:
 
 * vital functions/libraries
 
+** transient
+
+#+BEGIN_SRC emacs-lisp
+(use-package transient
+  :straight t)
+#+END_SRC
+
+#+RESULTS:
+
+** hydra
+
+#+BEGIN_SRC emacs-lisp
+(use-package hydra
+  :straight t)
+#+END_SRC
+
+#+RESULTS:
+
 ** s (string manipulation)
 
 #+BEGIN_SRC emacs-lisp
@@ -590,7 +615,7 @@ current line, rather than the whole line, in the absence of a region:
 
 #+BEGIN_SRC emacs-lisp
 (use-package ace-window
-  :ensure t)
+  :straight t)
 (global-set-key (kbd "M-o") 'ace-window)
 (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
 (defvar aw-dispatch-alist
@@ -840,7 +865,7 @@ Taken from https://stackoverflow.com/questions/2416655/file-path-to-clipboard-in
 ** whitespace
 #+BEGIN_SRC emacs-lisp
 (use-package whitespace
-  :ensure t
+  :straight t
   :init (setq-default indicate-empty-lines t)
   :config
   (setq whitespace-line-column nil
@@ -913,7 +938,7 @@ themes i like:
 ;;; doom-palenight-theme.el --- inspired by Material-PaleNight -*- no-byte-compile: t; -*-
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
 (use-package doom-themes
-  :ensure t
+  :straight t
   :config (load-theme 'doom-palenight t)
 
   ;; Enable flashing mode-line on errors
@@ -1360,6 +1385,7 @@ add remote endpoints
 
 #+BEGIN_SRC emacs-lisp
 (auto-fill-mode 1)
+(add-hook 'org-mode-hook 'auto-fill-mode)
 #+END_SRC
 
 #+RESULTS:
@@ -1417,7 +1443,7 @@ when you are in the =Size Mode= column. Let's change this behaviour so that
 * swiper
 #+BEGIN_SRC emacs-lisp
   (use-package swiper
-    :ensure t
+    :straight t
     :config (global-set-key (kbd "C-s") 'swiper))
 #+END_SRC
 
@@ -1502,7 +1528,7 @@ Activate the tree-sitter modes:
 
 #+BEGIN_SRC emacs-lisp
 ;; (use-package ivy
-;;   :ensure t
+;;   :straight t
 ;;   :config
 ;;   (ivy-mode 1)
 ;;   (setq ivy-use-virtual-buffers t
@@ -1942,7 +1968,7 @@ standard-indent 2
 
 ;; ;; Save point position between sessions
 ;; ;; (use-package saveplace
-;; ;;   :ensure t
+;; ;;   :straight t
 ;; ;;   :config
 ;; ;;   (setq-default save-place t)
 ;; ;;   (setq save-place-file (expand-file-name ".places" user-emacs-directory)))
@@ -2121,7 +2147,7 @@ web-mode ensures syntax highlighting for a bunch of web code files (html), inclu
 
 #+BEGIN_SRC emacs-lisp
 (use-package web-mode
-  :ensure t
+  :straight t
   :mode
   ;; ("\\.ejs\\'" "\\.hbs\\'" "\\.html\\'" "\\.php\\'" "\\.[jt]sx?\\'" "\\.svelte\\'")
   ("\\.ejs\\'" "\\.hbs\\'" "\\.html\\'" "\\.php\\'" "\\.svelte\\'")
@@ -2273,7 +2299,7 @@ projectile-rails is used for navigation inside a rails project.
 
 #+BEGIN_SRC emacs-lisp
 (use-package projectile-rails
-  :ensure t)
+  :straight t)
 (projectile-rails-global-mode)
 (define-key projectile-rails-mode-map (kbd "C-c e") 'projectile-rails-command-map)
 #+END_SRC
@@ -3756,7 +3782,7 @@ nil
 
 #+BEGIN_SRC emacs-lisp
 ;; (use-package pygen
-;;   :ensure t)
+;;   :straight t)
 ;; (add-hook 'python-mode-hook 'pygen-mode)
 #+END_SRC
 
@@ -3833,7 +3859,7 @@ This requires =jsonlint=. Install with =npm install jsonlint -g=.
 #+BEGIN_SRC emacs-lisp
 (delete 'flycheck-disabled-checkers "json-jsonlist")
 (use-package flycheck
-  :ensure t)
+  :straight t)
 (flycheck-add-mode 'json-jsonlint 'json-mode)
 (add-hook 'json-mode-hook 'flycheck-mode)
 #+END_SRC
@@ -3847,7 +3873,7 @@ the =dashboard= package changes the splash screen into something useful.
 enable it:
 #+BEGIN_SRC emacs-lisp
 (use-package dashboard
-  :ensure t
+  :straight t
   :init
   (progn
     (setq dashboard-items nil)
@@ -3870,7 +3896,7 @@ olivetti provides a centered buffer.
 
 #+BEGIN_SRC emacs-lisp
 (use-package olivetti
-  :ensure t
+  :straight t
   :diminish
   :config
   (setq olivetti-body-width 0.7)
@@ -4221,6 +4247,10 @@ major mode for editing .tf files
 * copilot
 
 #+BEGIN_SRC emacs-lisp
+(use-package track-changes
+  :straight (:host github :repo "emacs-straight/track-changes")
+  )
+
 (use-package copilot
   :straight (:host github :repo "copilot-emacs/copilot.el" :files ("dist" "*.el"))
   :ensure t
@@ -4282,13 +4312,51 @@ contact manager in emacs. requires =vdirsyncer= to be set up.
 * gptel
 
 #+BEGIN_SRC emacs-lisp
+;; Define the base directory for prompts
+(defvar gptel-prompts-directory
+  (expand-file-name "gptel-prompts" user-emacs-directory)
+  "Directory containing GPTel prompt files.")
+
+;; Helper to read prompt files
+(defun gptel-load-prompt (filename)
+  "Load prompt from FILENAME in `gptel-prompts-directory'."
+  (let ((file (expand-file-name filename gptel-prompts-directory)))
+    (if (file-exists-p file)
+        (with-temp-buffer
+          (insert-file-contents file)
+          (buffer-string))
+      (error "Prompt file %s not found" file))))
+
+;; Create the prompts directory if it doesn't exist
+(unless (file-exists-p gptel-prompts-directory)
+  (make-directory gptel-prompts-directory t))
+
 (use-package gptel
   :straight (:host github :repo "karthink/gptel" :branch "master")
   :config
-  (setq gptel-max-tokens 128000
+  (setq gptel-max-tokens 2500
         gptel-default-mode 'org-mode
-        gptel-model 'anthropic/claude-4.5-sonnet
         )
+
+  (setq gptel-directives
+      `((default . ,(gptel-load-prompt "default.org"))
+        (reason . ,(gptel-load-prompt "reason.org"))
+        ;; (programming . ,(gptel-load-prompt "programming.org"))
+        ;; (writing . ,(gptel-load-prompt "writing.org"))
+        ;; (chat . ,(gptel-load-prompt "chat.org"))
+        ))
+
+  ;; claude
+
+  ;; (gptel-make-anthropic "claude"
+  ;;   :stream t :key gptel-claude-3-api-key)
+
+  (setq gptel-claude-backend
+        (gptel-make-anthropic "claude"
+          :stream t :key gptel-claude-3-api-key :models '("claude-opus-4-5-20251101")))
+  (setq gptel-gemini-backend
+        (gptel-make-gemini "gemini"
+          :key gptel-gemini-api-key :stream t :models '("gemini-2.0-flash-exp")))
 
   (setq gptel-vercel-backend
         (gptel-make-openai "vercel"
@@ -4303,7 +4371,85 @@ contact manager in emacs. requires =vdirsyncer= to be set up.
                     "xai/grok-5"
                     )))
 
-  (setq gptel-backend gptel-vercel-backend)
+  (setq gptel-opencode-backend (gptel-make-openai "opencode-zen"
+                        :host "opencode.ai"
+                        :endpoint "/zen/v1/chat/completions"
+                        :key opencode-zen-api-key
+                        :models '("claude-opus-4-6" "gpt-5.1-codex") ; Add your preferred models
+                        :stream t))
+
+
+  (setq
+   gptel-model "claude-opus-4-6"
+   gptel-backend gptel-opencode-backend)
+  (setq my/gptel-api-key-label "claude-private-mode")
+  ;; (setq
+  ;;  gptel-model "gemini-2.0-flash-exp"
+  ;;  gptel-backend gptel-gemini-backend)
+  ;; (setq my/gptel-api-key-label "gemini-private-mode")
+
+  (cl-defun gptel-make-azure-llama
+    (name &key curl-args models stream
+          (protocol "https")
+          (host (dns-azure-host))
+          (endpoint "/chat/completions")
+          (header (lambda ()
+                   `(("Content-Type" . "application/json")
+                     ("Authorization" . ,(concat "Bearer " (gptel--get-api-key))))))
+          (key (dns-azure-api-key))
+          request-params)
+  "Register an Azure Llama backend for gptel with NAME.
+
+Keyword arguments:
+CURL-ARGS (optional) is a list of additional Curl arguments.
+HOST is the Azure API host.
+MODELS is a list of available model names.
+STREAM is a boolean to toggle streaming responses.
+PROTOCOL specifies the protocol (https by default).
+ENDPOINT is the API endpoint for completions.
+HEADER is for additional headers to send with each request.
+KEY is the API key or a function that returns it.
+REQUEST-PARAMS is a plist of additional HTTP request parameters."
+  (declare (indent 1))
+  (let ((backend (gptel--make-openai
+                  :curl-args curl-args
+                  :name name
+                  :host host
+                  :header header
+                  :key key
+                  :models (gptel--process-models (or models '(llama-70b)))
+                  :protocol protocol
+                  :endpoint endpoint
+                  :stream stream
+                  :request-params request-params
+                  :url (if protocol
+                          (concat protocol "://" host endpoint)
+                        (concat host endpoint)))))
+    (prog1 backend
+      (setf (alist-get name gptel--known-backends
+                       nil nil #'equal)
+            backend))))
+
+
+  ;; gpt
+
+  ;; (setq-default gptel-model "gpt-4-turbo")
+  ;; (setq my/gptel-api-key-label "tsf-mode")
+
+
+  (defun my/set-gptel-api-key-label ()
+    (interactive)
+    (setq my/gptel-api-key-label (completing-read "set api key: " gptel-api-key-alist)))
+
+  ;; Function to dynamically set the gptel API key based on label
+  (defun gptel-select-api-key (label)
+    "Select the API key based on the given LABEL."
+    (interactive "sEnter API key label: ")
+    (let ((key (cdr (assoc label gptel-api-key-alist))))
+      (if key
+          (setq gptel-api-key key)
+        (error "API key for label '%s' not found" label))))
+>>>>>>> 98b9f415e2c2101868acdc0e11f25c4cbdcfa056
 
   (defun my/on-gptel-mode ()
     (visual-line-mode t))
@@ -4809,41 +4955,19 @@ _pr_ : crpath
 #+RESULTS:
 : hydra-personal/body
 
-* claude-code
+* markdown visual wrap
 
 #+BEGIN_SRC emacs-lisp
-;; for eat terminal backend:
-;; (use-package eat
-;;   :straight (:type git
-;;                    :host codeberg
-;;                    :repo "akib/emacs-eat"
-;;                    :files ("*.el" ("term" "term/*.el") "*.texi"
-;;                            "*.ti" ("terminfo/e" "terminfo/e/*")
-;;                            ("terminfo/65" "terminfo/65/*")
-;;                            ("integration" "integration/*")
-;;                            (:exclude ".dir-locals.el" "*-tests.el"))))
-
-;; for vterm terminal backend:
-;; (use-package vterm :straight t)
-
-;; install claude-code.el, using :depth 1 to reduce download size:
-(use-package claude-code
-  :straight (:type git :host github :repo "stevemolitor/claude-code.el" :branch "main" :depth 1
-                   :files ("*.el" (:exclude "images/*")))
-  :bind-keymap
-  ("s-c" . claude-code-command-map) ;; or your preferred key
-  ;; Optionally define a repeat map so that "M" will cycle thru Claude auto-accept/plan/confirm modes after invoking claude-code-cycle-mode / C-c M.
-  :bind
-  (:repeat-map my-claude-code-map ("M" . claude-code-cycle-mode)))
+(use-package visual-fill-column
+  :straight t
+  :hook (markdown-mode . visual-fill-column-mode)
   :config
-  ;; optional IDE integration with Monet
-  ;; (add-hook 'claude-code-process-environment-functions #'monet-start-server-function)
-  ;; (monet-mode 1)
+  (setq visual-fill-column-width 80)
+  (setq visual-fill-column-extra-text-width '(4 . 0))
+  (setq visual-fill-column-center-text nil))
 
-  (claude-code-mode)
-  (setq claude-code-terminal-backend 'vterm)
-)
+(add-hook 'markdown-mode-hook 'visual-line-mode)
 #+END_SRC
 
 #+RESULTS:
-: vterm
+| visual-line-mode | visual-fill-column-mode |

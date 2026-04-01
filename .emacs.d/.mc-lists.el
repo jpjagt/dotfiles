@@ -156,6 +156,7 @@
         prot-embark-collection-kill-line
         py-execute-buffer
         python-shell-send-buffer
+        revert-buffer
         save-and-run-pasp
         sh-learn-line-indent
         shell

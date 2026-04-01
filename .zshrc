@@ -137,4 +137,3 @@ cdx() {
 
 # opencode
 export PATH=/Users/jeroen/.opencode/bin:$PATH
-export PATH="/opt/homebrew/opt/postgresql@18/bin:$PATH"
