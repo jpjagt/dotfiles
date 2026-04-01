@@ -29,6 +29,7 @@
         downcase-region
         drag-stuff-down
         drag-stuff-up
+        eglot-rename
         embark-act
         embark-export
         end-of-visual-line
@@ -52,13 +53,17 @@
         indent-rigidly-left
         indent-rigidly-right
         insert-char
+        isearch-forward
         ivy-done
         kill-region
         kill-visual-line
         kmacro-end-and-call-macro
         mac-next-tab-or-toggle-tab-bar
         magit-discard
+        magit-previous-line
         mark-sexp
+        markdown-beginning-of-line
+        markdown-end-of-line
         markdown-enter-key
         markdown-outdent-or-delete
         my-delete-surrounded-delimiters
@@ -78,6 +83,7 @@
         org-shifttab
         org-transpose-words
         org-yank
+        picture-self-insert
         prot-consult-yank
         py-electric-colon
         py-hungry-delete-backwards
@@ -114,6 +120,7 @@
         dired-do-flagged-delete
         dired-do-kill-lines
         dired-find-alternate-file
+        dired-find-file-other-window
         dired-toggle-marks
         dired-toggle-read-only
         dired-unmark-backward
@@ -128,8 +135,11 @@
         keyboard-escape-quit
         kmacro-end-macro
         kmacro-start-macro
+        mac-magnify-text-scale-or-overview-tab-group
         mac-mouse-buffer-menu
         mac-mwheel-scroll
+        magit-stage
+        magit-status
         mark-whole-buffer
         mouse-drag-secondary
         mouse-set-region
@@ -141,6 +151,7 @@
         org-date-from-calendar
         org-execute-code-in-shell
         org-export-dispatch
+        org-roam-node-find
         projectile-rails-find-stylesheet
         prot-embark-collection-kill-line
         py-execute-buffer
