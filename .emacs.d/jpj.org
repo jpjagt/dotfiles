@@ -4360,10 +4360,17 @@ contact manager in emacs. requires =vdirsyncer= to be set up.
         (gptel-make-gemini "gemini"
           :key gptel-gemini-api-key :stream t :models '("gemini-2.0-flash-exp")))
 
+  (setq gptel-opencode-backend (gptel-make-openai "opencode-zen"
+                        :host "opencode.ai"
+                        :endpoint "/zen/v1/chat/completions"
+                        :key opencode-zen-api-key
+                        :models '("claude-opus-4-6" "gpt-5.1-codex") ; Add your preferred models
+                        :stream t))
+
 
   (setq
-   gptel-model "claude-3-5-sonnet-latest"
-   gptel-backend gptel-claude-backend)
+   gptel-model "claude-opus-4-6"
+   gptel-backend gptel-opencode-backend)
   (setq my/gptel-api-key-label "claude-private-mode")
   ;; (setq
   ;;  gptel-model "gemini-2.0-flash-exp"
