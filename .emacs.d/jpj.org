@@ -4857,16 +4857,6 @@ needs a =brew install zoxide= as well.
 #+RESULTS:
 : my-sql-postgres-foundation
 
-* vterm
-
-#+BEGIN_SRC emacs-lisp
-(use-package vterm
-    :straight t)
-#+END_SRC
-
-#+RESULTS:
-: t
-
 * my personal lil hydra
 
 #+BEGIN_SRC emacs-lisp
