@@ -76,6 +76,15 @@ suppress noise on start up
 
 #+RESULTS:
 
+** em dash
+
+#+BEGIN_SRC emacs-lisp
+(global-set-key (kbd "s--") (lambda () (interactive) (insert "—")))
+#+END_SRC
+
+#+RESULTS:
+| lambda | nil | (interactive) | (insert —) |
+
 ** clipboard
 
 this command makes sure that OS X clipboard is saved to the kill-ring in the
@@ -4449,7 +4458,6 @@ REQUEST-PARAMS is a plist of additional HTTP request parameters."
       (if key
           (setq gptel-api-key key)
         (error "API key for label '%s' not found" label))))
->>>>>>> 98b9f415e2c2101868acdc0e11f25c4cbdcfa056
 
   (defun my/on-gptel-mode ()
     (visual-line-mode t))
