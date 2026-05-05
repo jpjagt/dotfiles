@@ -3847,35 +3847,6 @@ improves this behaviour.
 
 #+RESULTS:
 
-** django
-
-#+BEGIN_SRC emacs-lisp
-(defun supernal-django-shell ()
-  (interactive)
-  (let ((default-directory "/Users/jeroen/code/supernal/foundation/src/foundation")
-        (python-shell-interpreter "/Users/jeroen/.local/bin/poetry run python")
-        (python-shell-interpreter-args "/Users/jeroen/code/supernal/foundation/src/foundation/manage.py shell_plus"))
-    (run-python)))
-#+END_SRC
-
-#+RESULTS:
-: supernal-django-shell
-
-* highlight syntax errors in json
-
-This requires =jsonlint=. Install with =npm install jsonlint -g=.
-
-#+BEGIN_SRC emacs-lisp
-(delete 'flycheck-disabled-checkers "json-jsonlist")
-(use-package flycheck
-  :straight t)
-(flycheck-add-mode 'json-jsonlint 'json-mode)
-(add-hook 'json-mode-hook 'flycheck-mode)
-#+END_SRC
-
-#+RESULTS:
-| flycheck-mode |
-
 * emacs-dashboard
 the =dashboard= package changes the splash screen into something useful.
 
