@@ -4346,17 +4346,15 @@ contact manager in emacs. requires =vdirsyncer= to be set up.
         ;; (chat . ,(gptel-load-prompt "chat.org"))
         ))
 
-  ;; claude
+  ;; backends
 
-  ;; (gptel-make-anthropic "claude"
-  ;;   :stream t :key gptel-claude-3-api-key)
+  ;; (setq gptel-claude-backend
+  ;;       (gptel-make-anthropic "claude"
+  ;;         :stream t :key gptel-claude-3-api-key :models '("claude-opus-4-5-20251101")))
 
-  (setq gptel-claude-backend
-        (gptel-make-anthropic "claude"
-          :stream t :key gptel-claude-3-api-key :models '("claude-opus-4-5-20251101")))
-  (setq gptel-gemini-backend
-        (gptel-make-gemini "gemini"
-          :key gptel-gemini-api-key :stream t :models '("gemini-2.0-flash-exp")))
+  ;; (setq gptel-gemini-backend
+  ;;       (gptel-make-gemini "gemini"
+  ;;         :key gptel-gemini-api-key :stream t :models '("gemini-2.0-flash-exp")))
 
   (setq gptel-vercel-backend
         (gptel-make-openai "vercel"
@@ -4380,7 +4378,7 @@ contact manager in emacs. requires =vdirsyncer= to be set up.
 
 
   (setq
-   gptel-model "claude-opus-4-6"
+   gptel-model 'claude-opus-4-6
    gptel-backend gptel-opencode-backend)
   (setq my/gptel-api-key-label "claude-private-mode")
   ;; (setq
@@ -4435,21 +4433,6 @@ REQUEST-PARAMS is a plist of additional HTTP request parameters."
 
   ;; (setq-default gptel-model "gpt-4-turbo")
   ;; (setq my/gptel-api-key-label "tsf-mode")
-
-
-  (defun my/set-gptel-api-key-label ()
-    (interactive)
-    (setq my/gptel-api-key-label (completing-read "set api key: " gptel-api-key-alist)))
-
-  ;; Function to dynamically set the gptel API key based on label
-  (defun gptel-select-api-key (label)
-    "Select the API key based on the given LABEL."
-    (interactive "sEnter API key label: ")
-    (let ((key (cdr (assoc label gptel-api-key-alist))))
-      (if key
-          (setq gptel-api-key key)
-        (error "API key for label '%s' not found" label))))
->>>>>>> 98b9f415e2c2101868acdc0e11f25c4cbdcfa056
 
   (defun my/on-gptel-mode ()
     (visual-line-mode t))
@@ -4960,14 +4943,20 @@ _pr_ : crpath
 #+BEGIN_SRC emacs-lisp
 (use-package visual-fill-column
   :straight t
-  :hook (markdown-mode . visual-fill-column-mode)
+  :hook ((markdown-mode . visual-fill-column-mode)
+         (gptel-mode . visual-fill-column-mode))
   :config
-  (setq visual-fill-column-width 80)
+  (setq visual-fill-column-width 100)
   (setq visual-fill-column-extra-text-width '(4 . 0))
   (setq visual-fill-column-center-text nil))
 
-(add-hook 'markdown-mode-hook 'visual-line-mode)
+(add-hook 'markdown-mode-hook #'visual-line-mode)
+(add-hook 'gptel-mode-hook
+          (lambda ()
+            (setq-local visual-fill-column-width 120)
+            (visual-line-mode 1)
+            (visual-fill-column-mode 1)))
 #+END_SRC
 
 #+RESULTS:
-| visual-line-mode | visual-fill-column-mode |
+| (lambda nil (setq-local visual-fill-column-width 120) (visual-line-mode 1) (visual-fill-column-mode 1)) | visual-line-mode | visual-fill-column-mode | my/on-gptel-mode |
